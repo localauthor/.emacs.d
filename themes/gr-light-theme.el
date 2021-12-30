@@ -1,4 +1,4 @@
-;;; gr-light-theme.el
+;;; gr-light-theme.el --- A light theme  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -94,6 +94,8 @@
  '(header-line ((default (:inherit (mode-line))) (((type tty)) (:underline (:color foreground-color :style line) :inverse-video nil)) (((class color grayscale) (background light)) (:box nil :foreground "grey20" :background "grey90")) (((class color grayscale) (background dark)) (:box nil :foreground "grey90" :background "grey20")) (((class mono) (background light)) (:underline (:color foreground-color :style line) :box nil :inverse-video nil :foreground "black" :background "white")) (((class mono) (background dark)) (:underline (:color foreground-color :style line) :box nil :inverse-video nil :foreground "white" :background "black"))))
  '(tooltip ((((class color)) (:inherit (variable-pitch) :foreground "black" :background "lightyellow")) (t (:inherit (variable-pitch)))))
 
+ ;; comment out the following
+
  ;; '(mode-line ((((class color) (min-colors 88)) (:foreground "black"
  ;; :background "grey75" :box (:line-width (1 . -1) :color nil :style
  ;; released-button))) (t (:inverse-video t))))
@@ -101,7 +103,12 @@
  '(mode-line-buffer-id ((t (:weight bold))))
  '(mode-line-emphasis ((t (:weight bold))))
 
+
+ ;; comment out the following
+
  ;; '(mode-line-highlight ((((supports :box t) (class color) (min-colors 88)) (:box (:line-width (2 . 2) :color "grey40" :style released-button))) (t (:inherit (highlight)))))
+
+ ;; comment out the following
 
  ;; '(mode-line-inactive
  ;;   ((default (:inherit (mode-line)))
@@ -142,57 +149,57 @@
                            :height 1.1
                            :foreground "black"))))
    `(org-level-4 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
+                           :family "Times New Roman"
                            :height 1.1
                            :foreground "black"))))
    `(org-level-5 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
+                           :family "Times New Roman"
                            :height 1.1
                            :foreground "black"))))
    `(org-level-6 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
+                           :family "Times New Roman"
                            :height 1.1
                            :foreground "black"))))
    `(org-level-7 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
+                           :family "Times New Roman"
                            :height 1.1
                            :foreground "black"))))
    `(org-level-8 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
+                           :family "Times New Roman"
                            :height 1.1
                            :foreground "black"))))
 
 
   ;; `(org-level-2 ((,class (:inherit outline-2
-  ;;                          :family "Franklin Gothic Medium"         
+  ;;                          :family "Franklin Gothic Medium"
   ;;                          :height 150
   ;;                          :foreground "black"))))
   ;;  `(org-level-3 ((,class (:inherit outline-3
-  ;;                          :family "Helvetica"         
+  ;;                          :family "Helvetica"
   ;;                          :height 130
   ;;                          :foreground "black"))))
   ;;  `(org-level-4 ((,class (:inherit outline-4
-  ;;                          :family "Helvetica"         
+  ;;                          :family "Helvetica"
   ;;                          :height 130
   ;;                          :foreground "black"))))
   ;;  `(org-level-5 ((,class (:inherit outline-5
-  ;;                          :family "Helvetica"         
+  ;;                          :family "Helvetica"
   ;;                          :height 130
   ;;                          :foreground "black"))))
   ;;  `(org-level-6 ((,class (:inherit outline-6
-  ;;                          :family "Helvetica"         
+  ;;                          :family "Helvetica"
   ;;                          :height 130
   ;;                          :foreground "black"))))
   ;;  `(org-level-7 ((,class (:inherit outline-7
-  ;;                          :family "Helvetica"         
+  ;;                          :family "Helvetica"
   ;;                          :height 130
   ;;                          :foreground "black"))))
   ;;  `(org-level-8 ((,class (:inherit outline-8
-  ;;                          :family "Helvetica"         
+  ;;                          :family "Helvetica"
   ;;                          :height 130
   ;;                          :foreground "black"))))
   ;;  `(org-level-9 ((,class (:inherit outline-9
-  ;;                          :family "Helvetica"         
+  ;;                          :family "Helvetica"
   ;;                          :height 130
   ;;                          :foreground "black"))))
 
@@ -294,3 +301,7 @@
 
 
 (provide-theme 'gr-light)
+
+(provide 'gr-light-theme)
+
+;;; gr-light-theme.el ends here

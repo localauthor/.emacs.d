@@ -113,11 +113,13 @@
 
 ;;; Basics
 
-;;;; Emacs
+;;; Emacs
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
 (add-to-list 'load-path "~/.emacs.d/my-lisp")
 (add-to-list 'load-path "~/.emacs.d/priv-lisp/")
+
+(require 'priv-variables)
 
 (use-package exec-path-from-shell
   :defer 1

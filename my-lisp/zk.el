@@ -1,5 +1,8 @@
-;;; zk.el --- Functions to setup a Zettelkasten with no backend    -*- lexical-binding: t; -*-
+;;; zk.el --- Functions to setup a Zettelkasten with no backend  -*- lexical-binding: t; -*-
 
+;;; Commentary:
+
+;;; Code:
 
 ;;; Variables
 
@@ -64,6 +67,7 @@ The ID is created using `zk-id-format'."
        list))))
 
 (defun zk--grep-link-list ()
+  "Return list of all links matching 'zk-id-regexp' in all files in 'zk-directory'."
   (let* ((files (directory-files zk-directory t zk-id-regexp))
          (all-ids)
          (file-count 1)
@@ -87,6 +91,7 @@ The ID is created using `zk-id-format'."
     all-ids))
 
 (defun zk--grep-tag-list ()
+  "Return list of tags from all notes in zk directory."
   (let* ((files (shell-command-to-string (concat
                                           "grep -ohir -e '#[a-z0-9]\\+' "
                                           zk-directory " 2>/dev/null")))
@@ -94,7 +99,7 @@ The ID is created using `zk-id-format'."
     (delete-dups list)))
 
 (defun zk--select-file (&optional list)
-  "Wrapper around completing-read to select zk-file from LIST."
+  "Wrapper around `completing-read' to select zk-file from LIST."
   (let* ((list (if list list
                  (directory-files zk-directory t zk-id-regexp)))
          (files (mapcar
@@ -128,7 +133,7 @@ The ID is created using `zk-id-format'."
       (error (format "No file associated with %s" id)))))
 
 (defun zk--parse-file (target file)
-  "Return TARGET, either 'id or 'title, from file.
+  "Return TARGET, either 'id or 'title, from FILE.
 
 A note's title is understood to be the portion of its filename
 following the ID, in the format 'zk-id-regexp', and preceding the
@@ -159,7 +164,7 @@ file extension."
   "Search for and open file containing STR."
   (interactive
    (list (read-string "Search string: ")))
-  (let ((choice 
+  (let ((choice
          (completing-read
           (format "Files containing \"%s\": " str)
           (zk--grep-file-list str) nil t)))
@@ -170,7 +175,8 @@ file extension."
 ;;; Note Functions
 
 (defun zk-new-note (&optional title)
-  "Create a new note, insert link at point, and backlink."
+  "Create a new note, insert link at point, and backlink.
+Optional argument TITLE ."
   (interactive)
   (let* ((orig-id (ignore-errors (zk--current-id)))
          (text (when (use-region-p)
@@ -219,9 +225,8 @@ file extension."
 
 
 (defun zk-rename-note ()
+  "Rename current note and replace original title in header, if found."
   (interactive)
-  ;; set id with cond to account for diff starting points
-  ;; current file; minibuffer?; id at point?
   (let* ((id (zk--current-id))
          (orig-title (zk--parse-id 'title id))
          (new-title (read-string "New title: "))
@@ -231,22 +236,21 @@ file extension."
                     new-title
                     "." zk-file-extension)))
     (save-excursion
-      (rename-file buffer-file-name new-file t)        
+      (rename-file buffer-file-name new-file t)
       (goto-char (point-min))
       (while (re-search-forward orig-title nil t 1)
         (progn
-          (replace-match new-title nil nil)
+          (replace-match new-title)
           (goto-char (point-max))))
       (set-visited-file-name new-file t t))))
-
 
 
 ;;; Insert Link
 
 (defun zk-insert-link (id &optional incl-title)
-  "Insert link to file.
-With prefix-argument, or when INCL-TITLE is non-nil, include the title
-without prompting."
+  "Insert ID link to note using 'completing-read', with prompt to include title.
+With prefix-argument, or when INCL-TITLE is non-nil, include the
+title without prompting."
   (interactive (list (zk--parse-file 'id (zk--select-file))))
   (let* ((pref-arg current-prefix-arg)
          (title (zk--parse-id 'title id)))
@@ -257,15 +261,17 @@ without prompting."
       (insert (format zk-link-format id)))))
 
 
-
 ;;; Search
 
 (defvar zk-search-function 'zk--grep)
 
 (defun zk--grep (string)
+  "Wrapper around 'lgrep' to search for STRING in all notes.
+Opens search results in grep buffer."
   (lgrep string (concat "*." zk-file-extension) zk-directory))
 
 (defun zk-search (string)
+  "Search for STRING using functioin set in 'zk-search-function'."
   (interactive "sSearch: ")
   (funcall zk-search-function string))
 
@@ -274,7 +280,7 @@ without prompting."
 ;;; List Backlinks
 
 (defun zk-backlinks ()
-  "Completing read list of files with links to current file."
+  "Select from list of all notes that link to current note."
   (interactive)
   (let* ((id (zk--current-id))
          (files (zk--grep-file-list id))
@@ -283,23 +289,25 @@ without prompting."
 
 
 
-;;; Tags
+;;; Tag Functions
 
-(defun zk-tag-search ()
-  (interactive)
-  (let ((tag (completing-read "Tag: " (zk--grep-tag-list))))
-    (zk--grep tag)))
+(defun zk-tag-search (tag)
+  "Open grep buffer containing results of search for TAG.
+Select TAG, with completion, from list of all tags in zk notes."
+  (interactive (list (completing-read "Tag: " (zk--grep-tag-list))))
+  (zk--grep tag))
 
-(defun zk-tag-insert ()
-  (interactive)
-  (let ((tag (completing-read "Tag: " (zk--grep-tag-list))))
-    (insert tag)))
-
+(defun zk-tag-insert (tag)
+  "Insert TAG at point.
+Select TAG, with completion, from list of all tags in zk notes."
+  (interactive (list (completing-read "Tag: " (zk--grep-tag-list))))
+  (insert tag))
 
     
 ;;; Find Dead Links and Orphan Notes
 
 (defun zk-list-dead-links ()
+  "Return list of all links with no corresponding note."
   (let* ((all-links (zk--grep-link-list))
          (all-ids (zk--id-list)))
     (remq nil (mapcar
@@ -309,19 +317,20 @@ without prompting."
                all-links))))
 
 (defun zk-list-orphan-notes ()
+  "Return list of notes that no other notes link to."
   (let* ((all-links (zk--grep-link-list))
          (all-ids (zk--id-list)))
     (remq nil (mapcar
                (lambda (x)
                  (when (and (not (member x all-links))
-                            ;; removes Dickinson poem notes
+                            ;; removes ED poem notes
                             (not (eq 0 (string-match "^20201210" x))))
                    x))
                all-ids))))
 
 
-
 ;;; Org-Link Integration
+
 ;; ie, click to follow ZK style links in org-mode
 
 (defun zk-try-follow-id (orig-org-open-at-point &optional arg)
@@ -335,7 +344,6 @@ without prompting."
   (interactive)
   (when (thing-at-point-looking-at zk-id-regexp)
     (find-file (zk--parse-id 'file-path (match-string-no-properties 0)))))
-
 
 
 ;;; Embark Integration
@@ -361,8 +369,6 @@ without prompting."
 
 (add-to-list 'embark-keymap-alist '(zk-file . embark-zk-file-map))
 
-
-
 ;;; Link-Hint Integration
 
 (defun link-hint--zk-id-at-point-p ()
@@ -385,21 +391,23 @@ without prompting."
 
 (push 'link-hint-zk-id link-hint-types)
 
-
-
 ;;; Consult Functions
 
 ;; separate into zk-consult.el
 
-(defun zk-consult-ripgrep (&optional key)
+(defun zk-consult-ripgrep (&optional initial)
+  "Search 'zk-directory' with 'consult-ripgrep'.
+With option for INITIAL input when called non-interactively."
   (interactive "sRipgrep: ")
-  (if key
-      (consult-ripgrep zk-directory (format "%s" key))
+  (if initial
+      (consult-ripgrep zk-directory (format "%s" initial))
     (consult-ripgrep zk-directory)))
 
-(defun zk-consult-grep-search-tag ()
-  (interactive)
-  (let* ((tag (completing-read "Tag: " (zk--grep-tag-list))))
-    (consult-grep zk-directory tag)))
+(defun zk-consult-grep-search-tag (tag)
+  "Search for TAG in 'zk-directory' using 'consult-grep'.
+Select TAG, with completion, from list of all tags in zk notes."
+  (interactive (list completing-read "Tag: " (zk--grep-tag-list)))
+  (consult-grep zk-directory tag))
 
 (provide 'zk)
+;;; zk.el ends here
