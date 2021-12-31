@@ -112,8 +112,7 @@
 ;;   (org-babel-load-file (expand-file-name "~/Dropbox/org/myinit.org")))
 
 ;;; Basics
-
-;;; Emacs
+;;;; Emacs
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
 (add-to-list 'load-path "~/.emacs.d/my-lisp")
@@ -244,6 +243,9 @@
   (global-set-key [remap eval-last-sexp] 'pp-eval-last-sexp)
 
   )
+
+(use-package hydra
+  :defer t)
 
 
 ;;;; Faces / Themes Setup
@@ -598,13 +600,7 @@ color."
            ;; ("C-c" . 'flyspell-popup-correct)
            ("C-c" . 'flyspell-auto-correct-previous-word))
 
-
-;;;; hydra
-
-(use-package hydra
-  :defer t)
-
-;;;; gr/symbol-menu
+;;;;; gr/symbol-menu
 
 (defhydra gr/symbol-menu (:hint nil :color blue)
   "
@@ -3035,6 +3031,14 @@ following the key as group 3."
     ("S" ebib-isbn-search)
     ("s" crossref-lookup)
     ("q" nil))
+
+  (defun ebib-open ()
+    "Open ebib and set up frame."
+    (interactive)
+    (select-frame (make-frame-command))
+    (ebib)
+    (set-frame-size (selected-frame) 150 46)
+    (set-frame-position (selected-frame) 150 80))
   
   (defun ebib-smart-quit ()
     "Cancels filter or quits."
@@ -3049,11 +3053,6 @@ following the key as group 3."
     (interactive (list (read-string "Search for ISBN: ")))
     (browse-url (format "https://isbnsearch.org/search?s=%s"
                         (url-encode-url text))))
-  
-  (defun ebib-citar-open ()
-    (interactive)
-    (let ((key (list (ebib--get-key-at-point))))
-      (citar-open (citar--ensure-entries key))))
   
   (defun gr/bibtex-generate-autokey ()
     "Generate automatically a key for a BibTeX entry.
@@ -3079,8 +3078,38 @@ Includes duplicate handling."
       new-key))
   
   (advice-add 'bibtex-generate-autokey :override #'gr/bibtex-generate-autokey)
+
+  (defun ebib-citar-open ()
+    (interactive)
+    (let ((key (list (ebib--get-key-at-point))))
+      (citar-open (citar--ensure-entries key))))
+
+  (defun embark-target-ebib-citar-key-at-point ()
+  "Target citar-key of current ebib entry."
+  (when (or (derived-mode-p 'ebib-index-mode 'ebib-entry-mode))
+    (let ((ebib-key (ebib--get-key-at-point)))
+      `(citar-key ,ebib-key))))
+
+  (add-to-list 'embark-target-finders 'embark-target-ebib-citar-key-at-point)
+
+  (defun embark-target-ebib-citar-key-minibuffer ()
+    "Target citar-key in ebib completion candidate.
+
+Note: This target only works on default-completion candidates. It
+will therefore work with 'vertico', 'MCT', and others, but not with
+'selectrum' or 'ivy', since 'ebib' removes the key from
+candidates displayed with those UIs."
+    (when (eq embark--command 'ebib-jump-to-entry)
+      (let* ((selected (cond ((bound-and-true-p vertico-mode)
+                              (cdr (embark--vertico-selected)))
+                             (t (thing-at-point 'line t))))
+             (ebib-key (car (split-string-and-unquote selected " "))))
+        `(citar-key ,ebib-key))))
+
+  (add-to-list 'embark-target-finders 'embark-target-ebib-citar-key-minibuffer)
   
   )
+
 
 ;;;; biblio / sci-hub
 
@@ -3170,7 +3199,7 @@ Includes duplicate handling."
     "
   _h h_: Inbox     _i_: Insert Link  _N_: New Note    _o_: Open Link    _B r_: Insert Ref
   _h s_: Strct Nts _c_: Insert Cite  _f_: Find File   _d_: dir ripgrep  _B b_: Insert Bib
-  _h i_: Index     _b_: Backlinks    _r_: zk ripgrep  _R_: Rename Note  _e_: ebib-hydra
+  _h i_: Index     _b_: Backlinks    _r_: zk ripgrep  _R_: Rename Note  _e_: ebib
   "
 
     ("h h" (lambda () (interactive) (zk-find-file-by-id "201801190001")))
@@ -3179,7 +3208,7 @@ Includes duplicate handling."
     ("N" zk-new-note)
     ("R" zk-rename-note)
     ("i" zk-insert-link)
-    ("e" hydra-ebib/body)
+    ("e" ebib-open)
     ("B b" gr/append-bibliography)
     ("B r" gr/citar-insert-reference)
     ("B p" pullbib-pull)
