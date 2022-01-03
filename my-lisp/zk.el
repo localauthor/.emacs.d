@@ -1,13 +1,58 @@
-;;; zk.el --- Functions to setup a Zettelkasten with no backend  -*- lexical-binding: t; -*-
+;;; zk.el --- Functions to deal with link-connected notes, with no backend -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
+;; This set of functions aims to implement many (but not all) of the features
+;; of the package 'Zetteldeft' while circumventing and eliminating that
+;; package's dependency on 'Deft'. It also eschews the use of any backend
+;; cache or database, preferring instead to query a directory of notes
+;; directly, thereby treating and utiliziing that directory as a sufficient
+;; database unto itself.
+
+;; To that end, these functions rely, at the lowest level, on simple calls to
+;; 'grep', which returns lists of files, links, and tags to
+;; 'completing-read', from which existing files can be opened and links and
+;; tags can be inserted into an open buffer.
+
+;; The primary connector between notes is the simple link, which takes the
+;; form of an ID number enclosed in double-brackets, eg, [[202012091130]]. A
+;; note's ID number, by default, is a twelve-digit string corresponding to
+;; the date and time the note was originally created. For example, a note
+;; created on December 9th, 2020 at 11:30 would have the ID "202012091130".
+;; Linking to such note involves nothing more than placing the string
+;; [[202012091130]] into another note in the directory.
+
+;; A note's filename is constructed as follows: the ID number followed by the
+;; title of the note followed by the file extension, e.g. "202012091130 On
+;; the origin of species.txt". A key consequence of this ID/linking scheme is
+;; that a note's title can change without any existing links to the note
+;; being broken, wherever they might be throughout the directory.
+
+;; The directory is a single folder containing all notes.
+
+;; The structural simplicity of this set of functions is---one hopes---in
+;; line with the structural simplicity of the so-called "Zettelkasten
+;; method," of which much can be read in many places, including at
+;; https://www.zettelkasten.de.
+
+;; There are several ways to follow links. The most basic way, which works in
+;; any mode, is to simply call the function 'zk-follow-id-at-point' with the
+;; point on an ID. This function could be bound to a convenient key. Other
+;; ways of following links rely on external packages. If notes are in
+;; 'org-mode', load the file 'zk-org.el' to enable click-to-follow links. If
+;; 'embark' is installed, load 'zk-embark.el' to enable 'embark-act' to
+;; target links at point as well as filenames in a completion interface. If 'link-hint' is installed, load 'zk-link-hint.el' 
+
+
 ;;; Code:
+
+(require 'grep)
+
 
 ;;; Variables
 
-(defvar zk-directory "~/Dropbox/Zettelkasten/Zettels")
-(defvar zk-file-extension "md")
+(defvar zk-directory nil)
+(defvar zk-file-extension nil)
 (defvar zk-id-regexp "[0-9]\\{12\\}")
 (defvar zk-id-format "%Y%m%d%H%M")
 (defvar zk-insert-link-format "[%s] [[%s]]")
@@ -148,18 +193,20 @@ file extension."
     (match-string return file)))
 
 
-
 ;;; Find File
 
+;;;###autoload
 (defun zk-find-file-by-title ()
   "Search for title and open file in 'zk-directory'."
   (interactive)
   (find-file (zk--select-file)))
 
+;;;###autoload
 (defun zk-find-file-by-id (id)
   "Open file associated with ID."
   (find-file (zk--parse-id 'file-path id)))
 
+;;;###autoload
 (defun zk-find-file-by-full-text-search (str)
   "Search for and open file containing STR."
   (interactive
@@ -171,14 +218,15 @@ file extension."
     (find-file choice)))
 
 
-
 ;;; Note Functions
 
+;;;###autoload
 (defun zk-new-note (&optional title)
   "Create a new note, insert link at point, and backlink.
 Optional argument TITLE ."
   (interactive)
-  (let* ((orig-id (ignore-errors (zk--current-id)))
+  (let* ((new-id (zk--generate-id))
+         (orig-id (ignore-errors (zk--current-id)))
          (text (when (use-region-p)
                  (buffer-substring
                   (region-beginning)
@@ -195,7 +243,8 @@ Optional argument TITLE ."
          (body (when (use-region-p)
                  (with-temp-buffer
                    (insert text)
-                   (goto-line 3)
+                   (goto-char (point-min))
+                   (forward-line 2)
                    (push-mark)
                    (goto-char (point-max))
                    (buffer-substring
@@ -205,7 +254,6 @@ Optional argument TITLE ."
            (setq title (read-string "Note title: ")))
           (new-title
            (setq title new-title)))
-    (setq new-id (zk--generate-id))
     (when (use-region-p)
       (kill-region (region-beginning) (region-end)))
     (when orig-id
@@ -229,7 +277,7 @@ Optional argument TITLE ."
   (interactive)
   (let* ((id (zk--current-id))
          (orig-title (zk--parse-id 'title id))
-         (new-title (read-string "New title: "))
+         (new-title (read-string "New title: " orig-title))
          (new-file (concat
                     zk-directory "/"
                     id " "
@@ -247,6 +295,7 @@ Optional argument TITLE ."
 
 ;;; Insert Link
 
+;;;###autoload
 (defun zk-insert-link (id &optional incl-title)
   "Insert ID link to note using 'completing-read', with prompt to include title.
 With prefix-argument, or when INCL-TITLE is non-nil, include the
@@ -268,26 +317,22 @@ title without prompting."
 (defun zk--grep (string)
   "Wrapper around 'lgrep' to search for STRING in all notes.
 Opens search results in grep buffer."
-  (lgrep string (concat "*." zk-file-extension) zk-directory))
+  (lgrep string (concat "*." zk-file-extension) zk-directory nil))
 
 (defun zk-search (string)
-  "Search for STRING using functioin set in 'zk-search-function'."
+  "Search for STRING using function set in 'zk-search-function'."
   (interactive "sSearch: ")
   (funcall zk-search-function string))
-
-
 
 ;;; List Backlinks
 
 (defun zk-backlinks ()
-  "Select from list of all notes that link to current note."
+  "Select from list of all notes that link to the current note."
   (interactive)
   (let* ((id (zk--current-id))
          (files (zk--grep-file-list id))
-         (choice (zk--select-file files)))
+         (choice (zk--select-file (remove (zk--parse-id 'file-path id) files))))
     (find-file choice)))
-
-
 
 ;;; Tag Functions
 
@@ -329,25 +374,35 @@ Select TAG, with completion, from list of all tags in zk notes."
                all-ids))))
 
 
-;;; Org-Link Integration
+;;; Follow ID at Point
 
-;; ie, click to follow ZK style links in org-mode
-
-(defun zk-try-follow-id (orig-org-open-at-point &optional arg)
-  (condition-case nil
-      (apply orig-org-open-at-point arg)
-    (error (zk-follow-id))))
-
-(advice-add 'org-open-at-point :around #'zk-try-follow-id)
-
-(defun zk-follow-id ()
+(defun zk-follow-id-at-point ()
   (interactive)
   (when (thing-at-point-looking-at zk-id-regexp)
     (find-file (zk--parse-id 'file-path (match-string-no-properties 0)))))
 
 
+
+;;; Org-Link Integration
+
+;; adds click-to-follow links in org-mode
+
+(require 'org)
+
+(defun zk-try-to-follow-id (orig-org-open-at-point &optional arg)
+  (condition-case nil
+      (apply orig-org-open-at-point arg)
+    (error (zk-follow-id-at-point))))
+
+(advice-add 'org-open-at-point :around #'zk-try-to-follow-id)
+
+
+
 ;;; Embark Integration
 
+(require 'embark)
+
+;;;###autoload
 (defun embark-target-zk-id-at-point ()
   "Target zk-id at point."
   (when (thing-at-point-looking-at zk-id-regexp)
@@ -357,19 +412,26 @@ Select TAG, with completion, from list of all tags in zk notes."
 (add-to-list 'embark-target-finders 'embark-target-zk-id-at-point)
 
 (embark-define-keymap embark-zk-id-map
-  "Keymap for Embark comment actions."
-  ("RET" zk-find-file-by-id)
+  "Keymap for Embark zk-id actions
+To be used on zk-ids at point in buffers."
+  ("RET" zk-follow-id-at-point)
   ("r" zk-consult-ripgrep))
 
 (add-to-list 'embark-keymap-alist '(zk-id . embark-zk-id-map))
 
 (embark-define-keymap embark-zk-file-map
-  "Keymap for Embark comment actions."
-  ("i" zk-insert-link))
+  "Keymap for Embark zk-file actions.
+To be used in the context of filename completion, as in the minibuffer."
+  ("i" zk-insert-link)
+  ("f" zk-find-file-by-title))
 
 (add-to-list 'embark-keymap-alist '(zk-file . embark-zk-file-map))
 
+
+
 ;;; Link-Hint Integration
+
+(require 'link-hint)
 
 (defun link-hint--zk-id-at-point-p ()
   (thing-at-point-looking-at zk-id-regexp))
@@ -378,20 +440,20 @@ Select TAG, with completion, from list of all tags in zk notes."
   (link-hint--next-regexp zk-id-regexp bound))
 
 (defun link-hint--open-zk-id ()
-  (zk-follow-id))
-
-(define-link-hint-aw-select zk-id zk-follow-id)
+  (zk-follow-id-at-point))
 
 (link-hint-define-type 'zk-id
   :next #'link-hint--next-zk-id
   :at-point-p #'link-hint--zk-id-at-point-p
   :open #'link-hint--open-zk-id
-  :copy #'kill-new
-  :aw-select #'link-hint--aw-select-zk-id)  ;; not working
+  :copy #'kill-new)
 
 (push 'link-hint-zk-id link-hint-types)
 
+
 ;;; Consult Functions
+
+(require 'consult)
 
 ;; separate into zk-consult.el
 
@@ -406,8 +468,10 @@ With option for INITIAL input when called non-interactively."
 (defun zk-consult-grep-search-tag (tag)
   "Search for TAG in 'zk-directory' using 'consult-grep'.
 Select TAG, with completion, from list of all tags in zk notes."
-  (interactive (list completing-read "Tag: " (zk--grep-tag-list)))
+  (interactive (list (completing-read "Tag: " (zk--grep-tag-list))))
   (consult-grep zk-directory tag))
+
+
 
 (provide 'zk)
 ;;; zk.el ends here
