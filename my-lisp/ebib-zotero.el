@@ -1,19 +1,21 @@
 ;;; ebib-zotero.el --- Integrate Zotero import into ebib.el     -*- lexical-binding: t; -*-
 
+;;; Commentary:
+;;
 ;; adapted from https://github.com/tshu-w/.emacs.d/lisp/lang-latex.el
+;;
 ;; originally https://github.com/joostkremers/ebib/issues/220
+
+
+;;; Code:
 
 (defcustom ebib-zotero-translation-server "https://translate.manubot.org"
   "The address of Zotero translation server."
   :group 'ebib
   :type 'string)
 
-(defun ebib-zotero-server-p ()
-  (unless (string-empty-p (shell-command-to-string "pgrep 'node'"))
-    t))
-
 (defun ebib-zotero-translate (item server-path &optional export-format)
-  "Convert item to EXPORT-FORMAT entry through `ebib-zotero-translation-server'."
+  "Convert ITEM to EXPORT-FORMAT entry through `ebib-zotero-translation-server'."
   (let ((export-format (or export-format
                            (downcase (symbol-name (intern-soft bibtex-dialect))))))
       (shell-command-to-string
@@ -28,18 +30,26 @@ The entry is stored in the current database."
       (insert (ebib-zotero-translate url "web"))
       (ebib-import-entries ebib--cur-db)))
 
-  (defun ebib-zotero-import-identifier (identifier)
-    "Fetch a entry from zotero translation server via an IDENTIFIER.
+(defun ebib-zotero-import-identifier (identifier)
+  "Fetch a entry from zotero translation server via an IDENTIFIER.
 The entry is stored in the current database,
 and the identifier can be DOI, ISBN, PMID, or arXiv ID."
-    (interactive "MDOI or ISBN: ")
+  (interactive "MDOI or ISBN: ")
+  (let (entry-type key)
+    (kill-new identifier)
     (unless (get-buffer "*Ebib-entry*") ;; check that ebib is running
       (ebib))
     (with-temp-buffer
       (insert (ebib-zotero-translate identifier "search"))
-      (ebib-import-entries ebib--cur-db)))
-  ;; (progn
-  ;;   (ebib)
-  ;;   (ebib-goto-last-field)))
+      (goto-char (point-min))
+      (setq entry-type (ebib--bib-find-next-bibtex-item))
+      (setq key (cdr (assoc-string "=key=" (parsebib-read-entry entry-type))))
+      (ebib-import-entries ebib--cur-db))
+    (progn
+      (ebib)
+      (ebib--goto-entry-in-index key)
+      (ebib-generate-autokey))))
 
 (provide 'ebib-zotero)
+
+;;; ebib-zotero.el ends here
