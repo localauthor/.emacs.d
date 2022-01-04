@@ -1,7 +1,7 @@
 ;;; link-hint-aw-select-el --- Add aw-select function to link-hint    -*- lexical-binding: t; -*-
 
 ;; Incorporates 'aw-select' into 'link-hint', allowing for the selection of a
-;; window in whichto open the target link.
+;; window in which to open the target link.
 
 (require 'link-hint)
 
@@ -29,8 +29,9 @@
 :aw-select #'link-hint--aw-select-file-link)
 
 (defun link-hint--aw-select-file-link (link)
-(aw-switch-to-window (aw-select nil))
-(find-file link))
+  (let ((aw-dispatch-function #'ignore))
+    (aw-switch-to-window (aw-select nil))
+    (find-file link)))
 
 ;;; macro for similar types
 
@@ -39,16 +40,17 @@
      (link-hint-define-type ',link-type
        :aw-select #',(intern (concat "link-hint--aw-select-" (symbol-name link-type))))
      (defun ,(intern (concat "link-hint--aw-select-" (symbol-name link-type))) (link)
-       (if (> (length (aw-window-list)) 1)
-           (let ((window (aw-select nil))
-                 (buffer (current-buffer))
-                 (new-buffer))
-             (,fn)
-             (setq new-buffer (current-buffer))
-             (switch-to-buffer buffer)
-             (aw-switch-to-window window)
-             (switch-to-buffer new-buffer))
-         (link-hint-open-link-at-point)))))
+       (let ((aw-dispatch-function 'ignore))
+         (if (> (length (aw-window-list)) 1)
+             (let ((window (aw-select nil))
+                   (buffer (current-buffer))
+                   (new-buffer))
+               (,fn)
+               (setq new-buffer (current-buffer))
+               (switch-to-buffer buffer)
+               (aw-switch-to-window window)
+               (switch-to-buffer new-buffer))
+           (link-hint-open-link-at-point))))))
 
 (define-link-hint-aw-select button push-button)
 (define-link-hint-aw-select org-link org-open-at-point)
