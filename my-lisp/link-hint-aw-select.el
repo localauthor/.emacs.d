@@ -1,7 +1,11 @@
-;;; link-hint-aw-select-el --- Add aw-select function to link-hint    -*- lexical-binding: t; -*-
+;;; link-hint-aw-select-el --- Add aw-select function to link-hint -*- lexical-binding: t; -*-
+
+;;; Commentary:
 
 ;; Incorporates 'aw-select' into 'link-hint', allowing for the selection of a
 ;; window in which to open the target link.
+
+;;; Code:
 
 (require 'link-hint)
 
@@ -14,7 +18,7 @@
 
 (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)
 
-;;; general command
+;;; General command
 
 ;;;###autoload
 (defun link-hint-aw-select ()
@@ -23,24 +27,29 @@
   (avy-with link-hint-aw-select
     (link-hint--one :aw-select)))
 
-;;; file-link support
+;;; File-link support
 
 (link-hint-define-type 'file-link
 :aw-select #'link-hint--aw-select-file-link)
 
+;; (defun link-hint--aw-select-file-link (link)
+;;   (let ((aw-dispatch-function #'ignore))
+;;     (aw-switch-to-window (aw-select nil))
+;;     (find-file link)))
+
 (defun link-hint--aw-select-file-link (link)
-  (let ((aw-dispatch-function #'ignore))
+  (with-demoted-errors "%s"
     (aw-switch-to-window (aw-select nil))
     (find-file link)))
 
-;;; macro for similar types
+;;; Macro for similar types
 
 (defmacro define-link-hint-aw-select (link-type fn)
   `(progn
      (link-hint-define-type ',link-type
        :aw-select #',(intern (concat "link-hint--aw-select-" (symbol-name link-type))))
      (defun ,(intern (concat "link-hint--aw-select-" (symbol-name link-type))) (link)
-       (let ((aw-dispatch-function 'ignore))
+       (with-demoted-errors "%s"
          (if (> (length (aw-window-list)) 1)
              (let ((window (aw-select nil))
                    (buffer (current-buffer))

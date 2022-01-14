@@ -30,10 +30,29 @@ The entry is stored in the current database."
       (insert (ebib-zotero-translate url "web"))
       (ebib-import-entries ebib--cur-db)))
 
+(defun ebib-zotero-import-url (identifier)
+    "Fetch a entry from zotero translation server via a URL.
+The entry is stored in the current database."
+  (interactive "MURL: ")
+  (let (entry-type key)
+    (kill-new identifier)
+    (unless (get-buffer "*Ebib-entry*") ;; check that ebib is running
+      (ebib))
+    (with-temp-buffer
+      (insert (ebib-zotero-translate identifier "web"))
+      (goto-char (point-min))
+      (setq entry-type (ebib--bib-find-next-bibtex-item))
+      (setq key (cdr (assoc-string "=key=" (parsebib-read-entry entry-type))))
+      (ebib-import-entries ebib--cur-db))
+    (ebib-open)
+    (ebib--goto-entry-in-index key)
+    (ebib-generate-autokey)
+    (ebib--update-entry-buffer)))
+
 (defun ebib-zotero-import-identifier (identifier)
   "Fetch a entry from zotero translation server via an IDENTIFIER.
-The entry is stored in the current database,
-and the identifier can be DOI, ISBN, PMID, or arXiv ID."
+The entry is stored in the current database, and the identifier
+can be DOI, ISBN, PMID, or arXiv ID."
   (interactive "MDOI or ISBN: ")
   (let (entry-type key)
     (kill-new identifier)
@@ -45,10 +64,10 @@ and the identifier can be DOI, ISBN, PMID, or arXiv ID."
       (setq entry-type (ebib--bib-find-next-bibtex-item))
       (setq key (cdr (assoc-string "=key=" (parsebib-read-entry entry-type))))
       (ebib-import-entries ebib--cur-db))
-    (progn
-      (ebib)
-      (ebib--goto-entry-in-index key)
-      (ebib-generate-autokey))))
+    (ebib-open)
+    (ebib--goto-entry-in-index key)
+    (ebib-generate-autokey)
+    (ebib--update-entry-buffer)))
 
 (provide 'ebib-zotero)
 

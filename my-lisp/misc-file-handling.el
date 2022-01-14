@@ -58,6 +58,12 @@ Optional initial INPUT."
                list)
               list))
 
+(defun gr/pretty-file-alist (list)
+;; embark actions don't work on files in this list, bc they are not full paths
+  (cl-pairlis (mapcar 'file-name-nondirectory list) list))
+
+
+
 ;; (defun gr/find-file-recursively (dir)
 ;;   "Open file from DIR in external application.
 ;; Ignores .git directories and .DS_STORE files."

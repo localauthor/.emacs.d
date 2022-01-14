@@ -8,7 +8,9 @@
         ("r" . gr/elfeed-mark-as-read)
         ("g" . elfeed-search-update--force)
         ("m" . elfeed-toggle-star)
-        ("b" . gr/elfeed-show-xwwp))
+        ("e" . gr/elfeed-show-eww)
+        ("M-v" . golden-ratio-scroll-screen-down)
+        ("b" . gr/elfeed-show-xwidget))
   (:map elfeed-search-mode-map
         ("RET" . gr/elfeed-search-show-entry)
         ("q" . bjm/elfeed-save-db-and-bury)
@@ -22,7 +24,7 @@
         ("b" . (lambda () (interactive) (call-interactively 'gr/elfeed-search-show-entry) (gr/elfeed-show-xwwp))))
   :config
   (setq elfeed-db-directory "~/Dropbox/.elfeeddb")
-  (setq elfeed-search-filter "@6-months-ago +unread -journal")
+  (setq elfeed-search-filter "@6-months-ago +unread -journal -filtered")
   (setq elfeed-search-remain-on-entry t)
   (setq elfeed-show-entry-switch 'display-buffer)
 
@@ -103,9 +105,9 @@
   (let ((browse-url-browser-function 'eww-browse-url))
     (elfeed-show-visit)))
 
-(defun gr/elfeed-show-xwwp ()
+(defun gr/elfeed-show-xwidget ()
   (interactive)
-  (let ((browse-url-browser-function 'xwwp))
+  (let ((browse-url-browser-function 'xwidget-webkit-browse-url))
     (elfeed-show-visit)
     (delete-windows-on "*elfeed-entry*")))
 

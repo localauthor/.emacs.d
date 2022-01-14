@@ -13,6 +13,15 @@
 (defvar gr/mmd-citation-regexp "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]")
 (defvar gr/full-mmd-citation-regex "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]\\)")
 
+
+;;; add highlighting to mmd-citekeys in org-mode
+
+(font-lock-add-keywords 'org-mode '(("\\[@.*?\\]" . font-lock-keyword-face)
+                                    ("\\[-@.*?\\]" . font-lock-keyword-face)
+                                    ("\\[#.*?\\]" . font-lock-keyword-face)
+                                    ("\\[-#.*?\\]" . font-lock-keyword-face)))
+
+
 ;;; citar integration
 
 (defun gr/citar-mmd-insert-citation (key-entry)
@@ -96,13 +105,13 @@
   "Append formatted bibliography to end of current file.
 Collects mmd-citation keys from current buffer."
   (interactive)
-  (let* ((itemids (gr/list-buffer-mmd-citations))
-         (proc (citeproc-create gr/citar-csl-style
+  (let* ((keys (gr/list-buffer-mmd-citations))
+         (proc (citeproc-create (concat citar-citeproc-csl-styles-dir "/" citar-citeproc-csl-style)
                                 (citeproc-itemgetter-from-bibtex citar-bibliography)
                                 (citeproc-locale-getter-from-dir org-cite-csl-locales-dir)
                                 "en-US"))
          (rendered-citations (progn
-                               (citeproc-add-uncited itemids proc)
+                               (citeproc-add-uncited keys proc)
                                (citeproc-render-bib proc 'plain))))
     (goto-char (point-max))
     (insert (concat "\n* Bibliography\n\n" (car rendered-citations)))

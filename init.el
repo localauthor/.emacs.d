@@ -1,4 +1,4 @@
-;;; Init
+;;; init.el                    -*- lexical-binding: t; -*-
 
 ;; Make startup faster by reducing the frequency of garbage
 ;; collection.  The default is 800 kilobytes.  Measured in bytes.
@@ -44,8 +44,7 @@
 ;; (add-to-list 'package-archives
 ;;              '("melpa" . "https://melpa.org/packages/"))
 
-;; Debug if there's an error during setup. We turn this back off at the end of
-;; the file.
+;; Debug if there's an error during setup. Set to nil at end of init.el
 (setq debug-on-error t)
 
 (setq load-prefer-newer t)
@@ -80,7 +79,7 @@
         (eval face-remap-add-relative 'org-level-2 :height 140)
         (eval face-remap-add-relative 'org-level-1 :height 150)
         (checkdoc-package-keywords-flag)
-        (projectile-project-name . "ZK")
+        (dired-omit-size-limit)
         (org-confirm-babel-evaluate)
         (eval progn
               (pp-buffer)
@@ -88,7 +87,6 @@
         (eval face-remap-add-relative 'default :family "Monospace" :height 130)
         (eval remove-from-invisibility-spec '(org-link))))
 
-;; figure out when to load org, so that the right version gets loaded first, before any org related functions are called/loaded or whatever.... ahhhh
 ;;(straight-use-package '(org-plus-contrib :includes org))
 
 ;; the following sets the recipe used for org
@@ -116,7 +114,9 @@
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
 (add-to-list 'load-path "~/.emacs.d/my-lisp")
-(add-to-list 'load-path "~/.emacs.d/priv-lisp/")
+(add-to-list 'load-path "~/.emacs.d/priv-lisp")
+
+(setq elisp-flymake-byte-compile-load-path load-path)
 
 (require 'priv-variables)
 
@@ -226,11 +226,11 @@
   (setq trash-directory "~/.Trash")
 
   (when (memq window-system '(mac ns))
-    (defun system-move-file-to-trash (path)
-      "Moves file at PATH to the macOS Trash according to `move-file-to-trash' convention.
+    (defun nsystem-move-file-to-trash (path)
+      "Moves file at PATH to  macOS Trash following `move-file-to-trash' convention.
 
-               Relies on the command-line utility 'trash' to be installed.
-               Get it from:  <http://hasseg.org/trash/>"
+      Relies on the command-line utility 'trash' to be installed.
+      Get it from:  <http://hasseg.org/trash/>"
       (shell-command (concat "trash -vF \"" path "\""
                              "| sed -e 's/^/Trashed: /'")
                      nil ;; Name of output buffer
@@ -281,19 +281,6 @@ color."
 
 ;; Fix for current frames
 (mapc #'fix-mac-region-colors (frame-list))
-
-;; add highlighting to mmd-citekeys in org-mode
-(font-lock-add-keywords 'org-mode '(("\\[@.*?\\]" . font-lock-keyword-face)))
-(font-lock-add-keywords 'org-mode '(("\\[-@.*?\\]" . font-lock-keyword-face)))
-(font-lock-add-keywords 'org-mode '(("\\[#.*?\\]" . font-lock-keyword-face)))
-(font-lock-add-keywords 'org-mode '(("\\[-#.*?\\]" . font-lock-keyword-face)))
-
-;; this doesn't work, do don't know why
-;; (dolist (reg '("\\[@.*?\\]"
-;;                "\\[-@.*?\\]"
-;;                "\\[#.*?\\]"
-;;                "\\[-#.*?\\]"))
-;;   (font-lock-add-keywords 'org-mode '(((reg . font-lock-keyword-face)))))
 
 (setq org-hide-emphasis-markers nil)
 
@@ -490,10 +477,10 @@ color."
 
         ("\\*Pp Eval Output"
          (display-buffer-at-bottom)
-         (window-height . 0.3)
+         (window-height . 0.38)
          (side . bottom))
 
-        ("\\*\\(Backtrace\\|Messages\\|Metahelp\\|Python\\|Org Agenda\\|Warnings\\|Go Translate\\|Google Translate\\|Org Select\\|Compile-Log\\|[Hh]elp\\|annotations\\|calfw-details\\)\\*"
+        ("\\*\\(eshell\\|Backtrace\\|Messages\\|Metahelp\\|Python\\|Org Agenda\\|Warnings\\|Go Translate\\|Google Translate\\|Org Select\\|Compile-Log\\|[Hh]elp\\|annotations\\|calfw-details\\)\\*"
          (display-buffer-at-bottom)
          (window-height . 0.38)
          (side . bottom))
@@ -550,7 +537,10 @@ color."
   (switch-to-buffer-other-window args))
 
 
-;;;; gr-map
+;;;; gr-functions and gr-map
+
+(use-package gr-functions
+  :straight nil)
 
 (define-prefix-command 'gr-map)
 
@@ -595,7 +585,8 @@ color."
            ("n" . hydra-annotate/body)
            ("s" . hydra-mac-speak/body)
            ("L" . toggle-truncate-lines)
-           ("d" . gr/lookup-word-at-point)
+           ("D" . gr/lookup-word-at-point)
+           ("d" . sdcv-search)
            ("P" . password-store-copy-field)
            ;; ("C-c" . 'flyspell-popup-correct)
            ("C-c" . 'flyspell-auto-correct-previous-word))
@@ -631,6 +622,11 @@ Symbols and Diacritics
   :custom
   (link-hint-message nil))
 
+(use-package link-hint-aw-select
+  :straight nil)
+  ;; :demand t
+  ;; :commands (link-hint-aw-select))
+
 ;;;; diminish
 
 (use-package diminish
@@ -646,7 +642,6 @@ Symbols and Diacritics
 
 
 ;;; Org
-
 ;;;; org straight.el setup
 
 ;; https://github.com/raxod502/straight.el/blob/develop/README.md#installing-org-with-straightel
@@ -814,6 +809,9 @@ Symbols and Diacritics
       (kill-new filename)
       (message "Copied buffer file name '%s' to the clipboard." filename))))
 
+(require 'org-agenda-setup)
+(require 'org-capture-setup)
+(require 'org-gcal-setup)
 
 ;;;; org move item/heading up/do
 
@@ -1221,7 +1219,7 @@ direct children of this heading."
   (org-journal-calendar-entry-face ((t (:underline t :weight bold))))
   :custom
   (org-journal-enable-agenda-integration t)
-  (org-journal-dir "~/Dropbox/org/journal/")
+  (org-journal-dir "~/Dropbox/Writings/journal/")
   (org-journal-file-header "#+TITLE: %B %Y Journal\n#+STARTUP: folded")
   (org-journal-file-type 'monthly)
   (org-journal-date-format "%A, %B %d, %Y")
@@ -1295,7 +1293,6 @@ parent."
 
 
 ;;; Completion
-
 ;;;; vertico
 
 (use-package vertico
@@ -1386,23 +1383,20 @@ parent."
   :after (embark consult)
   :demand t ; only necessary if you have the hook below
   :hook
-  (embark-collect-mode-hook . embark-consult-preview-minor-mode)
-  :config
+  (embark-collect-mode-hook . consult-preview-at-point-mode))
 
-  ;; from https://karthinks.com/software/fifteen-ways-to-use-embark/
-  (eval-when-compile
-    (defmacro my/embark-ace-action (fn)
-      `(defun ,(intern (concat "my/embark-ace-" (symbol-name fn))) ()
-         (interactive)
-         (with-demoted-errors "%s"
-           (require 'ace-window)
-           (aw-switch-to-window (aw-select nil))
-           (call-interactively (symbol-function ',fn)))))
+;; from https://karthinks.com/software/fifteen-ways-to-use-embark/
+(eval-when-compile
+  (defmacro embark-aw-select (fn)
+    `(defun ,(intern (concat "embark-aw-select-" (symbol-name fn))) ()
+       (interactive)
+       (with-demoted-errors "%s"
+         (aw-switch-to-window (aw-select nil))
+         (call-interactively (symbol-function ',fn)))))
 
-    (define-key embark-file-map (kbd "j") (my/embark-ace-action find-file))
-    (define-key embark-buffer-map (kbd "j") (my/embark-ace-action switch-to-buffer))
-    (define-key embark-bookmark-map (kbd "j") (my/embark-ace-action bookmark-jump))
-    )
+  (define-key embark-file-map (kbd "o") (embark-aw-select find-file))
+  (define-key embark-buffer-map (kbd "o") (embark-aw-select switch-to-buffer))
+  (define-key embark-bookmark-map (kbd "o") (embark-aw-select bookmark-jump))
   )
 
 ;; embark action to attach file to email message
@@ -1442,7 +1436,7 @@ there, otherwise you are prompted for a message buffer."
 (add-to-list 'embark-keymap-alist '(this-buffer . this-buffer-map))
 
 (push 'embark--allow-edit
-      (alist-get 'write-file embark-setup-action-hooks))
+      (alist-get 'write-file embark-target-injection-hooks))
 
 (embark-define-keymap this-buffer-map
   "Commands to act on current file or buffer."
@@ -1501,7 +1495,6 @@ there, otherwise you are prompted for a message buffer."
   (consult-async-split-style 'semicolon)
 
   :config
-  (setq consult-narrow-key "<")
 
   ;; Set consult-preview-key for certain functions
   (consult-customize
@@ -1509,7 +1502,7 @@ there, otherwise you are prompted for a message buffer."
    consult-bookmark consult--source-buffer consult-recent-file consult-xref
    consult--source-file consult--source-project-file consult--source-bookmark
    :preview-key (list (kbd "M-[")
-                      :debounce 3 'any))
+                      :debounce 1.5 'any))
 
   (setq consult-preview-key 'any)
 
@@ -1540,7 +1533,7 @@ there, otherwise you are prompted for a message buffer."
     (unless (bound-and-true-p consult--preview-function) ;; Disable preview for Consult commands
       (save-selected-window
         (let ((embark-quit-after-action))
-          (embark-default-action)))))
+          (embark-dwim)))))
 
   ;; persp-source consult-buffer
 
@@ -1668,7 +1661,7 @@ there, otherwise you are prompted for a message buffer."
     (interactive "P")
     (let ((current-prefix-arg '(4)))
       (call-interactively #'consult-find)))
-  
+
   )
 
 ;;;; consult-dir
@@ -1685,13 +1678,14 @@ there, otherwise you are prompted for a message buffer."
   :config
 
   (defvar consult-dir--source-straight-repos
-  `(:name "Straight repos"
-    :narrow ?s
-    :category file
-    :face consult-file
-    :history file-name-history
-    :items ,#'consult-dir-straight-repos)
-  "Straight repos directory source for `consult-dir--pick'.")
+    `(:name "Straight repos"
+            :narrow ?s
+            :hidden t
+            :category file
+            :face consult-file
+            :history file-name-history
+            :items ,#'consult-dir-straight-repos)
+    "Straight repos directory source for `consult-dir--pick'.")
 
   (defun consult-dir-straight-repos ()
     "Return a list of the straight repos directories."
@@ -1704,7 +1698,6 @@ there, otherwise you are prompted for a message buffer."
        "straight/repos/")
       t
       "^\\([^.]\\|\\.[^.]\\|\\.\\..\\)")))
-
   )
 
 (defun recentd-track-opened-file ()
@@ -1730,7 +1723,6 @@ That is, remove a non kept dired from the recent list."
   :straight (bookmark-view :host github :repo "minad/bookmark-view")
   )
 
-
 ;;;; marginalia
 
 (use-package marginalia
@@ -1742,16 +1734,13 @@ That is, remove a non kept dired from the recent list."
   (marginalia-mode)
   )
 
-
 ;;;; orderless
 
 (use-package orderless
   :init
   (setq completion-styles '(orderless partial-completion initials)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles . (partial-completion)))))
-  )
-
+        completion-category-overrides '((file (styles . (partial-completion initials))))))
 
 ;;;; savehist
 
@@ -1763,13 +1752,57 @@ That is, remove a non kept dired from the recent list."
   )
 
 
+;;;; corfu / cape
+
+(use-package corfu
+  ;; annoyingly finds zk-link after completion
+  :disabled
+  :init (corfu-global-mode 1)
+  :custom
+  (corfu-cycle t)
+  (corfu-auto t)
+  (corfu-auto-delay .7)
+  (corfu-auto-prefix 1)
+  (corfu-quit-no-match .5)
+  (corfu-quit-at-boundary nil)
+  (corfu-preview-current nil)
+  (corfu-commit-predicate nil)
+  :config  
+  (set-face-attribute 'corfu-default nil
+		      :background "cornsilk"
+		      :font "Menlo")
+  (set-face-attribute 'corfu-current nil
+		      :background "light blue"))
+
+(setq read-file-name-completion-ignore-case t
+      read-buffer-completion-ignore-case t
+      completion-ignore-case t)
+
+;; (setq tab-always-indent 'complete)
+
+(use-package cape
+  :disabled
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  :bind (("C-c p p" . completion-at-point) ;; capf
+         ("C-c p t" . complete-tag)        ;; etags
+         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c p f" . cape-file)
+         ("C-c p k" . cape-keyword)
+         ("C-c p s" . cape-symbol)
+         ("C-c p a" . cape-abbrev)
+         ("C-c p i" . cape-ispell)))
+
+
 ;;;; company
 
 (use-package company
-  :defer t
+  :defer t  
   :diminish
   :init
-  (global-company-mode t)
+  (global-company-mode 1)
   :bind
   (:map company-active-map
         ("<return>" . nil)
@@ -1782,19 +1815,23 @@ That is, remove a non kept dired from the recent list."
         ("C-p" . 'company-select-previous-or-abort)
         ("C-<return>" . 'company-complete-common)
         ("C-RET" . 'company-complete-common)
-        ("C-e" . 'company-other-backend))
+        ("C-e" . 'company-other-backend)
+        ("C-s" . 'company-filter-candidates))
   :custom
-  (company-minimum-prefix-length 2)
+  (company-minimum-prefix-length 1)
   (company-selection-wrap-around t)
   (company-tooltip-limit 12)
-  (company-idle-delay 0.5)
+  (company-idle-delay 1)
   (company-echo-delay 0)
   (company-dabbrev-downcase nil)
-  (company-dabbrev-ignore-case nil)
+  (company-dabbrev-ignore-case 'keep-prefix)
+  (company-sort-prefer-same-case-prefix t)
   (company-format-margin-function nil)
-  (company-transformers '(company-sort-by-occurrence))
+  (company-dabbrev-other-buffers t)
+  ;;(company-transformers '(company-sort-by-occurrence))
   :config
-  (setq company-backends '(company-capf company-bbdb company-semantic company-cmake company-clang company-files (company-elisp company-dabbrev-code company-gtags company-etags company-keywords) company-oddmuse company-dabbrev company-yasnippet))
+  (setq company-backends '(company-capf company-bbdb company-files (company-elisp company-dabbrev-code company-gtags company-etags company-keywords) company-dabbrev company-yasnippet))
+  (setq company-files-exclusions '(".git/" ".DS_Store"))
   )
 
 (use-package company-posframe
@@ -1813,7 +1850,7 @@ That is, remove a non kept dired from the recent list."
 
 ;; kills company buffer after completion, to prevent it from showing up when new window is created, like elfeed or mu4e
 (add-hook 'company-after-completion-hook (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
-                                                         (kill-buffer " *company-posframe-buffer*"))))
+(kill-buffer " *company-posframe-buffer*"))))
 
 ;;this function is supposed to sort all completions with uppercase to the end; doesn't work so far
 (defun my-sort-uppercase (candidates)
@@ -1824,7 +1861,7 @@ That is, remove a non kept dired from the recent list."
             (and (string-match-p re s2)
                  (not (string-match-p re s1)))))))
 
-(push 'my-sort-uppercase company-transformers)
+;; (push 'my-sort-uppercase company-transformers)
 
 ;; Add yasnippet support for all company backends
 ;; https://github.com/syl20bnr/spacemacs/pull/179
@@ -1846,49 +1883,52 @@ That is, remove a non kept dired from the recent list."
   :config
   (prescient-persist-mode 1)
   :custom
-  (prescient-aggressive-file-save t)
-  )
+  (prescient-aggressive-file-save t))
 
 (use-package company-prescient
   :config
-  (company-prescient-mode 1)
+  ;;(company-prescient-mode 1)
+  )
+
+;;; Packages
+;;;; magit
+
+(use-package magit
+  :defer 1
+  :bind
+  ("C-c m" . magit-status)
+  :custom-face
+  (diff-refine-added ((t (:background "yellow" :foreground "red"))))
+  :custom
+  (magit-diff-refine-hunk t)
+  )
+
+(setq-default mode-line-format
+              (delete '(vc-mode vc-mode) mode-line-format))
+
+
+;;;; git-gutter
+
+(use-package git-gutter
+  :init
+  (global-git-gutter-mode)
+  :diminish (git-gutter-mode)
+  :config
+  (set-face-foreground 'git-gutter:modified "orange")
+  (set-face-foreground 'git-gutter:added    "forestgreen")
+  (set-face-foreground 'git-gutter:deleted  "red")
+  (set-fringe-mode '(8 . 0))
   )
 
 
+;;;; ace-link
 
-
-;;;; gr/devonthink-dir
-
-(defvar gr/devonthink-dir)
-
-(setq gr/devonthink-dir "~/Databases/Academic Work.dtBase2/Files.noindex/")
-
-(defun gr/devonthink-find-file (key-entry &optional initial)
-  "Search devonthink archive for file, using `consult-find'."
-  (interactive (list (citar-select-ref)))
-  (let ((key (car key-entry)))
-    (if key
-        (consult-find gr/devonthink-dir (format "%s" key))
-      (consult-find gr/devonthink-dir initial))))
-
-;; DevonThink Links
-(org-add-link-type "x-devonthink-item" 'org-devonthink-item-open)
-
-(defun org-devonthink-item-open (uid)
-  "Open the given UID, which is a reference to an item in Devonthink."
-  (shell-command (concat "open \"x-devonthink-item:" uid "\"")))
-
-;; (defun gr/devonthink-find-file (keys-entries)
-;;   "Search devonthink archive for file, using `consult-find'."
-;;   (interactive (list (citar-select-refs :rebuild-cache current-prefix-arg)))
-;;   (kill-new (or (car (citar--extract-keys keys-entries)) ""))
-;;   (minibuffer-with-setup-hook
-;;       'yank
-;;     (define-key embark-file-map (kbd "RET") 'find-file)
-;;     (consult-find gr/devonthink-dir)))
-
-
-;;; Packages
+(use-package ace-link
+  :disabled
+  :defer t
+  :init
+  (ace-link-setup-default)
+  )
 
 ;;;; esup
 
@@ -2025,7 +2065,7 @@ That is, remove a non kept dired from the recent list."
         ("C-x C-q" . dired-toggle-read-only))
   :hook
   (dired-mode-hook . dired-omit-mode)
-  ;; (dired-mode-hook . dired-hide-details-mode)
+  (dired-mode-hook . dired-hide-details-mode)
   :custom
   (dired-listing-switches "-algho --group-directories-first")
   (delete-by-moving-to-trash t)
@@ -2063,7 +2103,8 @@ That is, remove a non kept dired from the recent list."
 
   (setq avy-dispatch-alist '((?, . avy-action-embark)
                              (?j . avy-action-aw-select)
-                             (?o . avy-action-split-below)
+                             (?2 . avy-action-split-below)
+                             (?n . avy-action-open-in-new-frame)
                              (?  . avy-action-mark)
                              (?c . avy-action-copy)
                              (?x . avy-action-kill-stay)
@@ -2129,6 +2170,16 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
      (cdr (ring-ref avy-ring 0)))
     t)
 
+  (defun avy-action-open-in-new-frame (pt)
+    (let ((buffer (current-buffer))
+          (new-buffer))
+      (goto-char pt)
+      (link-hint-open-link-at-point)
+      (setq new-buffer (current-buffer))
+      (switch-to-buffer buffer)
+      (switch-to-buffer-other-frame new-buffer))
+    (link-hint-open-link-at-point))
+
   (define-key isearch-mode-map (kbd "C-'") 'avy-isearch)
   )
 
@@ -2181,6 +2232,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; python
 
 (use-package python-mode
+  :disabled
   :defer t
   :straight nil
   :config
@@ -2199,7 +2251,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
            python-shell-completion-native-try-output-timeout))
       (python-shell-completion-native-get-completions
        (get-buffer-process (current-buffer))
-       nil "_"))))
+       "_"))))
 
 ;;;; wgrep
 
@@ -2230,6 +2282,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (setq prot-eww-bookmark-link nil)
   (define-prefix-command 'prot-eww-map)
   (define-key global-map (kbd "C-. w") 'prot-eww-map)
+  (setq shr-folding-mode t
+        shr-use-colors nil
+        shr-bullet "• ")
   :hook
   (prot-eww-history-mode-hook . hl-line-mode)
   :bind
@@ -2279,58 +2334,16 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (defvar gr/open-url-browsers-list '("eww" "xwidget" "safari")
   "Web browsers list.")
 
-(defun isr/open-url (url &optional browser)
-  "Open URL with BROWSER.
-If BROWSER is not present or symbol `safari', open with default
-external configured browser such as firefox; if BROWSER is symbol
-`eww', open with internal eww browser; if BROWSER is symbol
-`xwidget', open with Emacs 25+ XWidget; if BROWSER is symbol
-`select', ask user for browser; if BROWSER is a string, open with
-that browser."
-  (when (stringp url)
-    (catch 'exit
-      (when (eq browser 'select)
-        ;; https://emacs.stackexchange.com/questions/8115/make-completing-read-respect-sorting-order-of-a-collection/8122
-        (setq browser (completing-read "Select web browser to open the url: " gr/open-url-browsers-list))
-        (unless browser
-          (message "No browser selected")
-          (throw 'exit "No browser selected")))
-      (cond
-       ((or (string= browser "eww") (eq browser 'eww)) (eww-browse-url url t))
-       ((or (string= browser "safari") (eq browser 'safari)) (browse-url-generic url))
-       ((or (string= browser "xwidget") (eq browser 'xwidget)) (xwidget-webkit-browse-url url t))
-       (let ((browse-url-generic-program "open")
-             (browse-url-generic-args nil))
-         (browse-url-generic (concat "ext+container:name=Temp&url=" (url-encode-url url)))))
-      ((stringp browser) (let* ((lst (split-string browser))
-                                (browse-url-generic-program (car lst))
-                                (browse-url-generic-args (cdr lst)))
-                           (browse-url-generic url)))
-      (t (browse-url-generic url)))))
-
-
-(defun isr/url-open-at-point (&optional browser)
-  "Open url at point, optionally use BROWSER."
-  (interactive "P")
-  (let ((url (thing-at-point-url-at-point)))
-    (setq browser 'select)
-    (if (stringp url)
-        (isr/open-url url browser)
-      (message "No URL at point"))))
-
-
 (defun gr/open-url-select-browser ()
   (interactive)
   (let ((browser (completing-read "Select web browser to open the url: " gr/open-url-browsers-list))
         (url (thing-at-point-url-at-point))
         (browse-url-generic-program "open")
         (browse-url-generic-args nil))
-    (cond
-     ((or (string= browser "eww") (eq browser 'eww)) (eww-browse-url url t))
-     ((or (string= browser "safari") (eq browser 'safari)) (browse-url-generic url))
-     ((or (string= browser "xwidget") (eq browser 'xwidget)) (xwidget-webkit-browse-url url t)))
-    (lambda () (browse-url-generic (concat "ext+container:name=Temp&url=" (url-encode-url url))))))
-
+    (pcase browser
+      ("eww" (eww-browse-url url t))
+      ("safari" (browse-url-generic url))
+      ("xwidget" (xwidget-webkit-browse-url url t)))))
 
 (global-set-key (kbd "C-. q") ' gr/open-url-select-browser)
 
@@ -2367,7 +2380,7 @@ that browser."
   :custom
   (password-store-password-length 12)
   :init
-  (setf epa-pinentry-mode 'loopback)
+  (setf epg-pinentry-mode 'loopback)
 
   ;; add embark actions for password-store
   (embark-define-keymap embark-password-store-actions
@@ -2564,12 +2577,14 @@ that browser."
           "^\\*Warnings\\*"
           "^\\*Backtrace\\*"
           "^\\*Apropos\\*"
+          "^\\*eshell\\*"
           "^\\*PDF-Occur\\*"
           "^\\*Org Agenda"
           "^\\*compilation"
           "^\\*elfeed-entry\\*"
           "^\\*calfw-details\\*"
           "^\\*Python\\*"
+          "^\\*grep\\*"
           "^\\*undo-tree\\*"
           "^\\*Async Shell Command\\*"
           "^\\*Embark Collect\\*"
@@ -2605,6 +2620,7 @@ that browser."
   (bookmark-face ((t nil))))
 
 (use-package bookmark+
+  :disabled
   :straight (bookmark-plus :host github :repo "emacsmirror/bookmark-plus"))
 
 
@@ -2810,6 +2826,11 @@ that browser."
   (emacs-lisp-mode-hook . outshine-mode)
   (outline-minor-mode-hook . outshine-mode))
 
+;;;; package-lint
+
+(use-package flycheck-package)
+(use-package package-lint)
+
 ;;; Citation / Bibliography
 ;;;; citar
 
@@ -2873,7 +2894,7 @@ that browser."
   (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
 
   ;; (file-notify-add-watch "~/Dropbox/gr-bibliography.bib" '(change) 'citar-refresh)
-  
+
   (defun gr/citar-zk-open-note (key entry)
     "Custom function for citar-open-note-function."
     (let* ((filematch (format "\\`[0-9]\\{12\\}.%s.*\\.\\(?:md\\)\\'"
@@ -2928,7 +2949,7 @@ following the key as group 3."
    "\\'"))
 
   (advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp)
-  
+
   )
 
 ;;;; org-cite
@@ -2972,14 +2993,18 @@ following the key as group 3."
 ;;;; ebib
 
 (use-package ebib
+  :commands (ebib-open)
   :bind
   (:map ebib-index-mode-map
         ("?" . (lambda () (interactive) (embark-bindings-in-keymap ebib-index-mode-map)))
         ("h" . hydra-ebib/body)
         ("k" . nil)
         ("D" . ebib-delete-entry)
+        ("I" . ebib-zotero-import-identifier)
         ("d" . nil)
-        ("s" . ebib-filters-logical-and)
+        ("c" . ebib-filters-cancel-filter)
+        ("z" . nil)
+        ("s" . ebib-filter-any)
         ("O" . ebib-filters-apply-filter)
         ("o" . ebib-citar-open)
         ("q" . ebib-smart-quit)
@@ -2990,34 +3015,33 @@ following the key as group 3."
                  (embark-bindings-in-keymap ebib-entry-mode-map)))
         ("h" . hydra-ebib/body)
         ("d" . nil)
-        ("e" . nil)
-        ("E" . ebib-edit-current-field)
+        ("e" . ebib-edit-current-field)
         ("O" . ebib-filters-apply-filter)
         ("o" . ebib-citar-open)
         ("q" . ebib-quit-entry-buffer)
         ("k" . nil))
   :hook
   (ebib-index-mode-hook . (lambda () (gr/truncate-lines)))
-  ;;  (ebib-index-mode-hook . 
   :custom
   (ebib-preload-bib-files gr/bibliography)
   (ebib-autogenerate-keys t)
+  (ebib-uniquify-keys nil)
   ;; (ebib-index-default-sort '("timestamp" . descend))
   (ebib-use-timestamp t)
   (ebib-index-columns '(("Author/Editor" 40 t)
-                        ("Entry Key" 15 t)                        
+                        ("Entry Key" 15 t)
                         ;;("Year" 6 t)
                         ("Title" 50 t)))
   :config
 
   (defhydra hydra-ebib (:hint nil :color blue)
     "
-  _j_: Jump to Entry   _k_: Add Keyword    _!_: Auto-Citekey       _s_: DOI Lookup
-  _O_: Apply Filter    _e_: Edit Entry     _E_: Edit Citekey       _S_: ISBN Lookup
-  _C_: Cancel Filter   _D_: Delete Field   _X_: Delete Entry       _I_: Auto Import  
+  _j_: Jump to Entry   _k_: Add Keyword    _!_: Auto-Citekey     _s_: DOI Lookup
+  _O_: Apply Filter                        _E_: Edit Citekey     _S_: ISBN Lookup
+  _C_: Cancel Filter   _D_: Delete Field   _X_: Delete Entry     _I_: Auto Import
   "
     ("k" ebib-add-keywords-to-entry)
-    ("e" ebib-edit-current-field)
+    ("e" ebib-open)
     ("!" ebib-generate-autokey)
     ("X" ebib-delete-entry)
     ("E" ebib-edit-keyname)
@@ -3026,7 +3050,7 @@ following the key as group 3."
     ("O" ebib-filters-apply-filter)
     ("o" ebib-citar-open)
     ("C" ebib-filters-cancel-filter)
-    ("s" ebib-save-current-database)
+    ;; ("s" ebib-save-current-database)
     ("I" ebib-zotero-import-identifier)
     ("S" ebib-isbn-search)
     ("s" crossref-lookup)
@@ -3039,21 +3063,30 @@ following the key as group 3."
     (ebib)
     (set-frame-size (selected-frame) 150 46)
     (set-frame-position (selected-frame) 150 80))
-  
+
   (defun ebib-smart-quit ()
     "Cancels filter or quits."
     (interactive)
     (ebib--execute-when
       (filtered-db
-       (ebib-filters-cancel-filter))
+       (progn
+         (ebib-filters-cancel-filter)
+         (message "Filters cancelled")))
       (default
-        (ebib-quit))))
+        (if (ebib--modified-p)
+            (when (yes-or-no-p "Save modified databases and quit? ")
+              (progn (ebib--save-database ebib--cur-db)
+                     (ebib-quit t)
+                     (delete-frame)))
+          (when (yes-or-no-p "Quit Ebib? ")
+            (progn (ebib-quit t)
+                   (delete-frame)))))))
 
   (defun ebib-isbn-search (text)
     (interactive (list (read-string "Search for ISBN: ")))
     (browse-url (format "https://isbnsearch.org/search?s=%s"
                         (url-encode-url text))))
-  
+
   (defun gr/bibtex-generate-autokey ()
     "Generate automatically a key for a BibTeX entry.
 Use the author/editor and the year.
@@ -3068,15 +3101,16 @@ Includes duplicate handling."
                                         (equal year ""))
                               bibtex-autokey-name-year-separator)
                             year))
-           (int 97) ;; num representation of char 'a'
+           (suffix ?a)
            (new-key autokey))
       (while (member new-key (gr/list-bibtex-field gr/bibliography "=key="))
-        (setq new-key (with-temp-buffer
-                        (insert (format "%s" autokey) int)
-                        (buffer-string)))
-        (setq int (+ 1 int)))
+        (setq new-key (concat autokey (list suffix)))
+        (setq suffix (1+ suffix))
+        (when (eq suffix ?z)
+          (setq key (concat key "a"))
+          (setq suffix ?a)))
       new-key))
-  
+
   (advice-add 'bibtex-generate-autokey :override #'gr/bibtex-generate-autokey)
 
   (defun ebib-citar-open ()
@@ -3107,8 +3141,18 @@ candidates displayed with those UIs."
         `(citar-key ,ebib-key))))
 
   (add-to-list 'embark-target-finders 'embark-target-ebib-citar-key-minibuffer)
-  
+
+  (defun ebib-filter-any (input)
+    (interactive "MSearch All Fields:")
+    (ebib)
+    (ebib-db-set-filter `(contains "any" ,input) ebib--cur-db)
+    (ebib--update-buffers))
+
   )
+
+;;;; ebib-zotero
+
+(require 'ebib-zotero)
 
 
 ;;;; biblio / sci-hub
@@ -3123,7 +3167,7 @@ candidates displayed with those UIs."
   ;; override default to idop
   (defun biblio--completing-read-function ()
     completing-read-function)
-  
+
   ;; convenience functions for getting doi and downloading from Sci-Hub
 
   (defun gr/biblio--copy-doi (bibtex entry)
@@ -3133,7 +3177,7 @@ candidates displayed with those UIs."
   (defun gr/biblio-copy-doi ()
     "Copy DOI of a selected entry."
     (interactive)
-    (biblio--selection-forward-bibtex #'gr/biblio--parse-doi))
+    (biblio--selection-forward-bibtex #'gr/biblio--copy-doi))
 
   (defun gr/biblio--copy-doi-ext (entry)
     "Copy DOI from bibtex entry."
@@ -3148,7 +3192,7 @@ candidates displayed with those UIs."
   (defun gr/biblio-get-from-sci-hub (bibtex entry)
     "Download selected reference from Sci-Hub."
     (interactive)
-    (biblio--selection-forward-bibtex #'gr/biblio--sci-hub-search))
+    (biblio--selection-forward-bibtex #'gr/biblio--get-from-sci-hub))
 
   (defun gr/biblio--get-from-sci-hub-ext (entry)
     "Download selected reference from Sci-Hub."
@@ -3370,6 +3414,41 @@ candidates displayed with those UIs."
     ("q" nil)))
 
 
+;;;; gr/devonthink-dir
+
+(defvar gr/devonthink-dir)
+
+(setq gr/devonthink-dir "~/Databases/Academic Work.dtBase2/Files.noindex/")
+
+(defun gr/devonthink-find-file (key-entry &optional initial)
+  "Search devonthink archive for file, using `consult-find'."
+  (interactive (list (citar-select-ref)))
+  (let ((key (car key-entry)))
+    (if key
+        (consult-find gr/devonthink-dir (format "%s" key))
+      (consult-find gr/devonthink-dir initial))))
+
+;; DevonThink Links
+;; obsolute, use org-link-set-parameters instead
+(org-add-link-type "x-devonthink-item" 'org-devonthink-item-open)
+
+(defun org-devonthink-item-open (uid)
+  "Open the given UID, which is a reference to an item in Devonthink."
+  (shell-command (concat "open \"x-devonthink-item:" uid "\"")))
+
+;; (defun gr/devonthink-find-file (keys-entries)
+;;   "Search devonthink archive for file, using `consult-find'."
+;;   (interactive (list (citar-select-refs :rebuild-cache current-prefix-arg)))
+;;   (kill-new (or (car (citar--extract-keys keys-entries)) ""))
+;;   (minibuffer-with-setup-hook
+;;       'yank
+;;     (define-key embark-file-map (kbd "RET") 'find-file)
+;;     (consult-find gr/devonthink-dir)))
+
+;;;; sdcv-mode
+
+(use-package sdcv-mode
+  :straight (sdcv-mode :host github :repo "gucong/emacs-sdcv"))
 
 ;;;; ispell / flyspell
 
@@ -3400,7 +3479,7 @@ candidates displayed with those UIs."
   :bind
   (:map flyspell-mode-map ("M-[" . flyspell-correct-wrapper))
   :config
-  (setq flyspell-correct-interface #'flyspell-correct-dummy)
+  (setq flyspell-correct-interface #'flyspell-correct-completing-read)
   )
 
 (use-package flyspell-correct-popup
@@ -3454,7 +3533,6 @@ don't want to fix with `SPC', and you can abort completely with
 
 (setq save-abbrevs 'silently)
 (setq-default abbrev-mode t)
-
 
 
 ;;;; yasnippet
@@ -3567,8 +3645,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
     (advice-add 'pdf-annot-edit-contents-commit :after 'bjm/save-buffer-no-args))
   )
 
-
-
 (use-package org-pdftools
   :hook (org-mode-hook . org-pdftools-setup-link))
 
@@ -3581,7 +3657,11 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :config
   (setq TeX-auto-save t)
   (setq TeX-parse-self t)
-  (setq-default TeX-engine 'luatex))
+  (setq-default TeX-engine 'luatex)
+
+;; for syncing auctex with pdf-tools
+  (setq TeX-source-correlate-method 'synctex)
+  (setq TeX-source-correlate-mode t))
 
 ;; set wider margins in latex
 (setq org-latex-packages-alist '(("margin=1in" "geometry" nil)))
@@ -3639,7 +3719,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 ;;Not for split outline view specifically, but useful generally
 (defun close-and-kill-next-pane ()
-  "If there are multiple windows, then close the other pane and kill the buffer in it also."
+  "When multiple windows, close other pane and kill its buffer."
   (interactive)
   (other-window 1)
   (kill-this-buffer)
@@ -3777,47 +3857,7 @@ Use a prefix arg to get regular RET. "
     (browse-url "http://localhost:1313/")))
 
 
-;;;; magit
-
-(use-package magit
-  :defer 1
-  :bind
-  ("C-c m" . magit-status)
-  :custom-face
-  (diff-refine-added ((t (:background "yellow" :foreground "red"))))
-  :custom
-  (magit-diff-refine-hunk t)
-  )
-
-(setq-default mode-line-format
-              (delete '(vc-mode vc-mode) mode-line-format))
-
-
-;;;; git-gutter
-
-(use-package git-gutter
-  :init
-  (global-git-gutter-mode)
-  :diminish (git-gutter-mode)
-  :config
-  (set-face-foreground 'git-gutter:modified "orange")
-  (set-face-foreground 'git-gutter:added    "forestgreen")
-  (set-face-foreground 'git-gutter:deleted  "red")
-  (set-fringe-mode '(8 . 0))
-  )
-
-
-;;;; ace-link
-
-(use-package ace-link
-  :disabled
-  :defer t
-  :init
-  (ace-link-setup-default)
-  )
-
 ;;;; capitalize, upcase, downcase dwim
-
 
 (defun ct/word-boundary-at-point-or-region (&optional callback)
   "Return the boundary (beginning and end) of the word at point, or region, if any.
@@ -3861,8 +3901,6 @@ URL: https://christiantietze.de/posts/2021/03/change-case-of-word-at-point/"
 (global-set-key (kbd "M-u") #'ct/upcase-word-at-point)
 (global-set-key (kbd "M-l") #'ct/downcase-word-at-point)
 
-
-
 ;;;; annotate.el
 
 (use-package annotate
@@ -3891,8 +3929,6 @@ URL: https://christiantietze.de/posts/2021/03/change-case-of-word-at-point/"
     ("q" nil)
     ))
 
-
-
 ;;;; convert docx to org
 
 (defun gr/flush-properties-drawers ()
@@ -3918,7 +3954,6 @@ Navigate to files in dired, mark files, and execute command."
                        'gr/flush-properties-drawers)
   )
 
-
 (defun gr/clear-empty-org-headers ()
   (interactive)
   (goto-line 2)
@@ -3931,7 +3966,6 @@ Navigate to files in dired, mark files, and execute command."
   (replace-string "
   ,*** " " ")
   )
-
 
 ;;;; org-wc
 
@@ -3947,23 +3981,14 @@ Navigate to files in dired, mark files, and execute command."
 
 ;;; my-lisp
 
-(require 'ebib-zotero)
 (require 'elfeed-setup)
-(require 'gr-functions)
-(require 'link-hint-aw-select)
 (require 'misc-file-handling)
-(require 'mmd-citation-support)
 (require 'text-to-speech)
-(require 'zk)
 
 ;; priv-lisp
 
 (require 'dickinson)
 (require 'mu4e-setup)
-(require 'org-agenda-setup)
-(require 'org-capture-setup)
-(require 'org-gcal-setup)
-
 
 ;;; variable resets
 
