@@ -3187,41 +3187,189 @@ candidates displayed with those UIs."
   )
 
 
+
+;;;; mmd-citation-support
+
+(require 'mmd-citation-support)
+
 ;;; Writing
 
-;;;; zk hydra
+;;;; zk
 
-;; (load-file "~/Dropbox/Code/lisp/zk/zk.el")
+(use-package zk
+  :straight (:local-repo "~/.emacs.d/my-lisp/zk/")
+  :bind
+  (:map embark-zk-id-map
+        ("r" . zk-consult-grep)
+        ("o" . link-hint--aw-select-zk-id))
+  :init
+  (require 'zk-consult)
+  (require 'zk-embark)
+  (require 'zk-org)
+  (require 'zk-link-hint)
+  (setq zk-directory "~/Dropbox/Zettelkasten/Zettels"
+        zk-file-extension "md"
+        zk-id-regexp "[0-9]\\{12\\}"
+        zk-id-time-string-format "%Y%m%d%H%M"
+        zk-link-and-title-format "[%t] [[%i]]"
+        zk-link-format "[[%s]]"
+        zk-tag-regexp "[#][[:alnum:]_-]+"
+        zk-default-backlink "201801190001"
+        zk-link-and-title 'ask
+        zk-new-note-link-insert 'ask
+        zk-tag-search-function #'zk-consult-grep-tag-search
+        zk-search-function #'zk-grep
+        zk-current-notes-function #'zk-consult-current-notes))
+
+(with-eval-after-load 'link-hint-aw-select
+  (define-link-hint-aw-select zk-id zk-follow-link-at-point)
+  (link-hint-define-type 'zk-id
+    :aw-select #'link-hint--aw-select-zk-id))
+
+(embark-define-keymap embark-become-zk-file-map
+  "Keymap for Embark zk-file actions."
+  :parent embark-meta-map
+  ("f" zk-find-file)
+  ("g" consult-grep)
+  ("s" zk-find-file-by-full-text-search))
+
+(add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
+
+(add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
+
+(defun zk-copy-link-to-current-note ()
+  (interactive)
+  (let* ((id (zk--current-id))
+        (title (zk--parse-id 'title id)))
+    (kill-new (format-spec zk-link-and-title-format
+                       `((?i . ,id)(?t . ,title))))))
+
+(defun zk-stats ()
+  (interactive)
+  (let* ((ed-notes (length (zk--directory-files nil gr/dickinson-ref-regex)))
+         (all-notes (length (zk--directory-files)))
+         (luhmann-notes (length (zk--directory-files nil "{")))
+         (notes (- all-notes ed-notes)))
+    (message (format "All: %s Luhmann: %s" notes luhmann-notes))))
+
+(defun zk-luhmann ()
+  (interactive)
+  (let* ((list (directory-files zk-directory nil "{"))
+         (sans-ids (mapcar (lambda (x)
+                             (string-match (concat "\\(?1:"
+                                                   zk-id-regexp
+                                                   "\\).\\(?2:.*?\\."
+                                                   zk-file-extension
+                                                   ".*\\)")
+                                           x)
+                             (match-string 2 x))
+                           list))
+         (files (cl-pairlis sans-ids (mapcar
+                                      (lambda (x)
+                                        (concat zk-directory "/" x))
+                                      list)))
+         (choice
+          (completing-read
+           "Select File: "
+           (lambda (string predicate action)
+             (if (eq action 'metadata)
+                 `(metadata
+                   (display-sort-function . ,#'(lambda (x)
+                                                 (sort x #'string<))))
+               (complete-with-action action files string predicate))))))
+    (find-file (format "%s" (cdr (assoc choice files))))))
+
+(defun zk-luhmann-completion-at-point ()
+  (let ((case-fold-search t)
+        (pt (point)))
+    (save-excursion
+      (save-match-data
+        (when (re-search-backward "{" nil t)
+          (list (match-beginning 0)
+                pt
+                (zk--luhmann-list)
+                :exclusive 'no))))))
+
+(defun zk--luhmann-list ()
+  (let* ((files (directory-files zk-directory t "{"))
+         (output))
+    (dolist (file files)
+      (progn
+        (string-match (concat "\\(?1:"
+                              zk-id-regexp
+                              "\\).\\(?2:.*?\\)\\."
+                              zk-file-extension
+                              ".*")
+                      file)
+        (let ((id (match-string 1 file))
+              (title (match-string 2 file)))
+          (when id
+            (push (format-spec "%t [[%i]]"
+                               `((?i . ,id)(?t . ,title)))
+                  output)))))
+    output))
+
+(add-hook 'completion-at-point-functions #'zk-completion-at-point 'append)
+(add-hook 'completion-at-point-functions #'zk-luhmann-completion-at-point 'append)
+
+;; (add-to-list 'completion-at-point-functions #'zk-completion-at-point)
+;; (add-to-list 'completion-at-point-functions #'zk-luhmann-completion-at-point)
 
 (eval-and-compile
   (defhydra hydra-zk (:hint nil
                             :color blue)
     "
-  _h h_: Inbox     _i_: Insert Link  _N_: New Note    _o_: Open Link    _B r_: Insert Ref
-  _h s_: Strct Nts _c_: Insert Cite  _f_: Find File   _d_: dir ripgrep  _B b_: Insert Bib
-  _h i_: Index     _b_: Backlinks    _r_: zk ripgrep  _R_: Rename Note  _e_: ebib
-  "
-
+  _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: dir ripgrep
+  _h s_: Strct Nts  _c_: Insert Cite   _R_: Rename Note    _r_: zk grep
+  _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib
+                  _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz "
     ("h h" (lambda () (interactive) (zk-find-file-by-id "201801190001")))
     ("h i" (lambda () (interactive) (zk-find-file-by-id "201801180001")))
     ("h s" (lambda () (interactive) (zk-find-file-by-id "201801180002")))
     ("N" zk-new-note)
     ("R" zk-rename-note)
     ("i" zk-insert-link)
-    ("e" ebib-open)
-    ("B b" gr/append-bibliography)
-    ("B r" gr/citar-insert-reference)
-    ("B p" pullbib-pull)
+    ("e" hydra-ebib/body)
+    ("B" hydra-bib/body)
+    ;;("B b" gr/append-bibliography)
+    ;;("B r" citar-insert-reference)
+    ;;("B p" pullbib-pull)
+    ("L" zk-luhmann)
     ("c" gr/citar-mmd-insert-citation)
+    ("C" zk-current-notes)
     ("o" link-hint-aw-select)
     ("b" zk-backlinks)
-    ("f" zk-find-file-by-title)
-    ("r" zk-search)
+    ("f" zk-find-file)
+    ("r" zk-consult-grep)
+    ("s" zk-search)
     ("d" gr/consult-ripgrep-select-dir)
     ("p" gr/devonthink-find-file)
     ("q" nil)))
 
 (bind-key* (kbd "C-z") 'hydra-zk/body)
+(bind-key* (kbd "M-z") 'hydra-zk/body)
+
+(eval-and-compile
+  (defhydra hydra-bib (:hint nil
+                            :color blue)
+    "
+       _r_: Insert Ref          _e_: ebib              _d_: DOI Lookup
+       _b_: Insert Bib          _I_: Auto Import       _i_: ISBN Look up"
+
+    ("b" gr/append-bibliography)
+    ("r" citar-insert-reference)
+
+    ("e" hydra-ebib/body)
+    ("I" ebib-zotero-import-identifier)
+
+    ("i" ebib-isbn-search)
+    ("d" crossref-lookup)
+
+    ("c" gr/citar-mmd-insert-citation)
+
+    ("q" nil)))
+
+
 
 ;;;; ispell / flyspell
 
