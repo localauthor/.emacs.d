@@ -140,5 +140,18 @@
 
 (bind-key* (kbd "C-o") 'gr/insert-line)
 
+(defun gr/comment-and-copy ()
+  (interactive)
+  (let ((beg (region-beginning))
+        (end (region-end)))
+  (kill-ring-save beg end t)
+  (comment-region beg end)
+  (goto-char end)
+  (forward-line 2)
+  (save-excursion
+    (yank)
+    (newline 2))))
+
+(bind-key* (kbd "C-M-;") 'gr/comment-and-copy)
 
 (provide 'gr-functions)

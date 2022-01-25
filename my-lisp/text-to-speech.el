@@ -1,5 +1,7 @@
 ;;; text-to-speech.el --- Text To Speech / Mac Speak functions    -*- lexical-binding: t; -*-
 
+(require 'hydra)
+
 (defvar words-voice "Ava"
   "Mac voice to use for speaking.")
 

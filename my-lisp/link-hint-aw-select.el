@@ -8,6 +8,9 @@
 ;;; Code:
 
 (require 'link-hint)
+(require 'org)
+(require 'ace-window)
+(require 'dired)
 
 ;; NOTE: To for this function to work on org-links, it is necessary to change
 ;; default behavior for opening files in org-mode by evaluating the
@@ -48,7 +51,7 @@
   `(progn
      (link-hint-define-type ',link-type
        :aw-select #',(intern (concat "link-hint--aw-select-" (symbol-name link-type))))
-     (defun ,(intern (concat "link-hint--aw-select-" (symbol-name link-type))) (link)
+     (defun ,(intern (concat "link-hint--aw-select-" (symbol-name link-type))) (_link)
        (with-demoted-errors "%s"
          (if (> (length (aw-window-list)) 1)
              (let ((window (aw-select nil))

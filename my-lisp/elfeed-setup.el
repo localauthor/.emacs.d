@@ -3,7 +3,6 @@
 (use-package elfeed
   :defer t
   :bind
-  ("C-x w" . gr/elfeed-open)
   (:map elfeed-show-mode-map
         ("r" . gr/elfeed-mark-as-read)
         ("g" . elfeed-search-update--force)

@@ -8,6 +8,14 @@
 ;; mmd-citations are in the style [#AuthorYEAR] or [23-25][#AuthorYEAR]
 
 
+(require 'citar)
+(require 'citar-file)
+(require 'citar-citeproc)
+(require 'thingatpt)
+(require 'embark)
+(require 'link-hint)
+(require 'ebib-extras)
+
 ;;; variables
 
 (defvar gr/mmd-citation-regexp "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]")
@@ -20,6 +28,11 @@
                                     ("\\[-@.*?\\]" . font-lock-keyword-face)
                                     ("\\[#.*?\\]" . font-lock-keyword-face)
                                     ("\\[-#.*?\\]" . font-lock-keyword-face)))
+
+(font-lock-add-keywords 'outline-mode '(("\\[@.*?\\]" . font-lock-keyword-face)
+                                        ("\\[-@.*?\\]" . font-lock-keyword-face)
+                                        ("\\[#.*?\\]" . font-lock-keyword-face)
+                                        ("\\[-#.*?\\]" . font-lock-keyword-face)))
 
 
 ;;; citar integration
@@ -40,7 +53,7 @@
 (defun link-hint--mmd-citation-at-point-p ()
   (thing-at-point-looking-at gr/mmd-citation-regexp))
 
-(defun link-hint--next-mmd-citation (&optional bound)
+(defun link-hint--next-mmd-citation (&optional _bound)
   (link-hint--next-regexp gr/mmd-citation-regexp))
 
 (defun link-hint--open-mmd-citation ()
@@ -74,14 +87,14 @@
 
 (embark-define-keymap embark-mmd-citation-map
   "Keymap for Embark comment actions."
-  ("RET" gr/devonthink-find-file)
+  ("RET" citar-open)
   ("z" zk-search)
-  ("F" gr/devonthink-find-file)
+  ("f" gr/devonthink-find-file)
   ("r" citar-copy-reference)
-  ("f" citar-open-library-files)
+  ("e" citar-ebib-jump-to-entry)
+  ("F" citar-open-library-file)
   ("o" citar-open)
-  ("n" citar-open-notes)
-  ("e" citar-open-entry))
+  ("n" citar-open-notes))
 
 (add-to-list 'embark-keymap-alist '(mmd-citation . embark-mmd-citation-map))
 (add-to-list 'embark-target-finders 'embark-target-mmd-citation-at-point)
@@ -115,7 +128,9 @@ Collects mmd-citation keys from current buffer."
                                (citeproc-render-bib proc 'plain))))
     (goto-char (point-max))
     (insert (concat "\n* Bibliography\n\n" (car rendered-citations)))
-    (org-find-olp '("Bibliography") 'this-buffer)))
+    (when
+        (derived-mode-p 'org-mode)
+      (org-find-olp '("Bibliography") 'this-buffer))))
 
 
 ;;; convert mmd-citations to pandoc or org-mode

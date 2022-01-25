@@ -6,8 +6,11 @@
 ;;
 ;; originally https://github.com/joostkremers/ebib/issues/220
 
-
 ;;; Code:
+
+(require 'ebib)
+(require 'ebib-extras)
+(require 'citar)
 
 (defcustom ebib-zotero-translation-server "https://translate.manubot.org"
   "The address of Zotero translation server."
@@ -21,15 +24,6 @@
       (shell-command-to-string
        (format "curl -s -d '%s' -H 'Content-Type: text/plain' '%s/%s' | curl -s -d @- -H 'Content-Type: application/json' '%s/export?format=%s'" item ebib-zotero-translation-server server-path ebib-zotero-translation-server export-format))))
 
-  (defun ebib-zotero-import-url (url)
-    "Fetch a entry from zotero translation server via a URL.
-The entry is stored in the current database."
-    (interactive "MURL: ")
-    (ebib)
-    (with-temp-buffer
-      (insert (ebib-zotero-translate url "web"))
-      (ebib-import-entries ebib--cur-db)))
-
 (defun ebib-zotero-import-url (identifier)
     "Fetch a entry from zotero translation server via a URL.
 The entry is stored in the current database."
@@ -37,17 +31,18 @@ The entry is stored in the current database."
   (let (entry-type key)
     (kill-new identifier)
     (unless (get-buffer "*Ebib-entry*") ;; check that ebib is running
-      (ebib))
+      (ebib-open))
     (with-temp-buffer
       (insert (ebib-zotero-translate identifier "web"))
       (goto-char (point-min))
       (setq entry-type (ebib--bib-find-next-bibtex-item))
       (setq key (cdr (assoc-string "=key=" (parsebib-read-entry entry-type))))
       (ebib-import-entries ebib--cur-db))
-    (ebib-open)
-    (ebib--goto-entry-in-index key)
+    (ebib nil key)
+    ;; (ebib--goto-entry-in-index key)
     (ebib-generate-autokey)
-    (ebib--update-entry-buffer)))
+    (ebib--update-entry-buffer)
+    (citar-refresh)))
 
 (defun ebib-zotero-import-identifier (identifier)
   "Fetch a entry from zotero translation server via an IDENTIFIER.
@@ -57,17 +52,18 @@ can be DOI, ISBN, PMID, or arXiv ID."
   (let (entry-type key)
     (kill-new identifier)
     (unless (get-buffer "*Ebib-entry*") ;; check that ebib is running
-      (ebib))
+      (ebib-open))
     (with-temp-buffer
       (insert (ebib-zotero-translate identifier "search"))
       (goto-char (point-min))
       (setq entry-type (ebib--bib-find-next-bibtex-item))
       (setq key (cdr (assoc-string "=key=" (parsebib-read-entry entry-type))))
       (ebib-import-entries ebib--cur-db))
-    (ebib-open)
-    (ebib--goto-entry-in-index key)
+    (ebib nil key)
+    ;; (ebib--goto-entry-in-index key)
     (ebib-generate-autokey)
-    (ebib--update-entry-buffer)))
+    (ebib--update-entry-buffer)
+    (citar-refresh)))
 
 (provide 'ebib-zotero)
 

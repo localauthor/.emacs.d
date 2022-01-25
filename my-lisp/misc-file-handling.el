@@ -13,8 +13,7 @@ Optionally call recursively on symlinks when INCLUDE-SYMLINKS is `t`."
           ;; Don't follow symlinks to other directories.
           (unless (and (file-symlink-p full-file) (not include-symlinks))
             (setq result
-                  (nconc result (list-dirs-recursively full-file)))))
-        ))
+                  (nconc result (list-dirs-recursively full-file)))))))
     result))
 
 (defvar gr/pdf-directory)

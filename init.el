@@ -112,11 +112,12 @@
 ;;; Basics
 ;;;; Emacs
 
-(add-to-list 'load-path "~/.emacs.d/lisp")
-(add-to-list 'load-path "~/.emacs.d/my-lisp")
-(add-to-list 'load-path "~/.emacs.d/priv-lisp")
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/my-lisp"))
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/priv-lisp"))
 
 (setq elisp-flymake-byte-compile-load-path load-path)
+(add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
 
 (require 'priv-variables)
 
@@ -131,7 +132,8 @@
   :straight nil
   :bind
   ("C-c e" . eval-buffer)
-  ("C-x C-q". nil)  ;; unbind "buffer-read-only" to avoid confusion with Add Tag
+  ("C-x e" . eval-last-sexp)
+  ("C-x E" .  kmacro-end-and-call-macro)
   (:map Info-mode-map
         ("o" . link-hint-open-link))
   (:map help-mode-map
@@ -240,7 +242,7 @@
   ;; (global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1)))
   ;; (global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1)))
 
-  (global-set-key [remap eval-last-sexp] 'pp-eval-last-sexp)
+  ;; (global-set-key [remap eval-last-sexp] 'pp-eval-last-sexp)
 
   )
 
@@ -460,6 +462,16 @@ color."
          (window-height . 0.3)
          (side . bottom))
 
+        ("\\*Luhmann-Index"
+         (display-buffer-at-bottom)
+          (window-height . 0.4)
+          (side . bottom))
+
+        ("\\*ZK-Index"
+         (display-buffer-at-bottom)
+          (window-height . 0.4)
+          (side . bottom))
+
         ("\\*Backups:"
          (display-buffer-at-bottom)
          (window-height . 0.3)
@@ -487,9 +499,7 @@ color."
 
         ("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
          (display-buffer-at-bottom)
-         (window-height . 0.38)
-         (side . bottom)
-         (window-parameters (mode-line-format . none)))
+         (window-height . 0.38))
         )
       )
 
@@ -709,8 +719,8 @@ Symbols and Diacritics
         ("M-<return>" . org-insert-heading-respect-content)
         ("" . org-cycle-agenda-files))
   :mode (("\\.org$" . org-mode)
-         ("\\.md$" . org-mode)
-         ("\\.txt$" . org-mode))
+         ;;("\\.md$" . org-mode)
+         )
   :init
   (with-eval-after-load "org"
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
@@ -1544,7 +1554,7 @@ there, otherwise you are prompted for a message buffer."
             :category buffer
             :state ,#'consult--buffer-state
             :items ,(lambda () (mapcar #'buffer-name (persp-buffer-list-restricted)))))
-  (add-to-list 'consult-buffer-sources 'persp-source 'append)
+;;  (add-to-list 'consult-buffer-sources 'persp-source 'append)
 
 
   ;; consult-clock-in
@@ -1767,12 +1777,12 @@ That is, remove a non kept dired from the recent list."
   (corfu-quit-at-boundary nil)
   (corfu-preview-current nil)
   (corfu-commit-predicate nil)
-  :config  
+  :config
   (set-face-attribute 'corfu-default nil
-		      :background "cornsilk"
-		      :font "Menlo")
+                      :background "cornsilk"
+                      :font "Menlo")
   (set-face-attribute 'corfu-current nil
-		      :background "light blue"))
+                      :background "light blue"))
 
 (setq read-file-name-completion-ignore-case t
       read-buffer-completion-ignore-case t
@@ -1799,7 +1809,7 @@ That is, remove a non kept dired from the recent list."
 ;;;; company
 
 (use-package company
-  :defer t  
+  :defer t
   :diminish
   :init
   (global-company-mode 1)
@@ -2576,6 +2586,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         '("^\\*Messages\\*"
           "^\\*Warnings\\*"
           "^\\*Backtrace\\*"
+          "^\\*ZK-Index\\*"
+          "^\\*Luhmann-Index\\*"
           "^\\*Apropos\\*"
           "^\\*eshell\\*"
           "^\\*PDF-Occur\\*"
@@ -2779,14 +2791,12 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (pop-to-buffer "*Google Translate*" 'display-buffer-below-selected))
 
 
-
 ;;;; nov.el
 
 (use-package nov
   :defer t
   :init
-  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
-  )
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
 
 
 ;;;; paredit
@@ -2798,8 +2808,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
   (ielm-mode-hook . enable-paredit-mode)
   (lisp-mode-hook . enable-paredit-mode)
-  (lisp-interaction-mode-hook . enable-paredit-mode)
-  )
+  (lisp-interaction-mode-hook . enable-paredit-mode))
 
 
 ;;;; golden-ratio-scroll-screen
@@ -2807,16 +2816,14 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package golden-ratio-scroll-screen
   :config
   (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
-  (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up)
-  )
+  (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
 
 
 ;;;; explain-pause-mode
 
 (use-package explain-pause-mode
   :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
-  :diminish
-  )
+  :diminish)
 
 ;;;; outshine-mode
 
@@ -2826,16 +2833,27 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (emacs-lisp-mode-hook . outshine-mode)
   (outline-minor-mode-hook . outshine-mode))
 
-;;;; package-lint
+;;;; flycheck and package-lint
 
-(use-package flycheck-package)
+(use-package flycheck-package
+  :custom
+  (flycheck-emacs-lisp-load-path 'inherit))
+
 (use-package package-lint)
+
+
+;;;; visual-fill-column
+
+(use-package visual-fill-column
+  ;;only used in zk, as dir-local
+  ;;because it doesn't work with git-gutter
+  :custom
+  (visual-fill-column-width 90))
 
 ;;; Citation / Bibliography
 ;;;; citar
 
-;; changed this while messing with ebib, because any changes to bib file are overwritten by zotero
-(defvar gr/bibliography '("~/Dropbox/gr-bibliography non-zot.bib"))
+(defvar gr/bibliography '("~/Dropbox/gr-bibliography.bib"))
 
 (use-package citar
   :straight (:host github :repo "bdarcus/citar" :fork t)
@@ -2860,12 +2878,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         ("F" . gr/devonthink-find-file)
         ("z" . zk-search)
         ("s" . ex/citar-search-pdf-contents))
-  :hook
-  (citar-force-refresh-hook . (lambda () (message "Refreshing Citar bibliography. Hold on.")))
   :custom
   (citar-bibliography gr/bibliography)
   (citar-library-paths (list-dirs-recursively gr/devonthink-dir))
-  (citar-notes-paths '("~/Dropbox/Zettelkasten/Zettels"))
+  (citar-notes-paths '("~/Dropbox/ZK/Zettels"))
   (citar-file-extensions '("pdf" "epub"))
   (citar-file-note-extensions '("org" "md"))
   (citar-file-open-function 'citar-file-open-external)
@@ -2877,19 +2893,19 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (citar-citeproc-csl-style "chicago-fullnote-bibliography-short-title-subsequent.csl")
   (citar-display-transform-functions '((t . citar-clean-string)))
   (citar-open-note-function 'gr/citar-zk-open-note)
-  (citar-templates
-   '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
-     (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords keywords:*}")
-     (preview . "${author editor} (${year issued date}) ${title}, ${journal publisher container-title collection-title}.\n")
-     (note . "${=key=} - ${title} (${year})")))
+  ;; (citar-templates
+  ;;  '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
+  ;;    (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords keywords:*}")
+  ;;    (preview . "${author editor} (${year issued date}) ${title}, ${journal publisher container-title collection-title}.\n")
+  ;;    (note . "${=key=} - ${title} (${year})")))
   :init
   (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
-
 
   :config
   ;; are these requires necessary?
   (require 'citar-org)
   (require 'citar-file)
+  (require 'citar-citeproc)
 
   (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
 
@@ -2924,13 +2940,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
            (files (citar-file--files-for-multiple-entries refs citar-library-paths '("pdf")))
            (string (read-string "Search string: ")))
       (pdf-occur-search files string t)))
-
-  (defun citar-ebib-jump-to-entry (key-entry)
-    (interactive (list (citar-select-ref)))
-    (ebib)
-    (ebib--goto-entry-in-index (car key-entry))
-    (ebib-select-and-popup-entry))
-
+    
   (defun gr/citar-file--make-filename-regexp (keys extensions &optional additional-sep)
   "Regexp matching file names starting with KEYS and ending with EXTENSIONS.
 When ADDITIONAL-SEP is non-nil, it should be a regular expression
@@ -2970,25 +2980,12 @@ following the key as group 3."
         org-cite-export-processors '((t csl "~/.csl/chicago-fullnote-bibliography-short-title-subsequent.csl")))
   )
 
-
 ;;;; citeproc / parsebib
 
 (use-package citeproc)
 
 (use-package parsebib
   :straight (parsebib :host github :repo "joostkremers/parsebib"))
-
-(defun gr/list-bibtex-field (bibs field)
-  "Return a list all FIELD entries from bibtex files (BIBS)."
-  (let ((all-keys nil)
-        (table (parsebib-parse bibs)))
-    (maphash
-     (lambda (citekey entry)
-       (push (cdr (assoc field entry)) all-keys))
-     table)
-    all-keys))
-
-;; or: (progn (ebib) (ebib--list-keys ebib--cur-db))
 
 ;;;; ebib
 
@@ -3031,8 +3028,7 @@ following the key as group 3."
   (ebib-index-columns '(("Author/Editor" 40 t)
                         ("Entry Key" 15 t)
                         ;;("Year" 6 t)
-                        ("Title" 50 t)))
-  :config
+                        ("Title" 50 t))))
 
   (defhydra hydra-ebib (:hint nil :color blue)
     "
@@ -3056,104 +3052,8 @@ following the key as group 3."
     ("s" crossref-lookup)
     ("q" nil))
 
-  (defun ebib-open ()
-    "Open ebib and set up frame."
-    (interactive)
-    (select-frame (make-frame-command))
-    (ebib)
-    (set-frame-size (selected-frame) 150 46)
-    (set-frame-position (selected-frame) 150 80))
-
-  (defun ebib-smart-quit ()
-    "Cancels filter or quits."
-    (interactive)
-    (ebib--execute-when
-      (filtered-db
-       (progn
-         (ebib-filters-cancel-filter)
-         (message "Filters cancelled")))
-      (default
-        (if (ebib--modified-p)
-            (when (yes-or-no-p "Save modified databases and quit? ")
-              (progn (ebib--save-database ebib--cur-db)
-                     (ebib-quit t)
-                     (delete-frame)))
-          (when (yes-or-no-p "Quit Ebib? ")
-            (progn (ebib-quit t)
-                   (delete-frame)))))))
-
-  (defun ebib-isbn-search (text)
-    (interactive (list (read-string "Search for ISBN: ")))
-    (browse-url (format "https://isbnsearch.org/search?s=%s"
-                        (url-encode-url text))))
-
-  (defun gr/bibtex-generate-autokey ()
-    "Generate automatically a key for a BibTeX entry.
-Use the author/editor and the year.
-Includes duplicate handling."
-    (let* ((bibtex-autokey-name-case-convert-function #'capitalize)
-           (bibtex-autokey-year-length 4)
-           (names (bibtex-autokey-get-names))
-           (year (bibtex-autokey-get-year))
-           (autokey (concat bibtex-autokey-prefix-string
-                            names
-                            (unless (or (equal names "")
-                                        (equal year ""))
-                              bibtex-autokey-name-year-separator)
-                            year))
-           (suffix ?a)
-           (new-key autokey))
-      (while (member new-key (gr/list-bibtex-field gr/bibliography "=key="))
-        (setq new-key (concat autokey (list suffix)))
-        (setq suffix (1+ suffix))
-        (when (eq suffix ?z)
-          (setq key (concat key "a"))
-          (setq suffix ?a)))
-      new-key))
-
-  (advice-add 'bibtex-generate-autokey :override #'gr/bibtex-generate-autokey)
-
-  (defun ebib-citar-open ()
-    (interactive)
-    (let ((key (list (ebib--get-key-at-point))))
-      (citar-open (citar--ensure-entries key))))
-
-  (defun embark-target-ebib-citar-key-at-point ()
-  "Target citar-key of current ebib entry."
-  (when (or (derived-mode-p 'ebib-index-mode 'ebib-entry-mode))
-    (let ((ebib-key (ebib--get-key-at-point)))
-      `(citar-key ,ebib-key))))
-
-  (add-to-list 'embark-target-finders 'embark-target-ebib-citar-key-at-point)
-
-  (defun embark-target-ebib-citar-key-minibuffer ()
-    "Target citar-key in ebib completion candidate.
-
-Note: This target only works on default-completion candidates. It
-will therefore work with 'vertico', 'MCT', and others, but not with
-'selectrum' or 'ivy', since 'ebib' removes the key from
-candidates displayed with those UIs."
-    (when (eq embark--command 'ebib-jump-to-entry)
-      (let* ((selected (cond ((bound-and-true-p vertico-mode)
-                              (cdr (embark--vertico-selected)))
-                             (t (thing-at-point 'line t))))
-             (ebib-key (car (split-string-and-unquote selected " "))))
-        `(citar-key ,ebib-key))))
-
-  (add-to-list 'embark-target-finders 'embark-target-ebib-citar-key-minibuffer)
-
-  (defun ebib-filter-any (input)
-    (interactive "MSearch All Fields:")
-    (ebib)
-    (ebib-db-set-filter `(contains "any" ,input) ebib--cur-db)
-    (ebib--update-buffers))
-
-  )
-
-;;;; ebib-zotero
-
+(require 'ebib-extras)
 (require 'ebib-zotero)
-
 
 ;;;; biblio / sci-hub
 
@@ -3164,7 +3064,7 @@ candidates displayed with those UIs."
   :custom
   (biblio-crossref-user-email-address vu-email)
   :config
-  ;; override default to idop
+  ;; override default to ido
   (defun biblio--completing-read-function ()
     completing-read-function)
 
@@ -3230,8 +3130,6 @@ candidates displayed with those UIs."
   ;; :hook (org-mode-hook . (lambda () (cursor-sensor-mode 1) (org-cite-csl-activate-render-all)))
   )
 
-
-
 ;;;; mmd-citation-support
 
 (require 'mmd-citation-support)
@@ -3242,33 +3140,34 @@ candidates displayed with those UIs."
 
 (use-package zk
   :straight (:local-repo "~/.emacs.d/my-lisp/zk/")
-  :bind
-  (:map embark-zk-id-map
-        ("r" . zk-consult-grep)
-        ("o" . link-hint--aw-select-zk-id))
   :init
-  (require 'zk-consult)
-  (require 'zk-embark)
-  (require 'zk-org)
-  (require 'zk-link-hint)
-  (setq zk-directory "~/Dropbox/Zettelkasten/Zettels"
+  (require 'zk-link-hint) ;; is this enough to get zk-link link-hints?
+  (require 'zk-extras)
+  :bind
+  (:map zk-id-map
+        ("s" . zk-search)
+        ("r" . zk-consult-grep)
+        ("o" . link-hint--aw-select-zk-link))
+  :config
+  (add-to-list 'auto-mode-alist '("\\.md\\'" . outline-mode))
+  (setq zk-directory "~/Dropbox/ZK/Zettels"
         zk-file-extension "md"
-        zk-id-regexp "[0-9]\\{12\\}"
-        zk-id-time-string-format "%Y%m%d%H%M"
-        zk-link-and-title-format "[%t] [[%i]]"
-        zk-link-format "[[%s]]"
-        zk-tag-regexp "[#][[:alnum:]_-]+"
         zk-default-backlink "201801190001"
         zk-link-and-title 'ask
         zk-new-note-link-insert 'ask
-        zk-tag-search-function #'zk-consult-grep-tag-search
-        zk-search-function #'zk-grep
-        zk-current-notes-function #'zk-consult-current-notes))
+        zk-link-and-title-format "%t [[%i]]"
+        zk-tag-grep-function #'zk-consult-grep-tag-search
+        zk-grep-function #'zk-consult-grep
+        zk-current-notes-function nil)
+
+(with-eval-after-load 'consult
+  (with-eval-after-load 'zk
+    (require 'zk-consult)))
 
 (with-eval-after-load 'link-hint-aw-select
-  (define-link-hint-aw-select zk-id zk-follow-link-at-point)
-  (link-hint-define-type 'zk-id
-    :aw-select #'link-hint--aw-select-zk-id))
+  (define-link-hint-aw-select zk-link zk-follow-link-at-point)
+  (link-hint-define-type 'zk-link
+    :aw-select #'link-hint--aw-select-zk-link))
 
 (embark-define-keymap embark-become-zk-file-map
   "Keymap for Embark zk-file actions."
@@ -3279,85 +3178,9 @@ candidates displayed with those UIs."
 
 (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
 
-(add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
-
-(defun zk-copy-link-to-current-note ()
-  (interactive)
-  (let* ((id (zk--current-id))
-        (title (zk--parse-id 'title id)))
-    (kill-new (format-spec zk-link-and-title-format
-                       `((?i . ,id)(?t . ,title))))))
-
-(defun zk-stats ()
-  (interactive)
-  (let* ((ed-notes (length (zk--directory-files nil gr/dickinson-ref-regex)))
-         (all-notes (length (zk--directory-files)))
-         (luhmann-notes (length (zk--directory-files nil "{")))
-         (notes (- all-notes ed-notes)))
-    (message (format "All: %s Luhmann: %s" notes luhmann-notes))))
-
-(defun zk-luhmann ()
-  (interactive)
-  (let* ((list (directory-files zk-directory nil "{"))
-         (sans-ids (mapcar (lambda (x)
-                             (string-match (concat "\\(?1:"
-                                                   zk-id-regexp
-                                                   "\\).\\(?2:.*?\\."
-                                                   zk-file-extension
-                                                   ".*\\)")
-                                           x)
-                             (match-string 2 x))
-                           list))
-         (files (cl-pairlis sans-ids (mapcar
-                                      (lambda (x)
-                                        (concat zk-directory "/" x))
-                                      list)))
-         (choice
-          (completing-read
-           "Select File: "
-           (lambda (string predicate action)
-             (if (eq action 'metadata)
-                 `(metadata
-                   (display-sort-function . ,#'(lambda (x)
-                                                 (sort x #'string<))))
-               (complete-with-action action files string predicate))))))
-    (find-file (format "%s" (cdr (assoc choice files))))))
-
-(defun zk-luhmann-completion-at-point ()
-  (let ((case-fold-search t)
-        (pt (point)))
-    (save-excursion
-      (save-match-data
-        (when (re-search-backward "{" nil t)
-          (list (match-beginning 0)
-                pt
-                (zk--luhmann-list)
-                :exclusive 'no))))))
-
-(defun zk--luhmann-list ()
-  (let* ((files (directory-files zk-directory t "{"))
-         (output))
-    (dolist (file files)
-      (progn
-        (string-match (concat "\\(?1:"
-                              zk-id-regexp
-                              "\\).\\(?2:.*?\\)\\."
-                              zk-file-extension
-                              ".*")
-                      file)
-        (let ((id (match-string 1 file))
-              (title (match-string 2 file)))
-          (when id
-            (push (format-spec "%t [[%i]]"
-                               `((?i . ,id)(?t . ,title)))
-                  output)))))
-    output))
+;;(add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
 
 (add-hook 'completion-at-point-functions #'zk-completion-at-point 'append)
-(add-hook 'completion-at-point-functions #'zk-luhmann-completion-at-point 'append)
-
-;; (add-to-list 'completion-at-point-functions #'zk-completion-at-point)
-;; (add-to-list 'completion-at-point-functions #'zk-luhmann-completion-at-point)
 
 (eval-and-compile
   (defhydra hydra-zk (:hint nil
@@ -3378,11 +3201,13 @@ candidates displayed with those UIs."
     ;;("B b" gr/append-bibliography)
     ;;("B r" citar-insert-reference)
     ;;("B p" pullbib-pull)
-    ("L" zk-luhmann)
+    ("I" zk-index)
+    ("l" zk-index-luhmann)
+    ("L" zk-lit-notes)
     ("c" gr/citar-mmd-insert-citation)
     ("C" zk-current-notes)
     ("o" link-hint-aw-select)
-    ("b" zk-backlinks)
+    ("b" zk-network)
     ("f" zk-find-file)
     ("r" zk-consult-grep)
     ("s" zk-search)
@@ -3579,7 +3404,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; pdf-tools
 
 (use-package pdf-tools
-  :straight (pdf-tools :host github :repo "vedang/pdf-tools" :fork t)
+  :straight (pdf-tools :host github :repo "vedang/pdf-tools" :fork "localauthor/pdf-tools")
   :defer 3
   :bind
   (:map pdf-view-mode-map
