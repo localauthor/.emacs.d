@@ -9,7 +9,7 @@
 
 (require 'link-hint)
 (require 'org)
-(require 'ace-window)
+;;(require 'ace-window)
 (require 'dired)
 
 ;; NOTE: To for this function to work on org-links, it is necessary to change

@@ -2857,7 +2857,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package citar
   :straight (:host github :repo "bdarcus/citar" :fork t)
-  :after (oc)
+  :after (oc misc-file-handling)
   :commands (citar-select-ref citar-select-refs gr/citar-mmd-insert-citation)
   :bind
   (:map org-mode-map
@@ -3139,7 +3139,8 @@ following the key as group 3."
 ;;;; zk
 
 (use-package zk
-  :straight (:local-repo "~/.emacs.d/my-lisp/zk/")
+  :straight (zk :local-repo "~/.emacs.d/my-lisp/zk/"
+                :files (:defaults "zk-consult.el"))
   :init
   (require 'zk-link-hint) ;; is this enough to get zk-link link-hints?
   (require 'zk-extras)
@@ -3158,11 +3159,11 @@ following the key as group 3."
         zk-link-and-title-format "%t [[%i]]"
         zk-tag-grep-function #'zk-consult-grep-tag-search
         zk-grep-function #'zk-consult-grep
-        zk-current-notes-function nil)
+        zk-current-notes-function nil))
 
-(with-eval-after-load 'consult
-  (with-eval-after-load 'zk
-    (require 'zk-consult)))
+;; (with-eval-after-load 'consult
+;;   (with-eval-after-load 'zk
+;;     (require 'zk-consult)))
 
 (with-eval-after-load 'link-hint-aw-select
   (define-link-hint-aw-select zk-link zk-follow-link-at-point)
