@@ -326,7 +326,7 @@ color."
 
 ;; Global Cursor Bindings -- Mimic MacOS Behavior (eg, as in TextEdit)
 ;; Binds Command-<left/right arrow> TO MOVE CURSOR TO BEG/END OF LINE
-(bind-keys*
+(bind-keys
  ("s-<left>" . move-beginning-of-line)
  ("s-<right>" . move-end-of-line)
  ("s-<up>" . beginning-of-buffer)
@@ -2543,7 +2543,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;; (progn
   ;;   (global-set-key [remap other-window] 'ace-window))
   :bind
-  ([remap other-window] . ace-window)
+  ;; ([remap other-window] . ace-window)
   ("C-x o" . ace-window)
   :custom-face
   (aw-leading-char-face ((t (:family "Menlo" :foreground "red" :height 4.0))))
@@ -3143,7 +3143,9 @@ following the key as group 3."
                 :files (:defaults "zk-consult.el"))
   :init
   (require 'zk-link-hint) ;; is this enough to get zk-link link-hints?
+  (require 'zk-consult)
   (require 'zk-extras)
+  (require 'zk-index)
   :bind
   (:map zk-id-map
         ("s" . zk-search)
@@ -3160,10 +3162,6 @@ following the key as group 3."
         zk-tag-grep-function #'zk-consult-grep-tag-search
         zk-grep-function #'zk-consult-grep
         zk-current-notes-function nil))
-
-;; (with-eval-after-load 'consult
-;;   (with-eval-after-load 'zk
-;;     (require 'zk-consult)))
 
 (with-eval-after-load 'link-hint-aw-select
   (define-link-hint-aw-select zk-link zk-follow-link-at-point)
