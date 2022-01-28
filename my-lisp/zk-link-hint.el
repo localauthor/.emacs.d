@@ -34,7 +34,7 @@
 
 ;;; Code:
 
-;; (require 'zk)
+(require 'zk)
 (require 'link-hint)
 
 (defun zk-link-hint--zk-link-at-point-p ()

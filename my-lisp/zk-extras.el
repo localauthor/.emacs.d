@@ -148,3 +148,47 @@ Backlinks and Links-in-Note are grouped separately."
 
 (provide 'zk-extras)
 ;;; zk-extras.el ends here
+
+;; (defun zk-luhmann-index ()
+;;   "Precursor to zk-index."
+;;   (interactive)
+;;   (let ((luhmann "*Luhmann-Index*")
+;;         (line))
+;;     (if (get-buffer luhmann)
+;;         (with-current-buffer luhmann
+;;           (setq line (line-number-at-pos))
+;;           (read-only-mode -1)
+;;           (erase-buffer)
+;;           (zk-luhmann-insert-index)
+;;           (goto-char (point-min))
+;;           (forward-line (1- line))
+;;           (read-only-mode))
+;;       (progn
+;;         (generate-new-buffer luhmann)
+;;         (with-current-buffer luhmann
+;;           (zk-luhmann-insert-index)
+;;           (local-set-key (kbd "n") 'next-line)
+;;           (local-set-key (kbd "p") 'previous-line)
+;;           (local-set-key (kbd "f") 'consult-focus-lines)
+;;           (local-set-key (kbd "g") 'zk-luhmann-index)
+;;           (local-set-key (kbd "q") 'delete-window)
+;;           (read-only-mode 1)
+;;           (toggle-truncate-lines)
+;;           (goto-char (point-min)))))
+;;     (pop-to-buffer luhmann)))
+
+;; (defun zk-luhmann-insert-index ()
+;;   (let ((files (zk--luhmann--function
+;;                 (zk--luhmann-candidates))))
+;;     (dolist (file files)
+;;       (string-match zk-id-regexp file)
+;;       (insert-text-button file
+;;                           'follow-link t
+;;                           'face 'default
+;;                           'action
+;;                           `(lambda (_)
+;;                              (progn
+;;                                (view-file-other-window
+;;                                 (zk--parse-id 'file-path
+;;                                               ,(match-string 0 file))))))
+;;       (newline))))
