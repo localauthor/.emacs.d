@@ -138,7 +138,6 @@
         ("o" . link-hint-open-link))
   (:map help-mode-map
         ("o" . link-hint-open-link))
-
   :config
   (prefer-coding-system 'utf-8)
   (setq-default buffer-file-coding-system 'utf-8
@@ -286,18 +285,6 @@ color."
 
 (setq org-hide-emphasis-markers nil)
 
-;; the double invocation of variable-pitch-mode below is intentional;
-;; the first enables BufFace Mode before Diminish runs, thereby
-;; allowing it to be diminished from the mode line; without it, it's
-;; not; the second invokes variable-pitch-mode when text-mode is
-;; enabled
-
-(variable-pitch-mode 1)
-
-(add-hook 'text-mode-hook
-          #'(lambda ()
-              (variable-pitch-mode 1)))
-
 ;; I set this here so that the down-arrow remains the right color and size even if I change themes
 (set-face-attribute 'org-ellipsis nil :inherit 'fixed-pitch :foreground "grey50" :underline nil :height 1.1)
 
@@ -425,12 +412,12 @@ color."
          (window-height . 0.5)
          (side . bottom))
 
-        ("\\*Vertico"
-         (display-buffer-in-side-window
-          (window-height . 6)
-          (side . bottom))
-         (window-parameters (mode-line-format . none))
-         )
+        ;; ("\\*Vertico"
+        ;;  (display-buffer-in-side-window
+        ;;   (window-height . 6)
+        ;;   (side . bottom))
+        ;;  (window-parameters (mode-line-format . none))
+        ;;  )
 
         ("\\*PDF-Occur"
          (+select-buffer-in-side-window)
@@ -650,6 +637,7 @@ Symbols and Diacritics
   (eval-after-load 'gumshoe-mode '(diminish 'global-gumshoe-mode))
   )
 
+(add-hook 'buffer-face-mode-hook '(lambda () (diminish 'buffer-face-mode)))
 
 ;;; Org
 ;;;; org straight.el setup
@@ -730,6 +718,8 @@ Symbols and Diacritics
   (with-eval-after-load "org"
     (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file))
 
+  :hook
+  (org-mode-hook . variable-pitch-mode)
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
@@ -1921,8 +1911,10 @@ That is, remove a non kept dired from the recent list."
 
 (use-package git-gutter
   :init
-  (global-git-gutter-mode)
   :diminish (git-gutter-mode)
+  :hook
+  (emacs-lisp-mode-hook . git-gutter-mode)
+  (org-mode-hook . git-gutter-mode)
   :config
   (set-face-foreground 'git-gutter:modified "orange")
   (set-face-foreground 'git-gutter:added    "forestgreen")
@@ -2587,6 +2579,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*Warnings\\*"
           "^\\*Backtrace\\*"
           "^\\*ZK-Index\\*"
+          "^\\*ZK-Desktop"
           "^\\*Luhmann-Index\\*"
           "^\\*Apropos\\*"
           "^\\*eshell\\*"
@@ -2611,7 +2604,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           help-mode
           compilation-mode))
   (popper-mode 1)
-
   :config
   (setq popper-display-function #'popper-select-popup-at-bottom)
   (setq popper-display-control 'user))
@@ -2940,7 +2932,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
            (files (citar-file--files-for-multiple-entries refs citar-library-paths '("pdf")))
            (string (read-string "Search string: ")))
       (pdf-occur-search files string t)))
-    
+
   (defun gr/citar-file--make-filename-regexp (keys extensions &optional additional-sep)
   "Regexp matching file names starting with KEYS and ending with EXTENSIONS.
 When ADDITIONAL-SEP is non-nil, it should be a regular expression
@@ -3146,6 +3138,7 @@ following the key as group 3."
   (require 'zk-consult)
   (require 'zk-extras)
   (require 'zk-index)
+  (require 'zk-luhmann)
   :bind
   (:map zk-id-map
         ("s" . zk-search)
