@@ -84,6 +84,10 @@
         (eval progn
               (pp-buffer)
               (indent-buffer))
+        (eval ignore-errors
+              (when
+                  (zk-file-p)
+                (face-remap-add-relative 'default :family "Monospace" :height 130)))
         (eval face-remap-add-relative 'default :family "Monospace" :height 130)
         (eval remove-from-invisibility-spec '(org-link))))
 
