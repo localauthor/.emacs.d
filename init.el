@@ -2865,18 +2865,18 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         ("C-k" . kill-visual-line)
         ("C-h" . embark-keymap-help))
   (:map citar-map
-        ("F" . gr/devonthink-find-file)
+        ("F" . devonthink-dir-find-file)
         ("e" . citar-ebib-jump-to-entry)
         ("c" . citar-insert-citation)
         ("z" . zk-search)
         ("s" . ex/citar-search-pdf-contents))
   (:map citar-citation-map
-        ("F" . gr/devonthink-find-file)
+        ("F" . devonthink-dir-find-file)
         ("z" . zk-search)
         ("s" . ex/citar-search-pdf-contents))
   :custom
   (citar-bibliography gr/bibliography)
-  (citar-library-paths (list-dirs-recursively gr/devonthink-dir))
+  (citar-library-paths (list-dirs-recursively devonthink-dir))
   (citar-notes-paths '("~/Dropbox/ZK/Zettels"))
   (citar-file-extensions '("pdf" "epub"))
   (citar-file-note-extensions '("org" "md"))
@@ -3208,7 +3208,7 @@ following the key as group 3."
     ("r" zk-consult-grep)
     ("s" zk-search)
     ("d" gr/consult-ripgrep-select-dir)
-    ("p" gr/devonthink-find-file)
+    ("p" devonthink-dir-find-file)
     ("q" nil)))
 
 (bind-key* (kbd "C-z") 'hydra-zk/body)
@@ -3234,37 +3234,6 @@ following the key as group 3."
 
     ("q" nil)))
 
-
-;;;; gr/devonthink-dir
-
-(defvar gr/devonthink-dir)
-
-(setq gr/devonthink-dir "~/Databases/Academic Work.dtBase2/Files.noindex/")
-
-(defun gr/devonthink-find-file (key-entry &optional initial)
-  "Search devonthink archive for file, using `consult-find'."
-  (interactive (list (citar-select-ref)))
-  (let ((key (car key-entry)))
-    (if key
-        (consult-find gr/devonthink-dir (format "%s" key))
-      (consult-find gr/devonthink-dir initial))))
-
-;; DevonThink Links
-;; obsolute, use org-link-set-parameters instead
-(org-add-link-type "x-devonthink-item" 'org-devonthink-item-open)
-
-(defun org-devonthink-item-open (uid)
-  "Open the given UID, which is a reference to an item in Devonthink."
-  (shell-command (concat "open \"x-devonthink-item:" uid "\"")))
-
-;; (defun gr/devonthink-find-file (keys-entries)
-;;   "Search devonthink archive for file, using `consult-find'."
-;;   (interactive (list (citar-select-refs :rebuild-cache current-prefix-arg)))
-;;   (kill-new (or (car (citar--extract-keys keys-entries)) ""))
-;;   (minibuffer-with-setup-hook
-;;       'yank
-;;     (define-key embark-file-map (kbd "RET") 'find-file)
-;;     (consult-find gr/devonthink-dir)))
 
 ;;;; sdcv-mode
 
