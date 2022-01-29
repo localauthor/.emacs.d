@@ -1,16 +1,16 @@
 ;;; mmd-citation-support.el --- Add support for multi-markdown style citations    -*- lexical-binding: t; -*-
 
-
 ;; NOTES:
 ;;
 ;; Adds support for multi-markdown style citations to citar, link-hint, and embark support
 ;;
 ;; mmd-citations are in the style [#AuthorYEAR] or [23-25][#AuthorYEAR]
 
-
 (require 'citar)
 (require 'citar-file)
 (require 'citar-citeproc)
+(require 'devonthink-dir)
+(require 'oc-csl)
 (require 'thingatpt)
 (require 'embark)
 (require 'link-hint)
@@ -22,18 +22,34 @@
 (defvar gr/full-mmd-citation-regex "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]\\)")
 
 
-;;; add highlighting to mmd-citekeys in org-mode
+;;; add highlighting and tooltips to mmd-citekeys
 
-(font-lock-add-keywords 'org-mode '(("\\[@.*?\\]" . font-lock-keyword-face)
-                                    ("\\[-@.*?\\]" . font-lock-keyword-face)
-                                    ("\\[#.*?\\]" . font-lock-keyword-face)
-                                    ("\\[-#.*?\\]" . font-lock-keyword-face)))
+;; (font-lock-add-keywords 'org-mode '(("\\[@.*?\\]" . font-lock-keyword-face)
+;;                                     ("\\[-@.*?\\]" . font-lock-keyword-face)
+;;                                     ("\\[#.*?\\]" . font-lock-keyword-face)
+;;                                     ("\\[-#.*?\\]" . font-lock-keyword-face)))
 
-(font-lock-add-keywords 'outline-mode '(("\\[@.*?\\]" . font-lock-keyword-face)
-                                        ("\\[-@.*?\\]" . font-lock-keyword-face)
-                                        ("\\[#.*?\\]" . font-lock-keyword-face)
-                                        ("\\[-#.*?\\]" . font-lock-keyword-face)))
+(font-lock-add-keywords 'org-mode '(("\\[#.*?\\]" 0 '(face font-lock-keyword-face
+                                                           help-echo mmd-tooltip))
+                                    ("\\[-#.*?\\]" 0 '(face font-lock-keyword-face
+                                                            help-echo mmd-tooltip))))
 
+;; (font-lock-add-keywords 'outline-mode '(("\\[@.*?\\]" . font-lock-keyword-face)
+;;                                         ("\\[-@.*?\\]" . font-lock-keyword-face)
+;;                                         ("\\[#.*?\\]" . font-lock-keyword-face)
+;;                                         ("\\[-#.*?\\]" . font-lock-keyword-face)))
+
+(font-lock-add-keywords 'outline-mode '(("\\[#.*?\\]" 0 '(face font-lock-keyword-face
+                                                               help-echo mmd-tooltip))
+                                        ("\\[-#.*?\\]" 0 '(face font-lock-keyword-face
+                                                                help-echo mmd-tooltip))))
+
+(defun mmd-tooltip (_win _obj pos)
+  (save-excursion
+    (goto-char pos)
+    (let* ((mmd-citation (list (thing-at-point 'symbol t)))
+           (citar-citeproc-csl-style "chicago-fullnote-bibliography-short-title-subsequent.csl"))
+      (citar-citeproc-format-reference mmd-citation))))
 
 ;;; citar integration
 
@@ -89,7 +105,7 @@
   "Keymap for Embark comment actions."
   ("RET" citar-open)
   ("z" zk-search)
-  ("f" gr/devonthink-find-file)
+  ("f" devonthink-dir-find-file)
   ("r" citar-copy-reference)
   ("e" citar-ebib-jump-to-entry)
   ("F" citar-open-library-file)
