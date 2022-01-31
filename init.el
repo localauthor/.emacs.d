@@ -4,6 +4,8 @@
 ;; collection.  The default is 800 kilobytes.  Measured in bytes.
 (setq gc-cons-threshold (* 100 1000 1000))
 
+(add-variable-watcher 'zk-index-desktop-directory (lambda (&rest x) (message "Variable changed: %S" x)))
+
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
 
 ;; set LIBRARY_PATH to find gcc and libgccjit
@@ -257,7 +259,9 @@
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
-(load-theme 'gr-light t)
+;;(load-theme 'gr-light t)
+;;(load-theme 'gr-dark t)
+(load-theme 'modus-vivendi t)
 
 ;; set region highlighting, per
 ;; https://github.com/DarwinAwardWinner/dotemacs#dont-use-ns_selection_fg_color-and-ns_selection_bg_color
@@ -3142,7 +3146,7 @@ following the key as group 3."
 
 (use-package zk
   :straight (zk :local-repo "~/.emacs.d/my-lisp/zk/"
-                :files (:defaults "zk-consult.el"))
+                :files (:defaults "zk-consult.el" "zk-index"))
   :init
   (require 'zk-link-hint) ;; is this enough to get zk-link link-hints?
   (require 'zk-consult)
@@ -3166,6 +3170,8 @@ following the key as group 3."
         zk-grep-function #'zk-consult-grep
         zk-current-notes-function nil))
 
+(setq zk-index-desktop-directory zk-directory)
+
 (with-eval-after-load 'link-hint-aw-select
   (define-link-hint-aw-select zk-link zk-follow-link-at-point)
   (link-hint-define-type 'zk-link
@@ -3180,7 +3186,7 @@ following the key as group 3."
 
 (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
 
-;;(add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
+(add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
 
 (add-hook 'completion-at-point-functions #'zk-completion-at-point 'append)
 
