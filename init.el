@@ -3159,6 +3159,8 @@ following the key as group 3."
         ("r" . zk-consult-grep)
         ("o" . link-hint--aw-select-zk-link))
   :config
+  (zk-setup-auto-link-buttons)
+  (zk-setup-embark)
   (add-to-list 'auto-mode-alist '("\\.md\\'" . outline-mode))
   (setq zk-directory "~/Dropbox/ZK/Zettels"
         zk-file-extension "md"
