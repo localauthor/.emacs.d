@@ -69,6 +69,30 @@ Also excludes, journal, poem, Dickinson, and literature notes."
                              x))
                          all-notes)))))
 
+;;; Unlinked Notes
+
+(defun gr/zk--unlinked-notes-list ()
+  "Return list of IDs for notes that no notes link to."
+  (let* ((all-link-ids (zk--grep-link-id-list))
+         (all-ids (zk--id-list)))
+    (remq nil (mapcar
+               (lambda (x)
+                 (when (and (not (member x all-link-ids))
+                            ;; filter Dickinson notes
+                            (not (string-match "^20201210" x)))
+                   x))
+               all-ids))))
+
+(defun gr/zk-unlinked-notes ()
+  "Find unlinked notes, minus ED notes."
+  (interactive)
+  (let* ((ids (gr/zk--unlinked-notes-list))
+         (notes (zk--parse-id 'file-path ids)))
+    (if notes
+        (find-file (zk--select-file "Unlinked notes: " notes))
+      (user-error "No unlinked notes found"))))
+
+
 ;;; Backlinks and Forward Links Together
 
 (defun zk-network ()
@@ -109,67 +133,6 @@ Backlinks and Links-in-Note are grouped separately."
         (lambda (a _b)
           (when (eq 'backlink (get-text-property 0 'type a))
               t))))
-
-;;; Find Dead Links and Orphan Notes
-
-(defun zk--grep-link-list ()
-  "Return list of all ids that appear as links in zk directory."
-  (let* ((files (shell-command-to-string (concat
-                                          "grep -ohir -e "
-                                          (shell-quote-argument
-                                           zk-link-regexp)
-                                          " "
-                                          zk-directory " 2>/dev/null")))
-         (list (split-string files "\n" t)))
-    (delete-dups list)))
-
-(defun zk--dead-link-list ()
-  "Return list of all links with no corresponding note."
-  (let* ((all-links (zk--grep-link-list))
-         (all-ids (zk--id-list)))
-    (delete-dups (remq nil (mapcar
-                            (lambda (x)
-                              (string-match zk-id-regexp x)
-                              (when (not (member (match-string-no-properties 0 x) all-ids))
-                                x))
-                            all-links)))))
-
-(defun zk-grep-dead-links ()
-  "Search for dead links using 'zk-search-function'."
-  (interactive)
-  (let* ((dead-links (zk--dead-link-list))
-         (dead-link-ids (mapcar
-                       (lambda (x)
-                         (string-match zk-id-regexp x)
-                         (match-string 0 x))
-                       dead-links)))
-    (if dead-link-ids
-        (funcall zk-grep-function (mapconcat
-                                     'identity
-                                     dead-link-ids
-                                     "\\|"))
-      (user-error "No dead links found"))))
-
-(defun zk--unlinked-notes-list ()
-  "Return list of IDs for notes that no notes link to."
-  (let* ((all-links (zk--grep-link-list))
-         (all-ids (zk--id-list)))
-    (remq nil (mapcar
-               (lambda (x)
-                 (when (and (not (member x all-links))
-                            ;; filter Dickinson notes
-                            (not (string-match "^20201210" x)))
-                   x))
-               all-ids))))
-
-(defun zk-unlinked-notes ()
-  "Find unlinked notes."
-  (interactive)
-  (let* ((ids (zk--unlinked-notes-list))
-         (notes (zk--parse-id 'file-path ids)))
-    (if notes
-        (find-file (zk--select-file "Unlinked notes: " notes))
-      (user-error "No unlinked notes found"))))
 
 (provide 'zk-extras)
 ;;; zk-extras.el ends here
