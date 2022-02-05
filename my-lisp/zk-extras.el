@@ -30,7 +30,6 @@
                                (zk--directory-files t "[a-z]+[0-9]\\{4\\}")))))
     (find-file (zk--select-file "Lit notes: " lit-notes))))
 
-
 (defun zk-stats ()
   "Report number of notes, various categories."
   (interactive)
@@ -42,12 +41,33 @@
                                  (unless (member x ed-notes)
                                    x))
                                (zk--directory-files nil "[a-z]+[0-9]\\{4\\}"))))
-         (journal (length (zk--grep-file-list "#journalentry")))
-         (poem (length (zk--grep-file-list "#mypoem")))
+         (journal (length (zk--grep-file-list "journalentry")))
+         (poem (length (zk--grep-file-list "mypoem")))
          (notes (- (length all-notes)
-                   (+ journal poem (length lit-notes) (length ed-notes)))))
-    (message (format "Notes: %s | Lit: %s | Luhmann: %s" notes (length lit-notes) (length luhmann-notes)))))
+                   (+ journal poem (length luhmann-notes) (length lit-notes) (length ed-notes)))))
+    (message (format "Notes: %s | Luhmann: %s | Lit: %s"  notes (length luhmann-notes) (length lit-notes)))))
 
+(defun zk-index-non-luhmann ()
+  "Index listing of non-Luhmann notes.
+Also excludes, journal, poem, Dickinson, and literature notes."
+  (interactive)
+  (let* ((all-notes (zk--directory-files t))
+         (ed-notes (zk--directory-files t gr/dickinson-ref-regexp))
+         (luhmann-notes (zk--directory-files t "{"))
+         (lit-notes (remq nil (mapcar
+                               (lambda (x)
+                                 (unless (member x ed-notes)
+                                   x))
+                               (zk--directory-files t "[a-z]+[0-9]\\{4\\}"))))
+         (journal (zk--grep-file-list "journalentry"))
+         (poem (zk--grep-file-list "mypoem"))
+         (notes
+          (append ed-notes luhmann-notes lit-notes journal poem)))
+    (zk-index (remq nil (mapcar
+                         (lambda (x)
+                           (unless (member x notes)
+                             x))
+                         all-notes)))))
 
 ;;; Backlinks and Forward Links Together
 
