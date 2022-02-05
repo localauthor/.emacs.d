@@ -6,15 +6,18 @@
 ;;
 ;; mmd-citations are in the style [#AuthorYEAR] or [23-25][#AuthorYEAR]
 
+(require 'devonthink-dir)
+(require 'ebib-extras)
+
 (require 'citar)
 (require 'citar-file)
 (require 'citar-citeproc)
-(require 'devonthink-dir)
+
 (require 'oc-csl)
 (require 'thingatpt)
+
 (require 'embark)
 (require 'link-hint)
-(require 'ebib-extras)
 
 ;;; variables
 
@@ -23,6 +26,7 @@
 
 
 ;;; add highlighting and tooltips to mmd-citekeys
+;; these tooltips are pretty memory intensive
 
 ;; (font-lock-add-keywords 'org-mode '(("\\[@.*?\\]" . font-lock-keyword-face)
 ;;                                     ("\\[-@.*?\\]" . font-lock-keyword-face)
@@ -43,13 +47,33 @@
                                                                help-echo mmd-tooltip))
                                         ("\\[-#.*?\\]" 0 '(face font-lock-keyword-face
                                                                 help-echo mmd-tooltip))))
+(defvar mmd-tooltip-enable nil)
+
+;; (defun mmd-tooltip (_win _obj pos)
+;;   (when mmd-tooltip-enable 
+;;     (save-excursion
+;;       (goto-char pos)
+;;       (let* ((mmd-citation (list (thing-at-point 'symbol t)))
+;;              (citar-citeproc-csl-style "chicago-fullnote-bibliography-short-title-subsequent.csl"))
+;;         (citar-citeproc-format-reference mmd-citation)))))
 
 (defun mmd-tooltip (_win _obj pos)
   (save-excursion
     (goto-char pos)
-    (let* ((mmd-citation (list (thing-at-point 'symbol t)))
-           (citar-citeproc-csl-style "chicago-fullnote-bibliography-short-title-subsequent.csl"))
-      (citar-citeproc-format-reference mmd-citation))))
+    (let* ((citar-templates '((preview . "${author editor} (${year issued date})\n${title}")))
+           (mmd-citation (list (thing-at-point 'symbol t)))
+           (entry (citar--ensure-entries mmd-citation)))
+      (citar-format-reference entry))))
+
+(defun mmd-tooltip-toggle ()
+  (interactive)
+  (if (bound-and-true-p mmd-tooltip-enable)
+      (progn
+        (setq mmd-tooltip-enable nil)
+        (message "mmd-tooltips off"))
+    (progn
+      (setq mmd-tooltip-enable t)
+      (message "mmd-tooltips on"))))
 
 ;;; citar integration
 
