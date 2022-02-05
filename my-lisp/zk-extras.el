@@ -97,10 +97,10 @@ Backlinks and Links-in-Note are grouped separately."
   (let* ((files (shell-command-to-string (concat
                                           "grep -ohir -e "
                                           (shell-quote-argument
-                                           "\\[[0-9]\\{12\\}]")
+                                           zk-link-regexp)
                                           " "
                                           zk-directory " 2>/dev/null")))
-         (list (split-string files "\n" t "[][]")))
+         (list (split-string files "\n" t)))
     (delete-dups list)))
 
 (defun zk--dead-link-list ()
@@ -117,11 +117,16 @@ Backlinks and Links-in-Note are grouped separately."
 (defun zk-grep-dead-links ()
   "Search for dead links using 'zk-search-function'."
   (interactive)
-  (let ((dead-links (zk--dead-link-list)))
-    (if dead-links
+  (let* ((dead-links (zk--dead-link-list))
+         (dead-link-ids (mapcar
+                       (lambda (x)
+                         (string-match zk-id-regexp x)
+                         (match-string 0 x))
+                       dead-links)))
+    (if dead-link-ids
         (funcall zk-grep-function (mapconcat
                                      'identity
-                                     dead-links
+                                     dead-link-ids
                                      "\\|"))
       (user-error "No dead links found"))))
 
