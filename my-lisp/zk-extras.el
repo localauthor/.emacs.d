@@ -4,6 +4,7 @@
 
 ;;; Code:
 (require 'zk)
+(require 'zk-index)
 (require 'dickinson)
 (require 'vertico)
 
@@ -19,6 +20,22 @@
                   `((?i . ,id)(?t . ,title)))))
   (message "Copied link to current buffer"))
 
+(defun zk-word-count (&optional files)
+  "Report word count of all files in 'zk-directory'.
+Optionally takes list of FILES."
+  (interactive)
+  (let* ((files (if files files
+                  (zk--directory-files t)))
+         (wc 0))
+    (mapc
+     (lambda (x)
+       (let ((str (shell-command-to-string (concat "wc -w " (shell-quote-argument x)))))
+         (string-match "[0-9]+" str )
+         (setq wc (+ wc (string-to-number (match-string 0 str))))))
+     files)
+    (message "Words: %s" wc)
+    wc))
+
 (defun zk-lit-notes ()
   "Find literature note."
   (interactive)
@@ -29,6 +46,32 @@
                                    x))
                                (zk--directory-files t "[a-z]+[0-9]\\{4\\}")))))
     (find-file (zk--select-file "Lit notes: " lit-notes))))
+
+(defun zk-luhmann-word-count ()
+  (interactive)
+  (zk-word-count (zk--directory-files t "{"))) ;; not general
+
+(defun gr/zk-word-count ()
+  "Report word count for notes, various categories."
+  (interactive)
+  (let* ((all-notes (zk--directory-files t))
+         (ed-notes (zk--directory-files t gr/dickinson-ref-regexp))
+         (lit-notes (remq nil (mapcar
+                               (lambda (x)
+                                 (unless (member x ed-notes)
+                                   x))
+                               (zk--directory-files t "[a-z]+[0-9]\\{4\\}"))))
+         (journal (zk--grep-file-list "journalentry"))
+         (poem (zk--grep-file-list "mypoem"))
+         (non-notes
+          (append ed-notes lit-notes journal poem))
+         (notes
+          (remq nil (mapcar
+                         (lambda (x)
+                           (unless (member x non-notes)
+                             x))
+                         all-notes))))
+    (zk-word-count notes)))
 
 (defun zk-stats ()
   "Report number of notes, various categories."
@@ -47,27 +90,36 @@
                    (+ journal poem (length luhmann-notes) (length lit-notes) (length ed-notes)))))
     (message (format "Notes: %s | Luhmann: %s | Lit: %s"  notes (length luhmann-notes) (length lit-notes)))))
 
-(defun zk-index-non-luhmann ()
+(defun zk-non-luhmann-list ()
   "Index listing of non-Luhmann notes.
 Also excludes, journal, poem, Dickinson, and literature notes."
-  (interactive)
   (let* ((all-notes (zk--directory-files t))
          (ed-notes (zk--directory-files t gr/dickinson-ref-regexp))
          (luhmann-notes (zk--directory-files t "{"))
-         (lit-notes (remq nil (mapcar
-                               (lambda (x)
-                                 (unless (member x ed-notes)
-                                   x))
-                               (zk--directory-files t "[a-z]+[0-9]\\{4\\}"))))
+         (lit-notes (zk--directory-files t "[a-z]+[0-9]\\{4\\}"))
+         (film (zk--grep-file-list "filmnotes"))
+         (personal (zk--grep-file-list "#personal"))
+         (creative (zk--grep-file-list "#creative"))
+         (songs (zk--grep-file-list "#song"))
+         (booknote (zk--grep-file-list "#booknote"))
          (journal (zk--grep-file-list "journalentry"))
          (poem (zk--grep-file-list "mypoem"))
          (notes
-          (append ed-notes luhmann-notes lit-notes journal poem)))
-    (zk-index (remq nil (mapcar
-                         (lambda (x)
-                           (unless (member x notes)
-                             x))
-                         all-notes)))))
+          (append ed-notes booknote luhmann-notes film songs creative personal lit-notes journal poem)))
+    (message "%s" (length (delete-dups notes)))
+    (remq nil (mapcar
+               (lambda (x)
+                 (unless (member x notes)
+                   x))
+               all-notes))))
+
+(defun zk-index-non-luhmann ()
+  (interactive)
+  (zk-index (zk-non-luhmann-list)))
+
+(defun zk-non-luhmann-word-count ()
+  (interactive)
+  (zk-word-count (zk-non-luhmann-list)))
 
 ;;; Unlinked Notes
 

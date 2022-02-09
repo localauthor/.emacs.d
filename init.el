@@ -72,7 +72,8 @@
 (setq mu4e-mu-binary "/usr/local/bin/mu")
 
 (setq safe-local-variable-values
-      '((eval face-remap-add-relative 'org-level-8 :family "Monospace")
+      '((eval setq-local zk-directory default-directory)
+        (eval face-remap-add-relative 'org-level-8 :family "Monospace")
         (eval face-remap-add-relative 'org-level-7 :family "Monospace")
         (eval face-remap-add-relative 'org-level-6 :family "Monospace")
         (eval face-remap-add-relative 'org-level-5 :family "Monospace")
@@ -259,9 +260,12 @@
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
-;;(load-theme 'gr-light t)
+(load-theme 'gr-light t)
 ;;(load-theme 'gr-dark t)
-(load-theme 'modus-vivendi t)
+
+;; (progn
+;;   (load-theme 'modus-vivendi t)
+;;   (set-face-attribute 'show-paren-match nil :underline nil :foreground "#ffffff" :background "systemGreenColor"))
 
 ;; set region highlighting, per
 ;; https://github.com/DarwinAwardWinner/dotemacs#dont-use-ns_selection_fg_color-and-ns_selection_bg_color
@@ -2226,6 +2230,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :defer 1
   :bind*
   ("C-h k" . helpful-key)
+  ("C-h o" . helpful-symbol)
   ("C-h f" . helpful-callable)
   ("C-h v" . helpful-variable)
   (:map helpful-mode-map
@@ -2864,7 +2869,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package citar
   :straight (:host github :repo "bdarcus/citar" :fork t)
   :after (oc misc-file-handling)
-  :commands (citar-select-ref citar-select-refs gr/citar-mmd-insert-citation)
+  :commands (citar-select-ref citar-select-refs gr/citar-mmd-insert-citation citar-format-reference)
   :bind
   (:map org-mode-map
         ("C-c \\" . citar-insert-citation))
@@ -3169,7 +3174,7 @@ following the key as group 3."
         zk-new-note-link-insert 'ask
         zk-link-and-title-format "%t [[%i]]"
         zk-tag-grep-function #'zk-consult-grep-tag-search
-        zk-grep-function #'zk-consult-grep
+        zk-grep-function #'zk-grep ;; #'zk-consult-grep
         zk-current-notes-function nil))
 
 (setq zk-index-desktop-directory zk-directory)
@@ -3212,7 +3217,7 @@ following the key as group 3."
     ;;("B r" citar-insert-reference)
     ;;("B p" pullbib-pull)
     ("I" zk-index)
-    ("l" zk-index-luhmann)
+    ("l" zk-luhmann-index)
     ("L" zk-lit-notes)
     ("c" gr/citar-mmd-insert-citation)
     ("C" zk-current-notes)
@@ -3221,7 +3226,8 @@ following the key as group 3."
     ("f" zk-find-file)
     ("r" zk-consult-grep)
     ("s" zk-search)
-    ("d" gr/consult-ripgrep-select-dir)
+    ("d" zk-index-send-to-desktop)
+    ;; ("d" gr/consult-ripgrep-select-dir)
     ("p" devonthink-dir-find-file)
     ("q" nil)))
 
@@ -3248,6 +3254,15 @@ following the key as group 3."
 
     ("q" nil)))
 
+(defun zk-org-try-to-follow-link (fn &optional arg)
+  "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.
+Optional ARG."
+  (let ((org-link-search-must-match-exact-headline t))
+    (condition-case nil
+	(apply fn arg)
+      (error (zk-follow-link-at-point)))))
+
+(advice-add 'org-open-at-point :around #'zk-org-try-to-follow-link)
 
 ;;;; sdcv-mode
 
@@ -3371,8 +3386,7 @@ don't want to fix with `SPC', and you can abort completely with
   "Turn webpage into a single html file.
 Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (interactive)
-  (let* ((dir (file-name-directory buffer-file-name))
-         (orig (expand-file-name (read-file-name "File: " nil dir)))
+  (let* ((orig (expand-file-name (read-file-name "File: ")))
          (origext (file-name-extension orig))
          (newfile (concat (file-name-sans-extension orig) " 2." origext)))
     (if (equal "html" origext)
@@ -3400,7 +3414,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (pdf-annot-activate-created-annotations t "automatically annotate highlights")
 
   :config
-  (pdf-tools-install)
+  (pdf-tools-install 'no-query)
   (require 'tablist)
   (setq-default pdf-view-display-size 'fit-width)
   (setq pdf-view-use-scaling t)
