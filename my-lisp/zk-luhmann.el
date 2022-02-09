@@ -45,6 +45,11 @@
 
 ;;; Luhmann ID Support
 
+(defcustom zk-luhmann-id-format "{\\([0-9a-zA-Z,]*\\)}"
+  "Default format for candidates in the index."
+    :group 'zk-luhmann
+    :type 'string)
+
 (defun zk-luhmann ()
   "Find note with Luhmann-IDs."
   (interactive)
@@ -79,10 +84,10 @@
   (sort list
         (lambda (a b)
           (let ((one
-                 (when (string-match "{\\([^ ]*\\)" a)
+                 (when (string-match zk-luhmann-id-format a)
                    (match-string 1 a)))
                 (two
-                 (when (string-match "{\\([^ ]*\\)" b)
+                 (when (string-match zk-luhmann-id-format b)
                    (match-string 1 b))))
             (string< one two)))))
 
