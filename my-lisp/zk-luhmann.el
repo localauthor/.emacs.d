@@ -44,11 +44,22 @@
 (require 'zk-index)
 
 ;;; Luhmann ID Support
+(defcustom zk-luhmann-id-start-char "("
+  "Character denoting the start of a Luhmann ID."
+  :type 'string
+  :group 'zk-luhmann)
 
-(defcustom zk-luhmann-id-format "{\\([0-9a-zA-Z,]*\\)}"
-  "Default format for candidates in the index."
-    :group 'zk-luhmann
-    :type 'string)
+(defcustom zk-luhmann-id-stop-char ")"
+  "Character denoting the end of a Luhmann ID."
+  :type 'string
+  :group 'zk-luhmann)
+
+(defcustom zk-luhmann-id-delimiter ","
+ "Character delimiting a Luhmann ID."
+  :type 'string
+  :group 'zk-luhmann)
+
+(setq zk-luhmann-id-regex (concat zk-luhmann-id-start-char "\\([0-9a-zA-Z,]*\\)" zk-luhmann-id-stop-char))
 
 (defun zk-luhmann ()
   "Find note with Luhmann-IDs."
@@ -84,10 +95,10 @@
   (sort list
         (lambda (a b)
           (let ((one
-                 (when (string-match zk-luhmann-id-format a)
+                 (when (string-match zk-luhmann-id-regex a)
                    (match-string 1 a)))
                 (two
-                 (when (string-match zk-luhmann-id-format b)
+                 (when (string-match zk-luhmann-id-regex b)
                    (match-string 1 b))))
             (string< one two)))))
 
@@ -97,7 +108,7 @@
         (pt (point)))
     (save-excursion
       (save-match-data
-        (when (re-search-backward "{" nil t)
+        (when (re-search-backward zk-luhmann-id-start-char nil t)
           (list (match-beginning 0)
                 pt
                 (zk-luhmann-format-candidates)
@@ -105,7 +116,7 @@
 
 (defun zk-luhmann-files ()
   "List notes with Luhmann-IDs."
-  (zk--directory-files t "{"))
+  (zk--directory-files t zk-luhmann-id-start-char))
 
 (defun zk-luhmann-format-candidates (&optional files)
   "Format completions candidates for FILES with Luhmann-IDs."
@@ -114,7 +125,6 @@
     (zk--format-candidates files "%t [[%i]]")))
 
 (add-hook 'completion-at-point-functions #'zk-luhmann-completion-at-point 'append)
-
 
 ;;; Luhmann Index
 
@@ -155,7 +165,7 @@
   "Focus on top level Luhmann-ID notes."
   (interactive)
   (let ((buffer-string (buffer-string)))
-    (zk-index (zk--directory-files t "{[^,] }")
+    (zk-index (zk--directory-files t (concat zk-luhmann-id-start-char "[^" zk-luhmann-id-delimiter "]*" zk-luhmann-id-stop-char))
               zk-index-last-format-function
               #'zk-luhmann-sort)
     (when (string= buffer-string (buffer-string))
@@ -164,7 +174,8 @@
 (defun zk-luhmann-index-forward ()
   (interactive)
   (let* ((buffer-string (buffer-string))
-         (regexp "{.[^ }]*")
+         (forward-rx (concat zk-luhmann-id-start-char ".[^" zk-luhmann-id-stop-char "]*" ))
+         (regexp forward-rx)
          (line (buffer-substring
                 (line-beginning-position)
                 (line-end-position)))
@@ -174,7 +185,7 @@
                  (match-string-no-properties 0 line))))
          (str
           (cond ((eq this-command 'zk-luhmann-index-forward)
-                 (concat id " \\|" id ",. [^ }]*"))
+                 (concat id " \\|" id zk-luhmann-id-delimiter ".[^" zk-luhmann-id-stop-char "]*"))
                 ((eq this-command 'zk-luhmann-index-unfold)
                  (substring id 0 2)))))
     (when id
@@ -184,7 +195,9 @@
                   #'zk-luhmann-sort)
         (goto-char (point-min))
         (re-search-forward id nil t)
-        (beginning-of-line)))
+        (beginning-of-line)
+        (when (eq this-command 'zk-luhmann-index-unfold)
+          (pulse-momentary-highlight-one-line nil 'highlight))))
     (cond ((and (eq this-command 'zk-luhmann-index-unfold)
                 (string= buffer-string (buffer-string)))
            (zk-luhmann-index-top))
@@ -194,39 +207,42 @@
              (setq this-command 'zk-luhmann-index-unfold)
              (zk-luhmann-index-unfold))))))
 
+
+
 (defun zk-luhmann-index-back ()
   (interactive)
   (zk-luhmann-index-sort)
   (let* ((buffer-string (buffer-string))
+         (backward-rx (concat zk-luhmann-id-start-char ".[^" zk-luhmann-id-stop-char "]*" ))
          (line (buffer-substring (goto-char (point-min))
                                  (line-end-position)))
          (id (progn
-               (string-match "{.[^ ]*" line)
+               (string-match backward-rx line)
                (match-string 0 line)))
          (sub-id (substring (match-string 0 line) 0 -2)))
     (cond ((eq 2 (length id))
             (zk-index (zk--directory-files t id)
                       zk-index-last-format-function
                       #'zk-luhmann-sort))
-          (t (zk-index (zk--directory-files t (concat sub-id " \\|" sub-id ",. [^ }]*"))
+          (t (progn (zk-index (zk--directory-files t (concat sub-id " \\|" sub-id zk-luhmann-id-delimite ".[^" zk-luhmann-id-stop-char "]*"))
                        zk-index-last-format-function
-                       #'zk-luhmann-sort)))
+                       #'zk-luhmann-sort)
+                    (re-search-forward id nil t)
+                    (beginning-of-line)
+                    (pulse-momentary-highlight-one-line nil 'highlight))))
     (when (string= buffer-string (buffer-string))
       (zk-luhmann-index-top))))
 
 (defun zk-luhmann-index-unfold ()
   (interactive)
-  (zk-luhmann-index-forward)
-  (recenter-top-bottom 0))
+  (zk-luhmann-index-forward))
+;;  (recenter-top-bottom))
 
-(defun zk-luhmann-index-level ()
-  (interactive)
-  (let* ((char (if (integerp last-command-event)
-                   last-command-event
-                 (get last-command-event 'ascii-character)))
-         (reps (- (- (logand char ?\177) ?0) 1))
-         (base-rx "{[0-9]*")
-         (slug ",.")
+(defun zk-luhmann-index-level (lvl)
+  (interactive "nGoto level:")
+  (let* ((reps lvl)
+         (base-rx (concat zk-luhmann-id-start-char "[0-9]*"))
+         (slug (concat zk-luhmann-id-delimiter "."))
          (new-slug "")
          (regexp
           (progn
