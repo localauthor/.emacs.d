@@ -169,6 +169,8 @@
 
   (setq use-dialog-box nil)
 
+  (setq recenter-positions '(top middle bottom))
+
   (add-hook 'after-make-frame-functions
             #'(lambda (frame)
                 (modify-frame-parameters frame
@@ -2113,7 +2115,7 @@ That is, remove a non kept dired from the recent list."
   :bind
   ("M-g w" . avy-goto-word-1)
   :bind*
-  ("C-l" . gr/avy-goto)
+  ;;("C-l" . gr/avy-goto)
   ("C-. C-," . gr/avy-goto-string)
   ("C-'" . gr/avy-goto-string)
   :custom
@@ -2843,6 +2845,15 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :hook
   (emacs-lisp-mode-hook . outshine-mode)
   (outline-minor-mode-hook . outshine-mode))
+
+;;;; whitespace-mode
+
+(use-package whitespace
+  :hook
+  (emacs-lisp-mode-hook . whitespace-mode)
+  :custom
+  (whitespace-style '(face trailing lines))
+  )
 
 ;;;; flycheck and package-lint
 

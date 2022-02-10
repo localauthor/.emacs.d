@@ -1,4 +1,4 @@
-;;; zk-extras.el --- Experimental or Extra functions for zk.el  -*- lexical-binding: t; -*-
+;;; zk-extras.el --- Extra functions for zk.el  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -29,7 +29,8 @@ Optionally takes list of FILES."
          (wc 0))
     (mapc
      (lambda (x)
-       (let ((str (shell-command-to-string (concat "wc -w " (shell-quote-argument x)))))
+       (let ((str (shell-command-to-string (concat "wc -w "
+                                                   (shell-quote-argument x)))))
          (string-match "[0-9]+" str )
          (setq wc (+ wc (string-to-number (match-string 0 str))))))
      files)
@@ -39,13 +40,22 @@ Optionally takes list of FILES."
 (defun zk-lit-notes ()
   "Find literature note."
   (interactive)
-  (let* ((ed-notes (zk--directory-files t gr/dickinson-ref-regexp))
-         (lit-notes (remq nil (mapcar
-                               (lambda (x)
-                                 (unless (member x ed-notes)
-                                   x))
-                               (zk--directory-files t "[a-z]+[0-9]\\{4\\}")))))
-    (find-file (zk--select-file "Lit notes: " lit-notes))))
+  (find-file (zk--select-file "Lit notes: " (zk-lit-notes-list))))
+
+(defun zk-lit-notes-list ()
+  "Return list of literature notes."
+  (interactive)
+  (let* ((ed-notes (zk--directory-files t gr/dickinson-ref-regexp)))
+    (remq nil (mapcar
+               (lambda (x)
+                 (unless (member x ed-notes)
+                   x))
+               (zk--directory-files t "[a-z]+[0-9]\\{4\\}")))))
+
+(defun zk-lit-notes-index ()
+  "List lit notes in ZK-Index"
+  (interactive)
+  (zk-index (zk-lit-notes-list)))
 
 (defun zk-luhmann-word-count ()
   (interactive)
@@ -87,8 +97,14 @@ Optionally takes list of FILES."
          (journal (length (zk--grep-file-list "journalentry")))
          (poem (length (zk--grep-file-list "mypoem")))
          (notes (- (length all-notes)
-                   (+ journal poem (length luhmann-notes) (length lit-notes) (length ed-notes)))))
-    (message (format "Notes: %s | Luhmann: %s | Lit: %s"  notes (length luhmann-notes) (length lit-notes)))))
+                   (+ journal poem
+                      (length luhmann-notes)
+                      (length lit-notes)
+                      (length ed-notes)))))
+    (message (format "Notes: %s | Luhmann: %s | Lit: %s"
+                     notes
+                     (length luhmann-notes)
+                     (length lit-notes)))))
 
 (defun zk-non-luhmann-list ()
   "Index listing of non-Luhmann notes.
@@ -105,7 +121,16 @@ Also excludes, journal, poem, Dickinson, and literature notes."
          (journal (zk--grep-file-list "journalentry"))
          (poem (zk--grep-file-list "mypoem"))
          (notes
-          (append ed-notes booknote luhmann-notes film songs creative personal lit-notes journal poem)))
+          (append ed-notes
+                  booknote
+                  luhmann-notes
+                  film
+                  songs
+                  creative
+                  personal
+                  lit-notes
+                  journal
+                  poem)))
     (message "%s" (length (delete-dups notes)))
     (remq nil (mapcar
                (lambda (x)
@@ -120,6 +145,7 @@ Also excludes, journal, poem, Dickinson, and literature notes."
 (defun zk-non-luhmann-word-count ()
   (interactive)
   (zk-word-count (zk-non-luhmann-list)))
+
 
 ;;; Unlinked Notes
 
