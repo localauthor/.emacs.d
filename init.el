@@ -3168,7 +3168,6 @@ following the key as group 3."
   (require 'zk-consult)
   (require 'zk-extras)
   (require 'zk-index)
-  (require 'zk-luhmann)
   :bind
   (:map zk-id-map
         ("s" . zk-search)
@@ -3187,6 +3186,9 @@ following the key as group 3."
         zk-tag-grep-function #'zk-consult-grep-tag-search
         zk-grep-function #'zk-grep ;; #'zk-consult-grep
         zk-current-notes-function nil))
+
+(use-package zk-luhmann
+  :straight (zk-luhmann :local-repo "~/.emacs.d/my-lisp/zk-luhmann"))
 
 (setq zk-index-desktop-directory zk-directory)
 
