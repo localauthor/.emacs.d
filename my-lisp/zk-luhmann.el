@@ -59,7 +59,7 @@
   :type 'string
   :group 'zk-luhmann)
 
-(setq zk-luhmann-id-regex (concat zk-luhmann-id-start-char "\\([0-9a-zA-Z,]*\\)" zk-luhmann-id-stop-char))
+(setq zk-luhmann-id-regexp (concat zk-luhmann-id-start-char "\\([0-9a-zA-Z,]*\\)" zk-luhmann-id-stop-char))
 
 (defun zk-luhmann ()
   "Find note with Luhmann-IDs."
@@ -116,7 +116,7 @@
 
 (defun zk-luhmann-files ()
   "List notes with Luhmann-IDs."
-  (zk--directory-files t zk-luhmann-id-start-char))
+  (zk--directory-files t (concat zk-id-regexp "\s" zk-luhmann-id-regexp)))
 
 (defun zk-luhmann-format-candidates (&optional files)
   "Format completions candidates for FILES with Luhmann-IDs."
