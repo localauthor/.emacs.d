@@ -299,7 +299,8 @@ color."
 
 (setq org-hide-emphasis-markers nil)
 
-;; I set this here so that the down-arrow remains the right color and size even if I change themes
+;; I set this here so that the down-arrow remains the right color and size
+;; even if I change themes
 (set-face-attribute 'org-ellipsis nil :inherit 'fixed-pitch :foreground "grey50" :underline nil :height 1.1)
 
 
@@ -3149,7 +3150,9 @@ following the key as group 3."
   :after citeproc
   :config
   ;; not quite ready for primetime
-  ;; :hook (org-mode-hook . (lambda () (cursor-sensor-mode 1) (org-cite-csl-activate-render-all)))
+  ;; :hook (org-mode-hook . (lambda ()
+  ;; (cursor-sensor-mode 1)
+  ;; (org-cite-csl-activate-render-all)))
   )
 
 ;;;; mmd-citation-support
@@ -3162,35 +3165,57 @@ following the key as group 3."
 
 (use-package zk
   :straight (zk :local-repo "~/.emacs.d/my-lisp/zk/"
-                :files (:defaults "zk-consult.el" "zk-index"))
+                :files (:defaults "zk-consult.el"))
   :init
-  (require 'zk-link-hint) ;; is this enough to get zk-link link-hints?
+  (require 'zk-link-hint)
   (require 'zk-consult)
   (require 'zk-extras)
-  (require 'zk-index)
   :bind
   (:map zk-id-map
         ("s" . zk-search)
         ("r" . zk-consult-grep)
         ("o" . link-hint--aw-select-zk-link))
+  :hook (completion-at-point-functions . zk-completion-at-point)
+  :custom
+  (zk-directory "~/Dropbox/ZK/Zettels")
+  (zk-file-extension "md")
+  (zk-default-backlink "201801190001")
+  (zk-link-and-title 'ask)
+  (zk-new-note-link-insert 'ask)
+  (zk-link-and-title-format "%t [[%i]]")
+  (zk-tag-grep-function #'zk-consult-grep-tag-search)
+  (zk-grep-function #'zk-grep) ;; #'zk-consult-grep
+  (zk-current-notes-function nil)
   :config
   (zk-setup-auto-link-buttons)
   (zk-setup-embark)
   (add-to-list 'auto-mode-alist '("\\.md\\'" . outline-mode))
-  (setq zk-directory "~/Dropbox/ZK/Zettels"
-        zk-file-extension "md"
-        zk-default-backlink "201801190001"
-        zk-link-and-title 'ask
-        zk-new-note-link-insert 'ask
-        zk-link-and-title-format "%t [[%i]]"
-        zk-tag-grep-function #'zk-consult-grep-tag-search
-        zk-grep-function #'zk-grep ;; #'zk-consult-grep
-        zk-current-notes-function nil))
+  (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
+  (add-to-list 'consult-buffer-sources 'zk-consult-source 'append))
+
+(use-package zk-index
+  :straight (zk-index :local-repo "~/.emacs.d/my-lisp/zk/"
+                      :files ("zk-index.el"))
+  :config
+  (zk-index-setup-embark)
+  :custom
+  (zk-index-desktop-directory zk-directory))
 
 (use-package zk-luhmann
-  :straight (zk-luhmann :local-repo "~/.emacs.d/my-lisp/zk-luhmann"))
-
-(setq zk-index-desktop-directory zk-directory)
+  :straight (zk-luhmann :local-repo "~/.emacs.d/my-lisp/zk-luhmann")
+  :bind (:map zk-index-map
+              ("L" . zk-luhmann-index-sort)
+              ("l" . zk-luhmann-index)
+              ("C-f" . zk-luhmann-index-forward)
+              ("C-b" . zk-luhmann-index-back)
+              ("C-t" . zk-luhmann-index-unfold)
+              ("t" . zk-luhmann-index-top)
+              ("1" . zk-luhmann-index-level)
+              ("2" . zk-luhmann-index-level)
+              ("3" . zk-luhmann-index-level)
+              ("4" . zk-luhmann-index-level)
+              ("5" . zk-luhmann-index-level))
+  :hook (completion-at-point-functions . zk-luhmann-completion-at-point))
 
 (with-eval-after-load 'link-hint-aw-select
   (define-link-hint-aw-select zk-link zk-follow-link-at-point)
@@ -3203,12 +3228,6 @@ following the key as group 3."
   ("f" zk-find-file)
   ("g" consult-grep)
   ("s" zk-find-file-by-full-text-search))
-
-(add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
-
-(add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
-
-(add-hook 'completion-at-point-functions #'zk-completion-at-point 'append)
 
 (eval-and-compile
   (defhydra hydra-zk (:hint nil
@@ -3256,15 +3275,11 @@ following the key as group 3."
 
     ("b" gr/append-bibliography)
     ("r" citar-insert-reference)
-
     ("e" hydra-ebib/body)
     ("I" ebib-zotero-import-identifier)
-
     ("i" ebib-isbn-search)
     ("d" crossref-lookup)
-
     ("c" gr/citar-mmd-insert-citation)
-
     ("q" nil)))
 
 (defun zk-org-try-to-follow-link (fn &optional arg)
