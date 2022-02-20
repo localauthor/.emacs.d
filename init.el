@@ -2843,6 +2843,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package outshine
   :diminish
+  :bind
+  ("C-S-<right>" . outline-demote)
+  ("C-S-<left>" . outline-promote)
   :hook
   (emacs-lisp-mode-hook . outshine-mode)
   (outline-minor-mode-hook . outshine-mode))
