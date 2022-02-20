@@ -50,7 +50,7 @@
   (ebib--update-buffers))
 
 
-(defun gr/list-bibtex-field (bibs field)
+(defun gr/bibtex-all-field-values (field bibs)
   "Return a list all FIELD entries from bibtex files (BIBS)."
   (let ((all-keys nil)
         (table (parsebib-parse bibs)))
@@ -60,7 +60,10 @@
      table)
     all-keys))
 
+;; or: (hash-table-keys (parsebib-parse gr/bibliography))
 ;; or: (progn (ebib) (ebib--list-keys ebib--cur-db))
+;; or: (ebib-db-list-keys ebib--cur-db)
+;; or: (org-cite-basic--all-keys)
 
 (defun gr/bibtex-generate-autokey ()
   "Generate automatically a key for a BibTeX entry.
@@ -79,7 +82,9 @@ Includes duplicate handling."
          (suffix ?a)
          (new-key autokey)
          (key))
-    (while (member new-key (gr/list-bibtex-field gr/bibliography "=key="))
+    (while (member new-key (gr/bibtex-all-field-values
+                            "=key="
+                            gr/bibliography))
       (setq new-key (concat autokey (list suffix)))
       (setq suffix (1+ suffix))
       (when (eq suffix ?z)
