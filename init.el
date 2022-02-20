@@ -116,6 +116,13 @@
 ;;     (org-babel-load-file (expand-file-name "~/.emacs.d/lisp/myinitOSX13.org"))
 ;;   (org-babel-load-file (expand-file-name "~/Dropbox/org/myinit.org")))
 
+;; (when (version< "28" emacs-version)
+;;   (progn
+;;     (defvar read-symbol-positions-list nil)
+;;     (pixel-scroll-precision-mode)
+;;     (setq mml-attach-file-at-the-end t)))
+
+
 ;;; Basics
 ;;;; Emacs
 
@@ -672,7 +679,7 @@ Symbols and Diacritics
   (eval-after-load 'gumshoe-mode '(diminish 'global-gumshoe-mode))
   )
 
-(add-hook 'buffer-face-mode-hook '(lambda () (diminish 'buffer-face-mode)))
+(add-hook 'buffer-face-mode-hook #'(lambda () (diminish 'buffer-face-mode)))
 
 ;;; Org
 ;;;; org straight.el setup
