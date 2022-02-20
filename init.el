@@ -3215,7 +3215,14 @@ following the key as group 3."
               ("3" . zk-luhmann-index-level)
               ("4" . zk-luhmann-index-level)
               ("5" . zk-luhmann-index-level))
-  :hook (completion-at-point-functions . zk-luhmann-completion-at-point))
+  :hook (completion-at-point-functions . zk-luhmann-completion-at-point)
+  :custom
+  (zk-luhmann-id-prefix "{")
+  (zk-luhmann-id-postfix " }")
+  :config
+  (setq zk-luhmann-id-regex (concat zk-luhmann-id-prefix
+                                    "\\([0-9a-zA-Z,]*\\)"
+                                    zk-luhmann-id-postfix)))
 
 (with-eval-after-load 'link-hint-aw-select
   (link-hint-define-type 'zk-link
