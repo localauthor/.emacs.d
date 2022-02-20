@@ -50,6 +50,9 @@
                                                  help-echo mmd-tooltip))
                           ("\\[-#.*?\\]" 0 '(face font-lock-keyword-face
                                                   help-echo mmd-tooltip))))
+
+;; (gr/bibtex-all-field-values gr/bibliography "=key=")
+
 (defvar mmd-tooltip-enable nil)
 
 ;; (defun mmd-tooltip (_win _obj pos)
@@ -85,16 +88,24 @@
 
 ;;; citar integration
 
+;; (defun gr/citar-mmd-insert-citation (key-entry)
+;;   "Insert BibTeX KEYS in mmd format, with option to include PAGES."
+;;   (interactive (list (citar-select-ref)))
+;;   (let* ((pages (read-from-minibuffer "Pages: "))
+;;          (pages  (if (string= "" pages) "" (concat pages ""))))
+;;     (if (string= "" pages)
+;;         (insert (format "[#%s]" (car key-entry)))
+;;       (insert (format "[%s][#%s]" pages (car key-entry)))
+;;       )))
+
 (defun gr/citar-mmd-insert-citation (key-entry)
   "Insert BibTeX KEYS in mmd format, with option to include PAGES."
   (interactive (list (citar-select-ref)))
   (let* ((pages (read-from-minibuffer "Pages: "))
-         (pages  (if (string= "" pages) "" (concat pages ""))))
-    (if (string= "" pages)
-        (insert (format "[#%s]" (car key-entry)))
-      (insert (format "[%s][#%s]" pages (car key-entry)))
-      )))
-
+         (mmd (format "[#%s]" (car key-entry))))
+    (if (string= "" pages) (insert mmd)
+      (insert (format "[%s]" pages) mmd))
+    (kill-new mmd)))
 
 ;;; link-hint integration
 
@@ -125,8 +136,10 @@
 
 (defun embark-target-mmd-citation-at-point ()
   "Target a multimarkdown style citation at point."
-  ;; Includes a hack, a result of limitation of (thing-at-point 'symbol), to allow accurate target identification when point is on "[" or "#" at beginning of mmd citation
-  ;; maybe better to do thing-at-point thing manually, like citar does for markdown?
+  ;; Includes a hack, a result of limitation of (thing-at-point 'symbol), to
+  ;; allow accurate target identification when point is on "[" or "#" at
+  ;; beginning of mmd citation maybe better to do thing-at-point thing
+  ;; manually, like citar does for markdown?
   (when (thing-at-point-looking-at "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}]")
     (when (thing-at-point-looking-at "[#|\\[]")
       (forward-char 2))
