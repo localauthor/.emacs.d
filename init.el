@@ -3218,9 +3218,21 @@ following the key as group 3."
   :hook (completion-at-point-functions . zk-luhmann-completion-at-point))
 
 (with-eval-after-load 'link-hint-aw-select
-  (define-link-hint-aw-select zk-link zk-follow-link-at-point)
   (link-hint-define-type 'zk-link
-    :aw-select #'link-hint--aw-select-zk-link))
+    :aw-select #'link-hint--aw-select-zk-link)
+  (defun link-hint--aw-select-zk-link (id)
+    (with-demoted-errors "%s"
+      (if (> (length (aw-window-list)) 1)
+          (let ((window (aw-select nil))
+                (buffer (current-buffer))
+                (new-buffer))
+            (zk-follow-link-at-point id)
+            (setq new-buffer
+                  (current-buffer))
+            (switch-to-buffer buffer)
+            (aw-switch-to-window window)
+            (switch-to-buffer new-buffer))
+        (link-hint-open-link-at-point)))))
 
 (embark-define-keymap embark-become-zk-file-map
   "Keymap for Embark zk-file actions."
