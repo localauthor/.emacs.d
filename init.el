@@ -2961,11 +2961,13 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;; are these requires necessary?
   (require 'citar-org)
   (require 'citar-file)
+  (require 'citar-filenotify)
   (require 'citar-citeproc)
 
-  (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
+  (citar-filenotify-global-watches)
+  (setq citar-filenotify-callback 'refresh-cache)
 
-  ;; (file-notify-add-watch "~/Dropbox/gr-bibliography.bib" '(change) 'citar-refresh)
+  (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
 
   (defun gr/citar-zk-open-note (key entry)
     "Custom function for citar-open-note-function."
