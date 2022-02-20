@@ -838,10 +838,11 @@ Symbols and Diacritics
   (if (and (derived-mode-p 'org-mode)
            (org-at-heading-p))
       (call-interactively #'org-move-subtree-up)
-    (and (transpose-lines 1)
-         (forward-line -2)
-         (indent-according-to-mode))
-    ))
+    (when (derived-mode-p 'prog-mode 'text-mode)
+      (progn (transpose-lines 1)
+             (forward-line -2)
+             (indent-according-to-mode))
+      )))
 
 (defun move-line-down ()
   "Move down the current line."
@@ -849,11 +850,13 @@ Symbols and Diacritics
   (if (and (derived-mode-p 'org-mode)
            (org-at-heading-p))
       (call-interactively #'org-move-subtree-down)
-    (and (forward-line 1)
-         (transpose-lines 1)
-         (forward-line -1)
-         (indent-according-to-mode))
-    ))
+    (when (derived-mode-p 'prog-mode 'text-mode)
+      (progn (forward-line 1)
+             (transpose-lines 1)
+             (forward-line -1)
+             (indent-according-to-mode))
+      )))
+
 
 ;;;; org narrow/widen
 
