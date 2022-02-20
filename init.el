@@ -254,9 +254,29 @@
 
   )
 
+(use-package tab-bar
+  :init
+  (tab-bar-mode 1)
+  (tab-bar-history-mode)
+  :config
+  (setq tab-bar-show t
+        tab-bar-close-button-show nil
+        tab-bar-new-button-show nil
+        tab-bar-new-tab-to 'rightmost
+        tab-bar-new-tab-choice "*scratch*"
+        tab-bar-tab-name-function 'tab-bar-tab-name-all)
+  )
+
+  (set-face-attribute 'tab-bar nil
+                      :font "Menlo" :height .75)
+  (set-face-attribute 'tab-bar-tab nil
+                      :background "grey75"
+                      :box '(:line-width 1 :style released-button))
+  (set-face-attribute 'tab-bar-tab-inactive nil :background "lightgrey"
+                      :box '(:line-width 1 :style pressed-button))
+
 (use-package hydra
   :defer t)
-
 
 ;;;; Faces / Themes Setup
 
