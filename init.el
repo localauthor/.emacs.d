@@ -3221,6 +3221,12 @@ following the key as group 3."
   (zk-tag-grep-function #'zk-consult-grep-tag-search)
   (zk-grep-function #'zk-grep) ;; #'zk-consult-grep
   (zk-current-notes-function nil)
+  (zk-select-file-function 'zk-consult-select-file)
+  (zk-consult-preview-functions
+   '(zk-find-file
+     zk-find-file-by-full-text-search
+     zk-current-notes
+     zk-unlinked-notes))
   :config
   (zk-setup-auto-link-buttons)
   (zk-setup-embark)
