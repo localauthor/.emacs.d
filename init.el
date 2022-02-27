@@ -3231,6 +3231,9 @@ following the key as group 3."
 (use-package zk-index
   :straight (zk-index :local-repo "~/.emacs.d/my-lisp/zk/"
                       :files ("zk-index.el"))
+  :bind (:map zk-index-map
+              ("g" . consult-line)
+              ("?" . hydra-zk-index/body))
   :config
   (zk-index-setup-embark)
   :custom
@@ -3255,7 +3258,7 @@ following the key as group 3."
   (zk-luhmann-id-prefix "{")
   (zk-luhmann-id-postfix " }")
   :config
-  (setq zk-luhmann-id-regex (concat zk-luhmann-id-prefix
+  (setq zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
                                     "\\([0-9a-zA-Z,]*\\)"
                                     zk-luhmann-id-postfix)))
 
@@ -3310,6 +3313,7 @@ following the key as group 3."
     ("o" link-hint-aw-select)
     ("b" zk-network)
     ("f" zk-find-file)
+    ("F" zk-find-file-by-full-text-search)
     ("r" zk-consult-grep)
     ("s" zk-search)
     ("d" zk-index-send-to-desktop)
@@ -3335,6 +3339,15 @@ following the key as group 3."
     ("d" crossref-lookup)
     ("c" gr/citar-mmd-insert-citation)
     ("q" nil)))
+
+(eval-and-compile
+  (defhydra hydra-zk-index ()
+    ("a" zk-index-refresh "all")
+    ("l" zk-luhmann-index "luhmann")
+    ("c" zk-core-index "core")
+    ("n" zk-non-luhmann-index "non-Luhmann")
+    ("L" zk-lit-notes-index "lit")
+    ("e" zk-ed-index "ed")))
 
 (defun zk-org-try-to-follow-link (fn &optional arg)
   "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.
