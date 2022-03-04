@@ -138,7 +138,7 @@ Also excludes, journal, poem, Dickinson, and literature notes."
                    x))
                all-notes))))
 
-(defun zk-index-non-luhmann ()
+(defun zk-non-luhmann-index ()
   (interactive)
   (zk-index (zk-non-luhmann-list)))
 
@@ -146,6 +146,39 @@ Also excludes, journal, poem, Dickinson, and literature notes."
   (interactive)
   (zk-word-count (zk-non-luhmann-list)))
 
+(defun zk-core-list ()
+  "Index listing of core notes.
+Also excludes, journal, poem, Dickinson, and literature notes."
+  (let* ((all-notes (zk--directory-files t))
+         (ed-notes (zk--directory-files t gr/dickinson-ref-regexp))
+         (film (zk--grep-file-list "filmnotes"))
+         (personal (zk--grep-file-list "#personal"))
+         (creative (zk--grep-file-list "#creative"))
+         (songs (zk--grep-file-list "#song"))
+         (journal (zk--grep-file-list "journalentry"))
+         (poem (zk--grep-file-list "mypoem"))
+         (notes
+          (append ed-notes
+                  film
+                  songs
+                  creative
+                  personal
+                  journal
+                  poem)))
+    (message "%s" (length (delete-dups notes)))
+    (remq nil (mapcar
+               (lambda (x)
+                 (unless (member x notes)
+                   x))
+               all-notes))))
+
+(defun zk-core-index ()
+  (interactive)
+  (zk-index (zk-core-list)))
+
+(defun zk-core-count ()
+  (interactive)
+  (zk-word-count (zk-core-list)))
 
 ;;; Unlinked Notes
 
@@ -170,47 +203,6 @@ Also excludes, journal, poem, Dickinson, and literature notes."
         (find-file (zk--select-file "Unlinked notes: " notes))
       (user-error "No unlinked notes found"))))
 
-
-;;; Backlinks and Forward Links Together
-
-(defun zk-network ()
-  "Find `zk-backlinks' and `zk-links-in-note' for current or selected note.
-Backlinks and Links-in-Note are grouped separately."
-  (interactive)
-  (let* ((id (ignore-errors (zk--current-id)))
-         (backlinks (ignore-errors (zk--backlinks-list id)))
-         (links-in-note (ignore-errors (zk--links-in-note-list id)))
-         (resources))
-    (dolist (file backlinks)
-      (push (propertize file 'type 'backlink) resources))
-    (dolist (file links-in-note)
-      ;; abbreviate-file-name allows a file to be in both groups
-      (push (propertize (abbreviate-file-name file) 'type 'link) resources))
-    (find-file
-     (completing-read
-      "Links: "
-      (lambda (string predicate action)
-        (if (eq action 'metadata)
-            `(metadata
-              (group-function . zk--network-group-function)
-              (display-sort-function . zk--network-sort-function)
-              (category . zk-file))
-          (complete-with-action action resources string predicate)))))))
-
-(defun zk--network-group-function (file transform)
-  "Group FILE by type or TRANSFORM."
-  (if transform
-      (file-name-nondirectory file)
-    (cond
-     ((eq 'backlink (get-text-property 0 'type file)) "Backlinks")
-     ((eq 'link (get-text-property 0 'type file)) "Links-in-Note"))))
-
-(defun zk--network-sort-function (list)
-  "Sort LIST of links so Backlinks group is first."
-  (sort list
-        (lambda (a _b)
-          (when (eq 'backlink (get-text-property 0 'type a))
-              t))))
 
 (provide 'zk-extras)
 ;;; zk-extras.el ends here
