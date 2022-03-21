@@ -112,8 +112,8 @@
 (defun link-hint--mmd-citation-at-point-p ()
   (thing-at-point-looking-at gr/mmd-citation-regexp))
 
-(defun link-hint--next-mmd-citation (&optional _bound)
-  (link-hint--next-regexp gr/mmd-citation-regexp))
+(defun link-hint--next-mmd-citation (bound)
+  (link-hint--next-regexp gr/mmd-citation-regexp bound))
 
 (defun link-hint--open-mmd-citation ()
   (let* ((cite (when (thing-at-point-looking-at "[#|\\[]")
