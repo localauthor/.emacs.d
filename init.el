@@ -1387,7 +1387,7 @@ parent."
   (:map embark-become-help-map
         ("v" . helpful-variable)
         ("f" . helpful-callable)
-        ("s" . helpful-symbol))
+        ("h" . helpful-symbol))
   (:map embark-file-map
         ("A" . embark-attach-file)
         ;; ("F" . gr/find-file-recursively) doesn't work
@@ -2247,11 +2247,19 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package helpful
   :defer 1
-  :bind*
-  ("C-h k" . helpful-key)
-  ("C-h o" . helpful-symbol)
-  ("C-h f" . helpful-callable)
-  ("C-h v" . helpful-variable)
+  :bind
+  (:map help-map
+        ("f" . helpful-symbol)
+        ("v" . helpful-symbol)
+        ("h" . helpful-symbol)
+        ("C-h" . helpful-symbol)
+        ("k" . helpful-key)
+        ;;("f" . helpful-callable)
+        ;;("v" . helpful-variable)
+        ("l" . find-library)
+        ("?" . (lambda ()
+                 (interactive)
+                 (embark-bindings-in-keymap help-map))))
   (:map helpful-mode-map
         ("o" . link-hint-open-link))
   :custom
