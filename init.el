@@ -761,8 +761,8 @@ Symbols and Diacritics
   (with-eval-after-load "org"
     (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file))
 
-  :hook
-  (org-mode-hook . variable-pitch-mode)
+  ;; :hook
+  ;; (org-mode-hook . variable-pitch-mode)
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
@@ -779,9 +779,10 @@ Symbols and Diacritics
   (org-startup-indented t)
   (org-catch-invisible-edits 'smart)
   (org-tags-column -77)
+  (org-tag-alist '(("noexport") ("noheadline")))
   (org-goto-interface 'outline-path-completion)
   (org-outline-path-complete-in-steps nil)
-  (org-hide-leading-stars t)
+  (org-hide-leading-stars nil)
   (org-link-keep-stored-after-insertion t)
   (org-link-search-must-match-exact-headline t)
   (org-support-shift-select 'always)

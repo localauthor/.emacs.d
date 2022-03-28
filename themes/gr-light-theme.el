@@ -133,41 +133,50 @@
    `(org-ellipsis ((,class (:inherit fixed-pitch :foreground "grey50" :underline nil :height 1.1))))
    `(org-todo ((,class (:family "Menlo" :weight bold :height 1 :foreground "Red1"))))
    `(org-done ((,class (:family "Menlo" :weight bold :height 1 :foreground "ForestGreen"))))
-  
-   `(org-level-1 ((,class (:inherit outline-1
-                           :foreground "navy blue"
-                           :weight bold
-                           :family "Helvetica"
-                           :underline t
-                           :height 1.03))))
-   `(org-level-2 ((,class (:inherit outline-2
-                           :family "Franklin Gothic Medium"
-                           :height 1.01
-                           :foreground "black"))))
-   `(org-level-3 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"
-                           :height 1.1
-                           :foreground "black"))))
-   `(org-level-4 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"
-                           :height 1.1
-                           :foreground "black"))))
-   `(org-level-5 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"
-                           :height 1.1
-                           :foreground "black"))))
-   `(org-level-6 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"
-                           :height 1.1
-                           :foreground "black"))))
-   `(org-level-7 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"
-                           :height 1.1
-                           :foreground "black"))))
-   `(org-level-8 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"
-                           :height 1.1
-                           :foreground "black"))))
+
+   `(org-level-1 ((,class (:inherit outline-1))))
+   `(org-level-2 ((,class (:inherit outline-2))))
+   `(org-level-3 ((,class (:inherit outline-3))))
+   `(org-level-4 ((,class (:inherit outline-4))))
+   `(org-level-5 ((,class (:inherit outline-5))))
+   `(org-level-6 ((,class (:inherit outline-6))))
+   `(org-level-7 ((,class (:inherit outline-7))))
+   `(org-level-8 ((,class (:inherit outline-9))))
+
+   ;; `(org-level-1 ((,class (:inherit outline-1
+   ;;                         :foreground "navy blue"
+   ;;                         :weight bold
+   ;;                         :family "Helvetica"
+   ;;                         :underline t
+   ;;                         :height 1.03))))
+   ;; `(org-level-2 ((,class (:inherit outline-2
+   ;;                         :family "Franklin Gothic Medium"
+   ;;                         :height 1.01
+   ;;                         :foreground "black"))))
+   ;; `(org-level-3 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "black"))))
+   ;; `(org-level-4 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "black"))))
+   ;; `(org-level-5 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "black"))))
+   ;; `(org-level-6 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "black"))))
+   ;; `(org-level-7 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "black"))))
+   ;; `(org-level-8 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "black"))))
 
 
   ;; `(org-level-2 ((,class (:inherit outline-2
@@ -215,7 +224,7 @@
    `(elfeed-search-feed-face ((,class (:foreground "Sienna"))))
    `(elfeed-search-tag-face ((,class (:foreground "ForestGreen"))))
 
-   
+
     `(gnus-button ((,class :inherit button)))
     `(gnus-cite-1 ((,class :inherit mu4e-cited-1-face)))
     `(gnus-cite-10 ((,class :inherit mu4e-cited-10-face)))
@@ -289,9 +298,9 @@
     ;; `(gnus-summary-normal-undownloaded ((,class :foreground ,yellow)))
     ;; `(gnus-summary-normal-unread ((,class :foreground ,fg-main)))
     ;; `(gnus-summary-selected ((,class :inherit modus-themes-subtle-blue :extend t)))
-   
+
 ))
-                            
+
    ;;;###autoload
 (when (and (boundp 'custom-theme-load-path)
            load-file-name)
