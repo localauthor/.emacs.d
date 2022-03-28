@@ -2851,6 +2851,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (citar-bibliography gr/bibliography)
   (citar-library-paths (list-dirs-recursively devonthink-dir))
   (citar-notes-paths '("~/Dropbox/ZK/Zettels"))
+  (citar-additional-fields '("doi" "url" "crossref"))
   (citar-file-extensions '("pdf" "epub"))
   (citar-file-note-extensions '("org" "md"))
   (citar-file-open-function 'citar-file-open-external)
@@ -2864,7 +2865,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (citar-open-note-function 'gr/citar-zk-open-note)
   ;; (citar-templates
   ;;  '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
-  ;;    (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords keywords:*}")
+  ;;    (suffix . "          ${=key= id:15}    ${=type=:12}    ${crossref tags keywords keywords:*}")
   ;;    (preview . "${author editor} (${year issued date}) ${title}, ${journal publisher container-title collection-title}.\n")
   ;;    (note . "${=key=} - ${title} (${year})")))
   :init
@@ -2919,19 +2920,22 @@ that separates the key from optional additional text that follows
 it in matched file names.  The returned regexp captures the key
 as group 1, the extension as group 2, and any additional text
 following the key as group 3."
-  (when (and (null keys) (string-empty-p additional-sep))
-    (setq additional-sep nil))
-  (concat
-   "\\`"
-   (if keys (regexp-opt keys "[0-9]\\{12\\}?.*\\(?1:") ".*?\\(?1:[a-z]+[0-9]\\{4\\}[a-z]?\\)")
-   (when additional-sep (concat "\\(?3:" additional-sep "[^z-a]*\\)?"))
-   "\\."
-   (if extensions (regexp-opt extensions "\\(?2:") "\\(?2:[^.]*\\)")
-   "\\'"))
+  (let* ((entry (when keys
+                  (citar--get-entry (car keys))))
+         (xref (citar-get-value "crossref" entry)))
+    (unless (or (null xref) (string-empty-p xref))
+      (push xref keys))
+    (when (and (null keys) (string-empty-p additional-sep))
+      (setq additional-sep nil))
+    (concat
+     "\\`"
+     (if keys (regexp-opt keys "[0-9]\\{12\\}?.*\\(?1:") ".*?\\(?1:[a-z]+[0-9]\\{4\\}[a-z]?\\)")
+     (when additional-sep (concat "\\(?3:" additional-sep "[^z-a]*\\)?"))
+     "\\."
+     (if extensions (regexp-opt extensions "\\(?2:") "\\(?2:[^.]*\\)")
+     "\\'")))
 
-  (advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp)
-
-  )
+(advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp))
 
 ;;;; org-cite
 
