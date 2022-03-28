@@ -2,16 +2,14 @@
 
 ;; Make startup faster by reducing the frequency of garbage
 ;; collection.  The default is 800 kilobytes.  Measured in bytes.
-(setq gc-cons-threshold (* 100 1000 1000))
+;;(setq gc-cons-threshold (* 100 1000 1000))
+
+(load-library "~/.emacs.d/lisp/gcmh.el")
+(gcmh-mode 1)
 
 (add-variable-watcher 'zk-index-desktop-directory (lambda (&rest x) (message "Variable changed: %S" x)))
 
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
-
-;; set LIBRARY_PATH to find gcc and libgccjit
-;; doesn't get set properly, for some reason
-;; hack and not advised
-;; (setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/11:/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin18/11.2.0")
 
 ;; added to run native comp
 (setq comp-speed 2)
@@ -672,6 +670,7 @@ Symbols and Diacritics
   :defer t
   :config
   (eval-after-load 'org-indent '(diminish 'org-indent-mode))
+  (diminish 'gcmh-mode)
   (diminish 'visual-line-mode)
   (diminish 'buffer-face-mode)
   (diminish 'outline-minor-mode)
