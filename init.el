@@ -2948,10 +2948,9 @@ following the key as group 3."
   :straight nil
   :init
   ;; added to make org-cite work
-  (require 'oc-csl)
   (setq org-cite-csl-styles-dir "~/.csl"
         org-cite-csl-locales-dir "~/.csl/locales"
-        org-odt-preferred-output-format "docx"
+        org-odt-preferred-output-format nil ;; "docx"
         org-odt-styles-file "~/Dropbox/Academic Writings/template.ott"
         org-cite-global-bibliography gr/bibliography)
   (setq org-cite-insert-processor 'citar
