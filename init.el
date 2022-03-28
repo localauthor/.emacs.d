@@ -655,17 +655,16 @@ Symbols and Diacritics
 ;;;; link-hint
 
 (use-package link-hint
-  :demand t
-  :bind
-  (:map gr-map
-        ("o" . link-hint-aw-select))
+  :defer t
   :custom
   (link-hint-message nil))
 
 (use-package link-hint-aw-select
-  :straight nil)
-  ;; :demand t
-  ;; :commands (link-hint-aw-select))
+  :straight nil
+  :defer t
+  :bind
+  (:map gr-map
+        ("o" . link-hint-aw-select)))
 
 ;;;; diminish
 
@@ -829,8 +828,8 @@ Symbols and Diacritics
 
 ;; (advice-add #'org-toggle-item :after #'org-end-of-line)
 
-(require 'org-habit)
-(add-to-list 'org-modules 'ol-habit)
+;;(require 'org-habit)
+;;(add-to-list 'org-modules 'ol-habit)
 
 (defun gr/copy-file-path ()
   "Copy the current buffer file path to the clipboard."
@@ -853,9 +852,18 @@ Symbols and Diacritics
       (kill-new filename)
       (message "Copied buffer file name '%s' to the clipboard." filename))))
 
-(require 'org-agenda-setup)
-(require 'org-capture-setup)
-(require 'org-gcal-setup)
+(use-package org-agenda-setup
+  :straight nil
+  :after org
+  defer t)
+
+(use-package org-capture-setup
+  :straight nil
+  :after org
+  defer t)
+
+(use-package org-gcal-setup
+  :straight nil)
 
 ;;;; org move item/heading up/do
 
@@ -1278,6 +1286,7 @@ direct children of this heading."
 ;;;; org-superstar
 
 (use-package org-superstar
+  :disabled
   :defer t
   :after org
   :init
@@ -1303,40 +1312,41 @@ direct children of this heading."
 (use-package org-contrib
   :straight (org-contrib :files ("lisp/org-contrib.el" "lisp/ox-extra.el"))
   :defer t
+  :commands (org-export-ignore-headlines)
   :config
   (require 'ox-extra)
   (ox-extras-activate '(latex-header-blocks ignore-headlines))
-  )
 
-;; change "ignore" tag to "noheadline"
-(defun org-export-ignore-headlines (data backend info)
-  "Remove headlines tagged \"ignore\" retaining contents and promoting children.
+  ;; change "ignore" tag to "noheadline"
+  (defun org-export-ignore-headlines (data backend info)
+    "Remove headlines tagged \"ignore\" retaining contents and promoting children.
 Each headline tagged \"ignore\" will be removed retaining its
 contents and promoting any children headlines to the level of the
 parent."
-  (org-element-map data 'headline
-    (lambda (object)
-      (when (member "noheadline" (org-element-property :tags object))
-        (let ((level-top (org-element-property :level object))
-              level-diff)
-          (mapc (lambda (el)
-                  ;; recursively promote all nested headlines
-                  (org-element-map el 'headline
-                    (lambda (el)
-                      (when (equal 'headline (org-element-type el))
-                        (unless level-diff
-                          (setq level-diff (- (org-element-property :level el)
-                                              level-top)))
-                        (org-element-put-property el
-                                                  :level (- (org-element-property :level el)
-                                                            level-diff)))))
-                  ;; insert back into parse tree
-                  (org-element-insert-before el object))
-                (org-element-contents object)))
-        (org-element-extract-element object)))
-    info nil)
-  (org-extra--merge-sections data backend info)
-  data)
+    (org-element-map data 'headline
+      (lambda (object)
+        (when (member "noheadline" (org-element-property :tags object))
+          (let ((level-top (org-element-property :level object))
+                level-diff)
+            (mapc (lambda (el)
+                    ;; recursively promote all nested headlines
+                    (org-element-map el 'headline
+                      (lambda (el)
+                        (when (equal 'headline (org-element-type el))
+                          (unless level-diff
+                            (setq level-diff (- (org-element-property :level el)
+                                                level-top)))
+                          (org-element-put-property el
+                                                    :level (- (org-element-property :level el)
+                                                              level-diff)))))
+                    ;; insert back into parse tree
+                    (org-element-insert-before el object))
+                  (org-element-contents object)))
+          (org-element-extract-element object)))
+      info nil)
+    (org-extra--merge-sections data backend info)
+    data)
+  )
 
 
 ;;; Completion
@@ -1412,10 +1422,10 @@ parent."
   :config
 
   (defun embark-act-noquit ()
-  "Run action but don't quit the minibuffer afterwards."
-  (interactive)
-  (let ((embark-quit-after-action nil))
-    (embark-act)))
+    "Run action but don't quit the minibuffer afterwards."
+    (interactive)
+    (let ((embark-quit-after-action nil))
+      (embark-act)))
 
   (setq prefix-help-command #'embark-prefix-help-command)
 
@@ -1426,25 +1436,18 @@ parent."
   ;;(setq embark-prompter 'embark-completing-read-prompter)
   )
 
-(use-package embark-consult
-  :after (embark consult)
-  :demand t ; only necessary if you have the hook below
-  :hook
-  (embark-collect-mode-hook . consult-preview-at-point-mode))
+  ;; from https://karthinks.com/software/fifteen-ways-to-use-embark/
+  (eval-when-compile
+    (defmacro embark-aw-select (fn)
+      `(defun ,(intern (concat "embark-aw-select-" (symbol-name fn))) ()
+         (interactive)
+         (with-demoted-errors "%s"
+           (aw-switch-to-window (aw-select nil))
+           (call-interactively (symbol-function ',fn)))))
 
-;; from https://karthinks.com/software/fifteen-ways-to-use-embark/
-(eval-when-compile
-  (defmacro embark-aw-select (fn)
-    `(defun ,(intern (concat "embark-aw-select-" (symbol-name fn))) ()
-       (interactive)
-       (with-demoted-errors "%s"
-         (aw-switch-to-window (aw-select nil))
-         (call-interactively (symbol-function ',fn)))))
-
-  (define-key embark-file-map (kbd "o") (embark-aw-select find-file))
-  (define-key embark-buffer-map (kbd "o") (embark-aw-select switch-to-buffer))
-  (define-key embark-bookmark-map (kbd "o") (embark-aw-select bookmark-jump))
-  )
+    (define-key embark-file-map (kbd "o") (embark-aw-select find-file))
+    (define-key embark-buffer-map (kbd "o") (embark-aw-select switch-to-buffer))
+    (define-key embark-bookmark-map (kbd "o") (embark-aw-select bookmark-jump)))
 
 ;; embark action to attach file to email message
 (autoload 'gnus-dired-attach "gnus-dired")
@@ -1510,6 +1513,11 @@ there, otherwise you are prompted for a message buffer."
 (add-to-list 'embark-repeat-actions #'previous-buffer)
 (add-to-list 'embark-repeat-actions #'next-buffer)
 
+(use-package embark-consult
+  :after (embark consult)
+  :demand t ; only necessary if you have the hook below
+  :hook
+  (embark-collect-mode-hook . consult-preview-at-point-mode))
 
 ;;;; consult
 
@@ -1596,44 +1604,44 @@ there, otherwise you are prompted for a message buffer."
 
   ;; consult-clock-in
 
-  (setq org-clock-persist t)
-  (with-eval-after-load 'org
-    (org-clock-persistence-insinuate))
+  ;; (setq org-clock-persist t)
+  ;; (with-eval-after-load 'org
+  ;;   (org-clock-persistence-insinuate))
 
-  (defun consult-clock-in (&optional match scope resolve)
-    "Clock into an Org heading."
-    (interactive (list nil nil current-prefix-arg))
-    (require 'org-clock)
-    (org-clock-load)
-    (let ((list (org-element-map (org-element-parse-buffer 'headline) 'headline
-                  (lambda (hl) (org-element-property :duration hl)))))
-      (message (format "list: %s" list)))
-    (save-window-excursion
-      (consult-org-heading
-       match
-       (or scope
-           (thread-last org-clock-history
-                        (mapcar 'marker-buffer)
-                        (mapcar 'buffer-file-name)
-                        (delete-dups)
-                        (delq nil))
-           (user-error "No recent clocked tasks")))
-      (org-clock-in nil (when resolve
-                          (org-resolve-clocks)
-                          (org-read-date t t)))))
+  ;; (defun consult-clock-in (&optional match scope resolve)
+  ;;   "Clock into an Org heading."
+  ;;   (interactive (list nil nil current-prefix-arg))
+  ;;   (require 'org-clock)
+  ;;   (org-clock-load)
+  ;;   (let ((list (org-element-map (org-element-parse-buffer 'headline) 'headline
+  ;;                 (lambda (hl) (org-element-property :duration hl)))))
+  ;;     (message (format "list: %s" list)))
+  ;;   (save-window-excursion
+  ;;     (consult-org-heading
+  ;;      match
+  ;;      (or scope
+  ;;          (thread-last org-clock-history
+  ;;                       (mapcar 'marker-buffer)
+  ;;                       (mapcar 'buffer-file-name)
+  ;;                       (delete-dups)
+  ;;                       (delq nil))
+  ;;          (user-error "No recent clocked tasks")))
+  ;;     (org-clock-in nil (when resolve
+  ;;                         (org-resolve-clocks)
+  ;;                         (org-read-date t t)))))
 
-  (consult-customize consult-clock-in
-                     :prompt "Clock in: "
-                     :preview-key (kbd "M-.")
-                     :group
-                     (lambda (cand transform)
-                       (if transform
-                           (substring cand (next-single-property-change 0 'consult-org--buffer cand))
-                         (let ((m (car (get-text-property 0 'consult-org--heading cand))))
-                           (progn
-                             (message (format "list: %s" list))
-                             (cond ((member m list) "Recent")
-                                   (t (buffer-name (marker-buffer m)))))))))
+  ;; (consult-customize consult-clock-in
+  ;;                    :prompt "Clock in: "
+  ;;                    :preview-key (kbd "M-.")
+  ;;                    :group
+  ;;                    (lambda (cand transform)
+  ;;                      (if transform
+  ;;                          (substring cand (next-single-property-change 0 'consult-org--buffer cand))
+  ;;                        (let ((m (car (get-text-property 0 'consult-org--heading cand))))
+  ;;                          (progn
+  ;;                            (message (format "list: %s" list))
+  ;;                            (cond ((member m list) "Recent")
+  ;;                                  (t (buffer-name (marker-buffer m)))))))))
 
   ;; let ((parsetree (org-element-parse-buffer 'headline)))
 
@@ -1941,14 +1949,12 @@ That is, remove a non kept dired from the recent list."
 ;;;; magit
 
 (use-package magit
-  :defer 1
   :bind
   ("C-c m" . magit-status)
   :custom-face
   (diff-refine-added ((t (:background "yellow" :foreground "red"))))
   :custom
-  (magit-diff-refine-hunk t)
-  )
+  (magit-diff-refine-hunk t))
 
 (setq-default mode-line-format
               (delete '(vc-mode vc-mode) mode-line-format))
@@ -2014,8 +2020,6 @@ That is, remove a non kept dired from the recent list."
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-(use-package ibuffer-vc)
-
 (use-package ibuffer-sidebar
   :bind ("C-x C-u" . ibuffer-sidebar-toggle-sidebar)
   :hook
@@ -2029,27 +2033,26 @@ That is, remove a non kept dired from the recent list."
   (ibuffer-update nil t)
   )
 
-(defun gr/ibuffer-vc-run ()
-  "Set up `ibuffer-vc."
-  (ibuffer-vc-set-filter-groups-by-vc-root)
-  (unless (eq ibuffer-sorting-mode 'recency)
-    (ibuffer-do-sort-by-recency)))
+(use-package ibuffer-vc
+  :defer t
+  :config
 
-(defun gr/truncate-lines ()
-  (interactive)
-  (if (bound-and-true-p truncate-lines)
-      ()
-    (toggle-truncate-lines)))
+  (defun gr/ibuffer-vc-run ()
+    "Set up `ibuffer-vc."
+    (ibuffer-vc-set-filter-groups-by-vc-root)
+    (unless (eq ibuffer-sorting-mode 'recency)
+      (ibuffer-do-sort-by-recency)))
 
-;; Use human readable Size column instead of original one
-(define-ibuffer-column size-h
-  (:name "Size" :inline t)
-  (cond
-   ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
-   ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
-   ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
+  ;; Use human readable Size column instead of original one
+  (define-ibuffer-column size-h
+    (:name "Size" :inline t)
+    (cond
+     ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
+     ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
+     ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
 
-   (t (format "%8d" (buffer-size)))))
+     (t (format "%8d" (buffer-size)))))
+  )
 
 (setq ibuffer-formats
       '((mark modified read-only vc-status-mini " "
@@ -2105,6 +2108,16 @@ That is, remove a non kept dired from the recent list."
                            (name . ".persp")
                            ))
                 )))))
+
+(defun gr/truncate-lines ()
+  (interactive)
+  (if (bound-and-true-p truncate-lines)
+      ()
+    (toggle-truncate-lines)))
+
+(defun force-truncate-lines ()
+  "Force line truncation. For use in hooks."
+  (setq truncate-lines t))
 
 ;;;; dired
 
@@ -2305,7 +2318,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; wgrep
 
-(use-package wgrep)
+(use-package wgrep
+  :defer t)
 
 ;;;; web browsing / eww / xwidget webkit /xwwp
 
@@ -2589,6 +2603,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; dogears
 
 (use-package dogears
+  :defer t
   :init
   (dogears-mode)
   :bind
@@ -2709,21 +2724,23 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :bind ("C-c t" . google-translate-smooth-translate)
   )
 
-(require 'google-translate-smooth-ui)
+(use-package google-translate-smooth-ui
+  :straight nil
+  :defer t
+  :config
+  (setq google-translate-backend-method 'curl)
 
-(setq google-translate-backend-method 'curl)
+  (defun google-translate--search-tkk () "Search TKK." (list 430675 2721866130))
 
-(defun google-translate--search-tkk () "Search TKK." (list 430675 2721866130))
+  (setq google-translate-translation-directions-alist
+        '(("lt" . "en")
+          ("en" . "lt")))
 
-(setq google-translate-translation-directions-alist
-      '(("lt" . "en")
-        ("en" . "lt")))
-
-(defun gr/google-translate-lt-en ()
-  (interactive)
-  (call-interactively #'google-translate-smooth-translate)
-  (pop-to-buffer "*Google Translate*" 'display-buffer-below-selected))
-
+  (defun gr/google-translate-lt-en ()
+    (interactive)
+    (call-interactively #'google-translate-smooth-translate)
+    (pop-to-buffer "*Google Translate*" 'display-buffer-below-selected))
+  )
 
 ;;;; nov.el
 
@@ -2748,6 +2765,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; golden-ratio-scroll-screen
 
 (use-package golden-ratio-scroll-screen
+  :defer t
   :config
   (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
   (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
@@ -2756,6 +2774,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; explain-pause-mode
 
 (use-package explain-pause-mode
+  :defer t
   :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
   :diminish)
 
@@ -2785,7 +2804,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (flycheck-emacs-lisp-load-path 'inherit))
 
-(use-package package-lint)
+(use-package package-lint
+  :defer t)
 
 
 ;;;; visual-fill-column
@@ -2804,7 +2824,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package citar
   :straight (:host github :repo "bdarcus/citar" :fork t)
   :after (oc misc-file-handling)
-  :commands (citar-select-ref citar-select-refs gr/citar-mmd-insert-citation citar-format-reference)
+  :commands (citar-select-ref
+             citar-select-refs
+             gr/citar-mmd-insert-citation
+             citar-format-reference
+             citar--ensure-entries)
   :bind
   (:map org-mode-map
         ("C-c \\" . citar-insert-citation))
@@ -2928,12 +2952,18 @@ following the key as group 3."
         org-cite-export-processors '((t csl "~/.csl/chicago-fullnote-bibliography-short-title-subsequent.csl")))
   )
 
+(use-package oc-csl
+  :straight nil
+  :defer t)
+
 ;;;; citeproc / parsebib
 
-(use-package citeproc)
+(use-package citeproc
+  :defer t)
 
 (use-package parsebib
-  :straight (parsebib :host github :repo "joostkremers/parsebib"))
+  :straight (parsebib :host github :repo "joostkremers/parsebib")
+  :defer t)
 
 ;;;; ebib
 
@@ -3000,8 +3030,11 @@ following the key as group 3."
     ("s" crossref-lookup)
     ("q" nil))
 
-(require 'ebib-extras)
-(require 'ebib-zotero)
+(use-package ebib-extras
+  :straight nil
+  :defer t
+  :config
+  (require 'ebib-zotero))
 
 ;;;; biblio / sci-hub
 
@@ -3009,6 +3042,7 @@ following the key as group 3."
   :straight (:host github :repo "emacs-pe/scihub.el"))
 
 (use-package biblio
+  :defer t
   :custom
   (biblio-crossref-user-email-address vu-email)
   :config
@@ -3082,7 +3116,8 @@ following the key as group 3."
 
 ;;;; mmd-citation-support
 
-(require 'mmd-citation-support)
+(use-package mmd-citation-support
+  :straight nil)
 
 ;;; Writing
 
@@ -3091,10 +3126,9 @@ following the key as group 3."
 (use-package zk
   :straight (zk :local-repo "~/.emacs.d/my-lisp/zk/"
                 :files (:defaults "zk-consult.el"))
-  :init
-  (require 'zk-link-hint)
-  (require 'zk-consult)
-  (require 'zk-extras)
+  ;; :init
+  ;; (require 'zk-consult)
+  ;; (require 'zk-extras)
   :bind
   (:map zk-id-map
         ("s" . zk-search)
@@ -3157,6 +3191,15 @@ following the key as group 3."
   (setq zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
                                     "\\([0-9a-zA-Z,]*\\)"
                                     zk-luhmann-id-postfix)))
+
+(use-package zk-consult
+  :straight nil)
+
+(use-package zk-extras
+  :straight nil)
+
+(use-package zk-link-hint
+  :straight nil)
 
 (with-eval-after-load 'link-hint-aw-select
   (link-hint-define-type 'zk-link
@@ -3348,18 +3391,15 @@ don't want to fix with `SPC', and you can abort completely with
 ;;;; yasnippet
 
 (use-package yasnippet
-  :demand t
+  :defer t
   :diminish (yas-minor-mode)
-  :hook (after-init-hook . yas-reload-all)
   :init
   (yas-global-mode 1)
-  :config
-  (yas-global-mode t)
+  (yas-reload-all)
   )
 
-(yas-reload-all)
-
 (use-package yasnippet-multiple-key
+  :defer t
   :straight (yasnippet-multiple-key :host github :repo "ShuguangSun/yasnippet-multiple-key"))
 
 
@@ -3457,6 +3497,11 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (use-package org-pdftools
   :hook (org-mode-hook . org-pdftools-setup-link))
 
+
+;;;; Pandoc
+
+(use-package pandoc-mode
+  :defer t)
 
 ;;;; LaTeX / AUCTeX
 
@@ -3790,18 +3835,34 @@ Navigate to files in dired, mark files, and execute command."
 
 ;;; my-lisp
 
-(require 'elfeed-setup)
-(require 'misc-file-handling)
-(require 'text-to-speech)
+(use-package elfeed-setup
+  :straight nil
+  :defer t)
+
+(use-package misc-file-handling
+  :straight nil
+  :defer t)
+
+(use-package text-to-speech
+  :straight nil
+  :defer t)
+
+(use-package devonthink-dir
+  :straight nil
+  :defer t)
 
 ;; priv-lisp
 
-(require 'dickinson)
-(require 'mu4e-setup)
+(use-package dickinson
+  :straight nil
+  :defer t)
+
+(use-package mu4e-setup
+  :straight nil)
 
 ;;; variable resets
 
-(setq gc-cons-threshold (* 2 1000 1000))
+;;(setq gc-cons-threshold (* 2 1000 1000))
 
 (setq debug-on-error nil)
 
