@@ -291,8 +291,8 @@
 ;;(load-theme 'gr-dark t)
 
 ;; (progn
-;;   (load-theme 'modus-vivendi t)
-;;   (set-face-attribute 'show-paren-match nil :underline nil :foreground "#ffffff" :background "systemGreenColor"))
+;;    (load-theme 'modus-operandi t)
+;;    (set-face-attribute 'show-paren-match nil :underline nil :foreground "#ffffff" :background "systemGreenColor"))
 
 ;; set region highlighting, per
 ;; https://github.com/DarwinAwardWinner/dotemacs#dont-use-ns_selection_fg_color-and-ns_selection_bg_color
@@ -1553,8 +1553,8 @@ there, otherwise you are prompted for a message buffer."
   (consult-customize
    consult-git-grep consult-grep consult-global-mark consult-ripgrep
    consult-bookmark consult--source-buffer consult-recent-file consult-xref
-   consult--source-file consult--source-project-file consult--source-bookmark
-   :preview-key (list (kbd "M-[")
+   consult--source-bookmark
+   :preview-key (list (kbd "C-{")
                       :debounce 1.5 'any))
 
   (setq consult-preview-key 'any)
@@ -1791,7 +1791,8 @@ That is, remove a non kept dired from the recent list."
 
 (use-package orderless
   :init
-  (setq completion-styles '(orderless partial-completion initials)
+  (setq orderless-matching-styles '(orderless-literal orderless-regexp)
+        completion-styles '(orderless partial-completion initials)
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (partial-completion initials))))))
 
@@ -2288,7 +2289,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :diminish undo-tree-mode
   :defer t
   :init
-  (global-undo-tree-mode))
+  (global-undo-tree-mode)
+  :custom
+  (undo-tree-auto-save-history nil))
+
 
 ;;;; python
 
@@ -3046,7 +3050,9 @@ following the key as group 3."
 ;;;; biblio / sci-hub
 
 (use-package scihub
-  :straight (:host github :repo "emacs-pe/scihub.el"))
+  :straight (:host github :repo "emacs-pe/scihub.el")
+  :custom
+  (scihub-download-directory (expand-file-name "~/Downloads")))
 
 (use-package biblio
   :defer t
@@ -3426,10 +3432,14 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (let* ((orig (expand-file-name (read-file-name "File: ")))
          (origext (file-name-extension orig))
          (newfile (concat (file-name-sans-extension orig) " 2." origext)))
+    (with-current-buffer (find-file-noselect orig)
+      (goto-char (point-min))
+      (replace-regexp "https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/moon.css"
+                      (file-relative-name "~/.reveal.js/dist/theme/moon.css")))
     (if (equal "html" origext)
         (async-shell-command (format "inliner '%s' > '%s'" orig newfile))
-      (error "Must select .html file"))))
-
+      (error "Must select .html file"))
+    ))
 
 ;;;; pdf-tools
 
