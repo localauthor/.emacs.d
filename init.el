@@ -2243,20 +2243,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;   )
 
 
-;;;; Which-key
-
-(use-package which-key
-  :diminish which-key-mode
-  :disabled
-  :config
-  (which-key-mode)
-  (setq which-key-idle-delay 5)
-  (setq which-key-separator "  ")
-  (setq which-key-add-column-padding 2)
-  (setq which-key-sort-order 'which-key-key-order)
-  (define-key help-map "\C-h" 'which-key-C-h-dispatch)
-  )
-
 ;;;; helpful
 
 (use-package helpful
