@@ -65,7 +65,6 @@
 ;;         (citar-citeproc-format-reference mmd-citation)))))
 
 (defun mmd-tooltip (_win _obj pos)
-  (require 'citar)
   (save-excursion
     (goto-char pos)
     (let* ((citar-templates
@@ -88,18 +87,9 @@
 
 ;;; citar integration
 
-;; (defun gr/citar-mmd-insert-citation (key-entry)
-;;   "Insert BibTeX KEYS in mmd format, with option to include PAGES."
-;;   (interactive (list (citar-select-ref)))
-;;   (let* ((pages (read-from-minibuffer "Pages: "))
-;;          (pages  (if (string= "" pages) "" (concat pages ""))))
-;;     (if (string= "" pages)
-;;         (insert (format "[#%s]" (car key-entry)))
-;;       (insert (format "[%s][#%s]" pages (car key-entry)))
-;;       )))
-
+;;;###autoload
 (defun gr/citar-mmd-insert-citation (key-entry)
-  "Insert BibTeX KEYS in mmd format, with option to include PAGES."
+  "Insert BibTeX KEY-ENTRY in mmd format, with option to include PAGES."
   (interactive (list (citar-select-ref)))
   (let* ((pages (read-from-minibuffer "Pages: "))
          (mmd (format "[#%s]" (car key-entry))))
