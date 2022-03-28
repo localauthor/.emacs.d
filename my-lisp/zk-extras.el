@@ -10,6 +10,7 @@
 
 ;;; General Utilities
 
+;;;###autoload
 (defun zk-copy-link-to-current-note ()
   "Copy link to current note."
   (interactive)
@@ -20,6 +21,7 @@
                   `((?i . ,id)(?t . ,title)))))
   (message "Copied link to current buffer"))
 
+;;;###autoload
 (defun zk-word-count (&optional files)
   "Report word count of all files in 'zk-directory'.
 Optionally takes list of FILES."
@@ -37,11 +39,13 @@ Optionally takes list of FILES."
     (message "Words: %s" wc)
     wc))
 
+;;;###autoload
 (defun zk-lit-notes ()
   "Find literature note."
   (interactive)
   (find-file (zk--select-file "Lit notes: " (zk-lit-notes-list))))
 
+;;;###autoload
 (defun zk-lit-notes-list ()
   "Return list of literature notes."
   (interactive)
@@ -52,15 +56,18 @@ Optionally takes list of FILES."
                    x))
                (zk--directory-files t "[a-z]+[0-9]\\{4\\}")))))
 
+;;;###autoload
 (defun zk-lit-notes-index ()
   "List lit notes in ZK-Index"
   (interactive)
   (zk-index (zk-lit-notes-list)))
 
+;;;###autoload
 (defun zk-luhmann-word-count ()
   (interactive)
   (zk-word-count (zk--directory-files t "{"))) ;; not general
 
+;;;###autoload
 (defun gr/zk-word-count ()
   "Report word count for notes, various categories."
   (interactive)
@@ -83,6 +90,7 @@ Optionally takes list of FILES."
                          all-notes))))
     (zk-word-count notes)))
 
+;;;###autoload
 (defun zk-stats ()
   "Report number of notes, various categories."
   (interactive)
@@ -106,6 +114,7 @@ Optionally takes list of FILES."
                      (length luhmann-notes)
                      (length lit-notes)))))
 
+;;;###autoload
 (defun zk-non-luhmann-list ()
   "Index listing of non-Luhmann notes.
 Also excludes, journal, poem, Dickinson, and literature notes."
@@ -138,14 +147,17 @@ Also excludes, journal, poem, Dickinson, and literature notes."
                    x))
                all-notes))))
 
+;;;###autoload
 (defun zk-non-luhmann-index ()
   (interactive)
   (zk-index (zk-non-luhmann-list)))
 
+;;;###autoload
 (defun zk-non-luhmann-word-count ()
   (interactive)
   (zk-word-count (zk-non-luhmann-list)))
 
+;;;###autoload
 (defun zk-core-list ()
   "Index listing of core notes.
 Also excludes, journal, poem, Dickinson, and literature notes."
@@ -172,16 +184,19 @@ Also excludes, journal, poem, Dickinson, and literature notes."
                    x))
                all-notes))))
 
+;;;###autoload
 (defun zk-core-index ()
   (interactive)
   (zk-index (zk-core-list)))
 
+;;;###autoload
 (defun zk-core-count ()
   (interactive)
   (zk-word-count (zk-core-list)))
 
 ;;; Unlinked Notes
 
+;;;###autoload
 (defun gr/zk--unlinked-notes-list ()
   "Return list of IDs for notes that no notes link to."
   (let* ((all-link-ids (zk--grep-link-id-list))
@@ -194,6 +209,7 @@ Also excludes, journal, poem, Dickinson, and literature notes."
                    x))
                all-ids))))
 
+;;;###autoload
 (defun gr/zk-unlinked-notes ()
   "Find unlinked notes, minus ED notes."
   (interactive)
