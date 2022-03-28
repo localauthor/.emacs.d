@@ -129,7 +129,6 @@
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/priv-lisp"))
 
 (setq elisp-flymake-byte-compile-load-path load-path)
-(add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
 
 (require 'priv-variables)
 
@@ -2752,13 +2751,13 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; paredit
 
 (use-package paredit
-  :disabled
-  :hook
-  (emacs-lisp-mode-hook . enable-paredit-mode)
-  (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
-  (ielm-mode-hook . enable-paredit-mode)
-  (lisp-mode-hook . enable-paredit-mode)
-  (lisp-interaction-mode-hook . enable-paredit-mode))
+  ;; :hook
+  ;; (emacs-lisp-mode-hook . enable-paredit-mode)
+  ;; (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
+  ;; (ielm-mode-hook . enable-paredit-mode)
+  ;; (lisp-mode-hook . enable-paredit-mode)
+  ;; (lisp-interaction-mode-hook . enable-paredit-mode)
+  )
 
 
 ;;;; golden-ratio-scroll-screen
@@ -2791,8 +2790,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; whitespace-mode
 
 (use-package whitespace
-  :hook
-  (emacs-lisp-mode-hook . whitespace-mode)
+  ;; :hook
+  ;; (emacs-lisp-mode-hook . whitespace-mode)
   :custom
   (whitespace-style '(face trailing lines))
   )
@@ -2800,6 +2799,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; flycheck and package-lint
 
 (use-package flycheck-package
+  :hook (emacs-lisp-mode-hook . flycheck-mode)
   :custom
   (flycheck-emacs-lisp-load-path 'inherit))
 
