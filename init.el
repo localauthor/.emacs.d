@@ -3150,18 +3150,20 @@ following the key as group 3."
   (zk-current-notes-function nil)
   (zk-select-file-function 'zk-consult-select-file)
   (zk-consult-preview-functions
-   '(zk-find-file
-     zk-find-file-by-full-text-search
-     zk-current-notes
+   '(zk-current-notes
      zk-unlinked-notes))
   :config
   (zk-setup-auto-link-buttons)
   (zk-setup-embark)
   (add-to-list 'auto-mode-alist '("\\.md\\'" . outline-mode))
   (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
-  (add-to-list 'consult-buffer-sources 'zk-consult-source 'append))
+  (add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
+  (consult-customize
+   zk-find-file zk-find-file-by-full-text-search zk-network
+      :preview-key (list (kbd "C-{"))))
 
 (use-package zk-index
+  :after zk
   :straight (zk-index :local-repo "~/.emacs.d/my-lisp/zk/"
                       :files ("zk-index.el"))
   :bind (:map zk-index-map
@@ -3173,6 +3175,7 @@ following the key as group 3."
   (zk-index-desktop-directory zk-directory))
 
 (use-package zk-luhmann
+  :after zk-index
   :straight (zk-luhmann :local-repo "~/.emacs.d/my-lisp/zk-luhmann")
   :bind (:map zk-index-map
               ("L" . zk-luhmann-index-sort)
@@ -3241,6 +3244,7 @@ following the key as group 3."
     ("h s" (lambda () (interactive) (zk-find-file-by-id "201801180002")))
     ("N" zk-new-note)
     ("R" zk-rename-note)
+    ("r" zk-rename-note)
     ("i" zk-insert-link)
     ("e" hydra-ebib/body)
     ("B" hydra-bib/body)
@@ -3249,14 +3253,17 @@ following the key as group 3."
     ;;("B p" pullbib-pull)
     ("I" zk-index)
     ("l" zk-luhmann-index)
+    ("G" zk-luhmann-index-go-to-current)
     ("L" zk-lit-notes)
     ("c" gr/citar-mmd-insert-citation)
     ("C" zk-current-notes)
+    ("m" zk-make-link-buttons)
     ("o" link-hint-aw-select)
     ("b" zk-network)
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)
-    ("r" zk-consult-grep)
+    ("z" zk-consult-grep)
+    ("g" zk-consult-grep)
     ("s" zk-search)
     ("d" zk-index-send-to-desktop)
     ;; ("d" gr/consult-ripgrep-select-dir)
