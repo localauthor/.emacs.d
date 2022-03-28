@@ -3100,14 +3100,6 @@ following the key as group 3."
   :bind (:map biblio-selection-mode-map
               ("e" . ebib-biblio-selection-import)))
 
-;;;; pullbib
-
-(use-package pullbib
-  :disabled
-  :straight (pullbib :host github :repo "publicimageltd/pullbib" :fork t)
-  :config
-  (setq pullbib-url-map '(("http://127.0.0.1:23119/better-bibtex/export/library?/1/library.bibtex" . "~/Dropbox/gr-bibliography.bib"))))
-
 ;;;; oc-csl-activate
 
 (use-package oc-csl-activate
