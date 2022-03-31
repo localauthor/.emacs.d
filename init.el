@@ -141,6 +141,7 @@
 
 (use-package emacs
   :straight nil
+  :defer 1
   :bind
   ("C-c e" . eval-buffer)
   ("C-x e" . eval-last-sexp)
@@ -251,8 +252,16 @@
                      "*Trash Error Buffer*")))
 
   ;; after splitting, switch to new window
-  ;; (global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1)))
-  ;; (global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1)))
+
+  ;; (global-set-key "\C-x2" (lambda ()
+  ;;                           (interactive)
+  ;;                           (split-window-vertically)
+  ;;                           (other-window 1)))
+
+  ;; (global-set-key "\C-x3" (lambda ()
+  ;;                           (interactive)
+  ;;                           (split-window-horizontally)
+  ;;                           (other-window 1)))
 
   ;; (global-set-key [remap eval-last-sexp] 'pp-eval-last-sexp)
 
@@ -652,13 +661,13 @@ Symbols and Diacritics
 ;;;; link-hint
 
 (use-package link-hint
-  :defer t
+  :defer 1
   :custom
   (link-hint-message nil))
 
 (use-package link-hint-aw-select
   :straight nil
-  :defer t
+  :defer 1
   :bind
   (:map gr-map
         ("o" . link-hint-aw-select)))
@@ -666,9 +675,10 @@ Symbols and Diacritics
 ;;;; diminish
 
 (use-package diminish
-  :defer t
+  :defer 1
   :config
   (eval-after-load 'org-indent '(diminish 'org-indent-mode))
+  (diminish 'outline-mode)
   (diminish 'gcmh-mode)
   (diminish 'visual-line-mode)
   (diminish 'buffer-face-mode)
@@ -852,16 +862,23 @@ Symbols and Diacritics
 
 (use-package org-agenda-setup
   :straight nil
+  :defer 1
   :after org
-  defer t)
+  :hook
+  (org-agenda-mode-hook . (lambda ()
+                            (define-key
+                              org-agenda-mode-map
+                              (kbd "C-c $")
+                              'gr/org-agenda-mark-done-and-archive))))
 
 (use-package org-capture-setup
   :straight nil
   :after org
-  defer t)
+  :defer 1)
 
 (use-package org-gcal-setup
-  :straight nil)
+  :straight nil
+  :defer 1)
 
 ;;;; org move item/heading up/do
 
@@ -1377,7 +1394,7 @@ parent."
 ;;;; embark
 
 (use-package embark
-  :demand t
+  :defer 1
   :bind
   ("C-," . embark-act)
   ("C->" . embark-act-noquit)
@@ -1520,7 +1537,8 @@ there, otherwise you are prompted for a message buffer."
 ;;;; consult
 
 (use-package consult
-  :demand t
+  :defer 1
+  :after (embark)
   :bind
   ("C-s" . consult-line)
   ("C-x b" . consult-buffer)
@@ -1774,7 +1792,7 @@ That is, remove a non kept dired from the recent list."
 
 (use-package bookmark-view
   :straight (bookmark-view :host github :repo "minad/bookmark-view")
-  )
+  :defer 1)
 
 ;;;; marginalia
 
@@ -1799,6 +1817,7 @@ That is, remove a non kept dired from the recent list."
 ;;;; savehist
 
 (use-package savehist
+  :defer 1
   :init
   (savehist-mode 1)
   :config
@@ -1853,7 +1872,7 @@ That is, remove a non kept dired from the recent list."
 ;;;; company
 
 (use-package company
-  :defer t
+  :defer 1
   :diminish
   :init
   (global-company-mode 1)
@@ -1889,6 +1908,7 @@ That is, remove a non kept dired from the recent list."
   )
 
 (use-package company-posframe
+  :defer 1
   :diminish
   :bind
   (:map company-posframe-active-map
@@ -1950,6 +1970,7 @@ That is, remove a non kept dired from the recent list."
 (use-package magit
   :bind
   ("C-c m" . magit-status)
+  ("C-x m" . magit-status)
   :custom-face
   (diff-refine-added ((t (:background "yellow" :foreground "red"))))
   :custom
@@ -1966,7 +1987,6 @@ That is, remove a non kept dired from the recent list."
   :diminish (git-gutter-mode)
   :hook
   (emacs-lisp-mode-hook . git-gutter-mode)
-  (org-mode-hook . git-gutter-mode)
   :config
   (set-face-foreground 'git-gutter:modified "orange")
   (set-face-foreground 'git-gutter:added    "forestgreen")
@@ -1995,15 +2015,18 @@ That is, remove a non kept dired from the recent list."
 ;;;; re-builder
 
 (use-package re-builder
+  :defer 1
   :init
-  (setq reb-re-syntax 'string)
-  )
+  (setq reb-re-syntax 'string))
 
 ;;;; ibuffer
 
 (use-package ibuffer
   :straight (:type built-in)
+  :defer 1
   :bind
+  (:map ctl-x-map
+        ("C-b" . ibuffer))
   (:map ibuffer-mode-map
         ("TAB". ibuffer-toggle-filter-group))
   :hook
@@ -2033,7 +2056,7 @@ That is, remove a non kept dired from the recent list."
   )
 
 (use-package ibuffer-vc
-  :defer t
+  :defer 1
   :config
 
   (defun gr/ibuffer-vc-run ()
@@ -2051,62 +2074,48 @@ That is, remove a non kept dired from the recent list."
      ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
 
      (t (format "%8d" (buffer-size)))))
+
+  (setq ibuffer-saved-filter-groups
+        (list
+         (cons "default"
+               (append
+                '(
+                  ("Article" (or (and (filename . "/Academic Writing/*")
+                                      (not (name . "magit")))))
+                  ("Autumn 2021" (or (and (filename . "/Spring 2022/*")
+                                          (not (name . "magit")))))
+                  ("Writing" (or (and (filename . "/Writings/*")
+                                      (not (name . "magit")))))
+                  ("ZK" (or (name . "*ZK")
+                            (and (filename . "/Zettels/")
+                                 (not (name . "magit")))))
+                  ("ORG" (or (and (filename . "/org/")
+                                  (name . "\\.org$"))
+                             (name . "^\\*calfw-calendar")))
+                  ("PDF" (or (mode . pdf-view-mode)
+                             (mode . pdf-occur-buffer-mode)
+                             (mode . pdf-annot-list-mode)
+                             (name . "^\\*Contents")
+                             (name . "^\\*Edit Annotation ")))
+                  ("magit" (name . "magit"))
+                  ;;("dired" (or (name . ":~/")
+                  ;;             (mode . dired-mode)))
+                  ;;("helpful" (name . "^\\*helpful"))
+                  ("el" (and (mode . emacs-lisp-mode)
+                             (not (name . "^\\*scratch"))
+                             (not (name . "init.el"))))
+                  ("dired" (mode . dired-mode))
+                  ("helpful" (mode . helpful-mode))
+                  ("***" (or (name . "^\\*scratch")
+                             (name . "init.el")
+                             (name . "^\\*Messages")
+                             (name . "^\\*mu4e-")
+                             (name . "org_archive")
+                             (name . ".persp")
+                             ))
+                  )))))
   )
 
-(setq ibuffer-formats
-      '((mark modified read-only vc-status-mini " "
-              (name 60 60 :left)
-              " "
-              (size-h 9 -1 :right)
-              " "
-                                        ; (mode 9 -1 :left :elide)
-                                        ;" "
-              ;;              (vc-status 16 16 :left)
-              ;;              " "
-              vc-relative-file)
-        (mark " "
-              (name 16 -1)
-              " " filename)))
-
-(setq ibuffer-saved-filter-groups
-      (list
-       (cons "default"
-             (append
-              '(
-                ("Article" (or (and (filename . "/Academic Writing/*")
-                                    (not (name . "magit")))))
-                ("Autumn 2021" (or (and (filename . "/Spring 2022/*")
-                                        (not (name . "magit")))))
-                ("Writing" (or (and (filename . "/Writings/*")
-                                    (not (name . "magit")))))
-                ("ZK" (or (name . "*ZK")
-                          (and (filename . "/Zettels/")
-                               (not (name . "magit")))))
-                ("ORG" (or (and (filename . "/org/")
-                                (name . "\\.org$"))
-                           (name . "^\\*calfw-calendar")))
-                ("PDF" (or (mode . pdf-view-mode)
-                           (mode . pdf-occur-buffer-mode)
-                           (mode . pdf-annot-list-mode)
-                           (name . "^\\*Contents")
-                           (name . "^\\*Edit Annotation ")))
-                ("magit" (name . "magit"))
-                ;;("dired" (or (name . ":~/")
-                ;;             (mode . dired-mode)))
-                ;;("helpful" (name . "^\\*helpful"))
-                ("el" (and (mode . emacs-lisp-mode)
-                           (not (name . "^\\*scratch"))
-                           (not (name . "init.el"))))
-                ("dired" (mode . dired-mode))
-                ("helpful" (mode . helpful-mode))
-                ("***" (or (name . "^\\*scratch")
-                           (name . "init.el")
-                           (name . "^\\*Messages")
-                           (name . "^\\*mu4e-")
-                           (name . "org_archive")
-                           (name . ".persp")
-                           ))
-                )))))
 
 (defun gr/truncate-lines ()
   (interactive)
@@ -2287,7 +2296,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package undo-tree
   :diminish undo-tree-mode
-  :defer t
+  :defer 1
   :init
   (global-undo-tree-mode)
   :custom
@@ -2298,7 +2307,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package python-mode
   :disabled
-  :defer t
+  :defer 1
   :straight nil
   :config
   (setq python-shell-interpreter (format "%s/.pyenv/shims/python" home-dir))
@@ -2590,6 +2599,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package transient
   :straight (:type built-in)
+  :defer 1
   :init
   (require 'transient))
 
@@ -2655,7 +2665,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; emacs-everywhere
 
 (use-package emacs-everywhere
-  :straight (emacs-everywhere :host github :repo "tecosaur/emacs-everywhere"))
+  :straight (emacs-everywhere :host github :repo "tecosaur/emacs-everywhere")
+  :defer 1)
 
 
 ;;;; go-translate
@@ -2776,13 +2787,15 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; explain-pause-mode
 
 (use-package explain-pause-mode
+  :disabled
   :defer t
   :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
   :diminish)
 
 ;;;; outshine-mode
 
-(use-package outshine
+(use-package outline-mode
+  :straight nil
   :diminish
   :bind
   ("C-S-<right>" . outline-demote)
@@ -2791,7 +2804,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-<left>" . outline-promote)
   :custom-face
   (outline-1 ((t (:foreground "black" :weight bold :underline t))))
-  (outline-2 ((t (:foreground "blue3" :underline nil))))
+  (outline-2 ((t (:foreground "blue3" :underline nil)))))
+
+(use-package outshine
+  :defer 1
+  :diminish
   :hook
   (emacs-lisp-mode-hook . outshine-mode)
   (outline-minor-mode-hook . outshine-mode))
@@ -2799,6 +2816,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; whitespace-mode
 
 (use-package whitespace
+  :defer 1
   ;; :hook
   ;; (emacs-lisp-mode-hook . whitespace-mode)
   :custom
@@ -2821,6 +2839,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package visual-fill-column
   ;;only used in zk, as dir-local
   ;;because it doesn't work with git-gutter
+  :hook
+  (org-mode-hook . visual-fill-column-mode)
   :custom
   (visual-fill-column-width 90))
 
@@ -2831,7 +2851,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package citar
   :straight (:host github :repo "bdarcus/citar" :fork t)
-  :after (oc misc-file-handling)
+  :after (oc misc-file-handling devonthink-dir)
   :commands (citar-select-ref
              citar-select-refs
              gr/citar-mmd-insert-citation
@@ -2950,6 +2970,7 @@ following the key as group 3."
 
 (use-package oc
   :straight nil
+  :defer 1
   :init
   ;; added to make org-cite work
   (setq org-cite-csl-styles-dir "~/.csl"
@@ -3051,6 +3072,7 @@ following the key as group 3."
 
 (use-package scihub
   :straight (:host github :repo "emacs-pe/scihub.el")
+  :defer 1
   :custom
   (scihub-download-directory (expand-file-name "~/Downloads")))
 
@@ -3122,7 +3144,8 @@ following the key as group 3."
 ;;;; mmd-citation-support
 
 (use-package mmd-citation-support
-  :straight nil)
+  :straight nil
+  :defer 1)
 
 ;;; Writing
 
@@ -3201,13 +3224,16 @@ following the key as group 3."
                                     zk-luhmann-id-postfix)))
 
 (use-package zk-consult
-  :straight nil)
+  :straight nil
+  :defer 1)
 
 (use-package zk-extras
-  :straight nil)
+  :straight nil
+  :defer 1)
 
 (use-package zk-link-hint
-  :straight nil)
+  :straight nil
+  :defer 1)
 
 (with-eval-after-load 'link-hint-aw-select
   (link-hint-define-type 'zk-link
@@ -3226,12 +3252,13 @@ following the key as group 3."
             (switch-to-buffer new-buffer))
         (link-hint-open-link-at-point)))))
 
-(embark-define-keymap embark-become-zk-file-map
-  "Keymap for Embark zk-file actions."
-  :parent embark-meta-map
-  ("f" zk-find-file)
-  ("g" consult-grep)
-  ("s" zk-find-file-by-full-text-search))
+(with-eval-after-load "embark"
+  (embark-define-keymap embark-become-zk-file-map
+    "Keymap for Embark zk-file actions."
+    :parent embark-meta-map
+    ("f" zk-find-file)
+    ("g" consult-grep)
+    ("s" zk-find-file-by-full-text-search)))
 
 (eval-and-compile
   (defhydra hydra-zk (:hint nil
@@ -3313,7 +3340,8 @@ Optional ARG."
 ;;;; sdcv-mode
 
 (use-package sdcv-mode
-  :straight (sdcv-mode :host github :repo "gucong/emacs-sdcv"))
+  :straight (sdcv-mode :host github :repo "gucong/emacs-sdcv")
+  :defer 1)
 
 ;;;; ispell / flyspell
 
@@ -3714,8 +3742,7 @@ Use a prefix arg to get regular RET. "
 
 (defun gr/blog-deploy-localauthor ()
   (interactive)
-  (shell-command "cd ~/Dropbox/Writings/localauthor & ./deploy.sh")
-  )
+  (shell-command "cd ~/Dropbox/Writings/localauthor & ./deploy.sh"))
 
 (defun gr/blog-test-localauthor ()
   (interactive)
@@ -3839,7 +3866,9 @@ Navigate to files in dired, mark files, and execute command."
 
 ;;;; org-wc
 
-(use-package org-wc)
+(use-package org-wc
+  :after org
+  :defer 1)
 
 ;; org-wc-display is useful
 
@@ -3865,16 +3894,17 @@ Navigate to files in dired, mark files, and execute command."
 
 (use-package devonthink-dir
   :straight nil
-  :defer t)
+  :defer 1)
 
 ;; priv-lisp
 
 (use-package dickinson
   :straight nil
-  :defer t)
+  :defer 1)
 
 (use-package mu4e-setup
-  :straight nil)
+  :straight nil
+  :defer 1)
 
 ;;; variable resets
 
