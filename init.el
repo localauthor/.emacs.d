@@ -602,7 +602,9 @@ color."
 (bind-keys :map global-map
            :prefix-map gr-map
            :prefix "C-."
-           ("C-." . execute-extended-command)
+           ;;("C-." . execute-extended-command)
+           ("C-." . avy-goto-char-timer)
+
            ("/" . switch-to-minibuffer-window)
            ("C-/" . exit-minibuffer)
 
@@ -2181,23 +2183,24 @@ That is, remove a non kept dired from the recent list."
   ;;("C-l" . gr/avy-goto)
   ("C-. C-," . gr/avy-goto-string)
   ("C-'" . gr/avy-goto-string)
+  ;;("C-'" . avy-goto-char-timer)
   :custom
   (avy-timeout-seconds 0.4)
   :config
-  (setq avy-keys '(?g ?d ?k ?l ?r ?u ?e ?i ?w ?p ?f ?s))
+  (setq avy-keys '(?g ?d ?l ?r ?u ?e ?i ?c ?p ?f ?s))
 
   (setq avy-dispatch-alist '((?, . avy-action-embark)
                              (?j . avy-action-aw-select)
                              (?2 . avy-action-split-below)
                              (?n . avy-action-open-in-new-frame)
-                             (?  . avy-action-mark)
-                             (?c . avy-action-copy)
-                             (?x . avy-action-kill-stay)
+                             (?m . avy-action-mark)
+                             (?w . avy-action-copy)
+                             (?k . avy-action-kill-stay)
+                             (?  . avy-action-mark-to-char)
                              (?y . avy-action-yank)
                              (?$ . avy-action-ispell)
                              (?z . avy-action-zap-to-char)
                              (?h . avy-action-helpful)
-                             ;;(?  . avy-action-mark-to-char)
                              ;;(?= . avy-action-define)
                              (?t . avy-action-teleport)))
 
@@ -2230,6 +2233,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           (aw-switch-to-window window)
           (switch-to-buffer new-buffer))
       (link-hint-open-link-at-point)))
+
+  (defun avy-action-mark-to-char (pt)
+    (activate-mark)
+    (goto-char pt))
 
   (defun avy-action-split-below (pt)
     (goto-char pt)
