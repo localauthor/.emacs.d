@@ -271,26 +271,34 @@
   :init
   (tab-bar-mode 1)
   (tab-bar-history-mode)
+  :bind
+  ("s-{" . tab-bar-switch-to-prev-tab)
+  ("s-}" . tab-bar-switch-to-next-tab)
+  :hook
+  (server-after-make-frame-hook .
+                                (lambda ()
+                                  (progn
+                                    (set-face-attribute
+                                     'tab-bar nil
+                                     :font "Menlo" :height .75)
+                                    (set-face-attribute
+                                     'tab-bar-tab nil
+                                     :background "grey75"
+                                     :box '(:line-width 1 :style released-button))
+                                    (set-face-attribute
+                                     'tab-bar-tab-inactive nil
+                                     :background "lightgrey"
+                                     :box '(:line-width 1 :style pressed-button)))))
+  :config
   (setq tab-bar-show t
         tab-bar-close-button-show nil
         tab-bar-new-button-show nil
         tab-bar-new-tab-to 'rightmost
         tab-bar-new-tab-choice "*scratch*"
-        tab-bar-tab-name-function 'tab-bar-tab-name-truncated)
-  :bind
-  ("s-{" . tab-bar-switch-to-prev-tab)
-  ("s-}" . tab-bar-switch-to-next-tab)
-  :config
-  (set-face-attribute 'tab-bar nil
-                      :font "Menlo" :height .75)
-  (set-face-attribute 'tab-bar-tab nil
-                      :background "grey75"
-                      :box '(:line-width 1 :style released-button))
-  (set-face-attribute 'tab-bar-tab-inactive nil :background "lightgrey"
-                      :box '(:line-width 1 :style pressed-button)))
+        tab-bar-tab-name-function 'tab-bar-tab-name-truncated))
 
 (use-package hydra
-  :defer t)
+  :defer 1)
 
 ;;;; Faces / Themes Setup
 
