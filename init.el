@@ -1330,8 +1330,7 @@ direct children of this heading."
 
 (use-package org-transclusion
   :straight (org-transclusion :host github :repo "nobiot/org-transclusion")
-  )
-
+  :disabled)
 
 ;;;; org-contrib
 
@@ -2053,9 +2052,8 @@ That is, remove a non kept dired from the recent list."
 ;; remaps C-x b to
 ;;(defalias 'list-buffers 'ibuffer)
 
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-
 (use-package ibuffer-sidebar
+  :disabled
   :bind ("C-x C-u" . ibuffer-sidebar-toggle-sidebar)
   :hook
   (ibuffer-sidebar-mode-hook . gr/truncate-lines)
@@ -2633,6 +2631,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; dogears
 
 (use-package dogears
+  :disabled
   :defer t
   :init
   (dogears-mode)
@@ -3820,29 +3819,29 @@ URL: https://christiantietze.de/posts/2021/03/change-case-of-word-at-point/"
 
 (use-package annotate
   ;; :hook (after-save-hook . annotate-save-annotations)
+  :disabled
   :custom
   (annotate-summary-ask-query nil)
   (annotate-annotation-position-policy :by-length)
-  )
-
-(eval-and-compile
-  (defhydra hydra-annotate (:hint nil
-                                  :color blue)
-    "
+  :config
+  (eval-and-compile
+    (defhydra hydra-annotate (:hint nil
+                                    :color blue)
+      "
      ,*Annotate Mode*   _A_: Mode On/Off
   : next    _n_: new        _l_: load
   : prev    _s_: show all   _S_: save all
            "
-    ("A" annotate-mode)
-    ("a" annotate-annotate)
-    ("n" annotate-annotate)
-    ("s" annotate-show-annotation-summary)
-    ("S" annotate-save-annotations)
-    ("l" annotate-load-annotations)
-    ("" annotate-goto-next-annotation :color red)
-    ("" annotate-goto-previous-annotation :color red)
-    ("q" nil)
-    ))
+      ("A" annotate-mode)
+      ("a" annotate-annotate)
+      ("n" annotate-annotate)
+      ("s" annotate-show-annotation-summary)
+      ("S" annotate-save-annotations)
+      ("l" annotate-load-annotations)
+      ("" annotate-goto-next-annotation :color red)
+      ("" annotate-goto-previous-annotation :color red)
+      ("q" nil)
+      )))
 
 ;;;; convert docx to org
 
