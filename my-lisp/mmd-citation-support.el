@@ -6,18 +6,18 @@
 ;;
 ;; mmd-citations are in the style [#AuthorYEAR] or [23-25][#AuthorYEAR]
 
-(require 'devonthink-dir)
-(require 'ebib-extras)
+;; (require 'devonthink-dir)
+;; (require 'ebib-extras)
 
-(require 'citar)
-(require 'citar-file)
-(require 'citar-citeproc)
+;; (require 'citar)
+;; (require 'citar-file)
+;; (require 'citar-citeproc)
 
-(require 'oc-csl)
-(require 'thingatpt)
+;; (require 'oc-csl)
+;; (require 'thingatpt)
 
-(require 'embark)
-(require 'link-hint)
+;; (require 'embark)
+;; (require 'link-hint)
 
 ;;; variables
 

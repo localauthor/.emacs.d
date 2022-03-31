@@ -4,9 +4,9 @@
 
 ;;; Code:
 
-(require 'citar)
-(require 'consult)
-(require 'org)
+;; (require 'citar)
+;; (require 'consult)
+;; (require 'org)
 
 (defvar devonthink-dir)
 

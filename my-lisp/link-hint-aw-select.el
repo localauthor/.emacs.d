@@ -9,7 +9,7 @@
 
 (require 'link-hint)
 (require 'org)
-;;(require 'ace-window)
+(require 'ace-window)
 (require 'dired)
 
 ;; NOTE: To for this function to work on org-links, it is necessary to change
@@ -27,8 +27,10 @@
 (defun link-hint-aw-select ()
   "Use avy to open a link in a window selected with ace-window."
   (interactive)
-  (avy-with link-hint-aw-select
-    (link-hint--one :aw-select)))
+  (unless
+      (avy-with link-hint-aw-select
+        (link-hint--one :aw-select))
+    (message "No visible links")))
 
 ;;; File-link support
 
