@@ -434,22 +434,23 @@ color."
 
 ;;;; Window and Frame Setup
 
-(defun gr/initial-window-setup ()
-  (interactive)
-  (set-frame-size (selected-frame) 100 60)
-  (set-frame-position (selected-frame) 100 20)
-  (find-file "~/Dropbox/org/fragments.org")
-  (split-window-below)
-  (find-file-other-window "~/Dropbox/org/tasks.org"))
+;; (defun gr/initial-window-setup ()
+;;   (interactive)
+;;   (set-frame-size (selected-frame) 100 60)
+;;   (set-frame-position (selected-frame) 100 20)
+;;   (find-file "~/Dropbox/org/fragments.org")
+;;   (split-window-below)
+;;   (find-file-other-window "~/Dropbox/org/tasks.org"))
 
-(setq initial-buffer-choice #'gr/initial-window-setup)
+(setq initial-buffer-choice "~/Dropbox/org/fragments.org")
+;; (setq initial-buffer-choice #'gr/initial-window-setup)
 
-(if (daemonp)
-    (add-hook 'window-setup-hook #'gr/initial-window-setup))
+;; (if (daemonp)
+;;     (add-hook 'window-setup-hook #'gr/initial-window-setup))
 
-(setq initial-frame-alist '((width . 100) (height . 60) (left . 200) (top . 20) (menu-bar-lines . 0) (ns-appearance . dark)))
+;; (setq initial-frame-alist '((width . 100) (height . 60) (left . 200) (top . 20) (menu-bar-lines . 0) (ns-appearance . dark)))
 
-(setq default-frame-alist '((width . 80) (height . 35) (left . 100) (top . 100) (menu-bar-lines . 0) (ns-appearance . dark)))
+;; (setq default-frame-alist '((width . 80) (height . 35) (left . 100) (top . 100) (menu-bar-lines . 0) (ns-appearance . dark)))
 
 (setq ns-use-proxy-icon nil)
 (setq frame-title-format '("%b"))
