@@ -105,10 +105,10 @@
 (straight-use-package '(org :repo "git://git.sv.gnu.org/emacs/org-mode.git"
                              :files (:defaults "lisp/*.el" ("etc/styles" "etc/styles/*") ("etc/csl/" "etc/csl/*"))))
 
-(require 'org)
+;;(require 'org)
 
 ;; org-element wasn't being loaded on time, for some reason
-(require 'org-element)
+;;(require 'org-element)
 
 ;; (if (version< emacs-version "28")
 ;;     (org-babel-load-file (expand-file-name "~/.emacs.d/lisp/myinitOSX13.org"))
@@ -339,11 +339,9 @@ color."
 ;; Fix for current frames
 (mapc #'fix-mac-region-colors (frame-list))
 
-(setq org-hide-emphasis-markers nil)
-
 ;; I set this here so that the down-arrow remains the right color and size
 ;; even if I change themes
-(set-face-attribute 'org-ellipsis nil :inherit 'fixed-pitch :foreground "grey50" :underline nil :height 1.1)
+;; (set-face-attribute 'org-ellipsis nil :inherit 'fixed-pitch :foreground "grey50" :underline nil :height 1.1)
 
 
 ;;;; MacOS Keybindings
@@ -739,6 +737,7 @@ Symbols and Diacritics
 
 ;; t causes errors
 (setq org-element-use-cache nil)
+;;(setq org-element-use-cache t)
 
 (use-package org
   :bind
@@ -747,6 +746,7 @@ Symbols and Diacritics
   ("C-c l" . org-store-link)
   ("C-c C" . org-clock-goto)
   (:map org-mode-map
+        ("RET" . scimax/org-return)
         ("C-c ;" . nil)
         ("<tab>" . org-cycle)
         ("C-c C-<tab>" . org-force-cycle-archived)
@@ -766,9 +766,10 @@ Symbols and Diacritics
         ("C-<down>" . move-line-down)
         ("C-<return>" . org-meta-return)
         ("M-<return>" . org-insert-heading-respect-content)
+        ("C-c $" . gr/org-mark-done-and-archive-datetree)
         ("" . org-cycle-agenda-files))
   :mode (("\\.org$" . org-mode)
-         ;;("\\.md$" . org-mode)
+         ("\\.md$" . org-mode)
          )
   :init
   (with-eval-after-load "org"
@@ -801,6 +802,7 @@ Symbols and Diacritics
   (org-goto-interface 'outline-path-completion)
   (org-outline-path-complete-in-steps nil)
   (org-hide-leading-stars nil)
+  (org-hide-emphasis-markers nil)
   (org-link-keep-stored-after-insertion t)
   (org-link-search-must-match-exact-headline t)
   (org-support-shift-select 'always)
@@ -1019,8 +1021,6 @@ With C-u: archive subtree to same hierarchy as in original file."
   (let ((org-archive-location "%s_archive::datetree/"))
     (org-todo 'done)
     (org-archive-subtree)))
-
-(define-key org-mode-map "\C-c\$" 'gr/org-mark-done-and-archive-datetree)
 
 ;; Archive subtrees under the same hierarchy as the original org file.
 ;; Link: https://gist.github.com/Fuco1/e86fb5e0a5bb71ceafccedb5ca22fcfb
@@ -1336,11 +1336,13 @@ direct children of this heading."
 ;;;; org-contrib
 
 (use-package org-contrib
-  :straight (org-contrib :files ("lisp/org-contrib.el" "lisp/ox-extra.el"))
-  :defer t
-  :commands (org-export-ignore-headlines)
+  :straight (org-contrib :files ("lisp/org-contrib.el" "lisp/ox-extra.el")))
+
+(use-package ox-extra
+  :straight nil
+  :defer 1
   :config
-  (require 'ox-extra)
+  ;;(require 'ox-extra)
   (ox-extras-activate '(latex-header-blocks ignore-headlines))
 
   ;; change "ignore" tag to "noheadline"
