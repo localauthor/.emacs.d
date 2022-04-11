@@ -71,15 +71,22 @@
 ;;         (citar-citeproc-format-reference mmd-citation)))))
 
 (defun mmd-tooltip (_win _obj pos)
-  (save-excursion
-    (goto-char pos)
-    (let* ((citar-templates
-            '((preview . "${author editor} (${year issued date})\n${title}")))
-           (mmd-citation (list (thing-at-point 'symbol t)))
-           (entry (citar--ensure-entries mmd-citation)))
-      (if entry
-          (citar-format-reference entry)
-        (message "No record")))))
+    (save-excursion
+      (goto-char pos)
+      (let* ((citar-templates
+              '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
+                (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords keywords:*}")
+                (preview . "${author editor} (${year issued date})\n${title}")
+                (note . "Notes on ${author editor}, ${title}")))
+             (mmd-citation (progn
+                             (when (thing-at-point-looking-at "[#|\\[]")
+                               (forward-char 2))
+                             (list (thing-at-point 'symbol t))))
+             (entry (citar--ensure-entries mmd-citation)))
+        (if entry
+            (citar-format-reference entry)
+          (message "No record")))))
+
 
 (defun mmd-tooltip-toggle ()
   (interactive)
