@@ -4,6 +4,7 @@
 
 (require 'ebib)
 
+;;;###autoload
 (defun ebib-open (&optional key)
   "Open ebib and set up frame."
   (interactive)
@@ -43,6 +44,7 @@
   (browse-url (format "https://isbnsearch.org/search?s=%s"
                       (url-encode-url text))))
 
+;;;###autoload
 (defun ebib-filter-any (input)
   (interactive "MSearch All Fields:")
   (ebib)
@@ -59,6 +61,8 @@
        (push (cdr (assoc field entry)) all-keys))
      table)
     all-keys))
+
+;; (gr/bibtex-all-field-values "=key=" gr/bibliography)
 
 ;; or: (hash-table-keys (parsebib-parse gr/bibliography))
 ;; or: (progn (ebib) (ebib--list-keys ebib--cur-db))
@@ -100,10 +104,12 @@ Includes duplicate handling."
 (require 'citar)
 (require 'embark)
 
+;;;###autoload
 (defun citar-ebib-jump-to-entry (key-entry)
   (interactive (list (citar-select-ref)))
   (ebib-open (car key-entry)))
 
+;;;###autoload
 (defun ebib-citar-open ()
   (interactive)
   (let ((key (list (ebib--get-key-at-point))))
