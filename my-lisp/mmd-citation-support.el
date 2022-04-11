@@ -53,6 +53,12 @@
 
 ;; (gr/bibtex-all-field-values gr/bibliography "=key=")
 
+;; or: (hash-table-keys (parsebib-parse gr/bibliography))
+;; or: (progn (ebib) (ebib--list-keys ebib--cur-db))
+;; or: (ebib-db-list-keys ebib--cur-db)
+;; or: (org-cite-basic--all-keys)
+
+
 (defvar mmd-tooltip-enable nil)
 
 ;; (defun mmd-tooltip (_win _obj pos)
@@ -248,3 +254,23 @@ Collects mmd-citation keys from current buffer."
       ))
 
 (provide 'mmd-citation-support)
+
+
+;; ;;; mmd completion-at-point
+
+;; (defun citation-key-completion-at-point ()
+;;   "Completion-at-point function for citation-keys."
+;;   (let ((keys (hash-table-keys (parsebib-parse citar-bibliography)))
+;;         (candidates)
+;;         (case-fold-search t)
+;;         (pt (point)))
+;;     (dolist (key keys)
+;;       (push (format "@%s" key) candidates))
+;;     (save-excursion
+;;       (when (re-search-backward "@.?" nil t)
+;;         (list (match-beginning 0)
+;;               pt
+;;               candidates
+;;               :exclusive 'no)))))
+
+;; (add-to-list 'completion-at-point-functions 'citation-key-completion-at-point)

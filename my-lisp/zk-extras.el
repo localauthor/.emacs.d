@@ -5,8 +5,8 @@
 ;;; Code:
 (require 'zk)
 (require 'zk-index)
-(require 'dickinson)
-(require 'vertico)
+;;(require 'dickinson)
+;;(require 'vertico)
 
 ;;; General Utilities
 
@@ -94,8 +94,8 @@ Optionally takes list of FILES."
 (defun zk-stats ()
   "Report number of notes, various categories."
   (interactive)
-  (let* ((ed-notes (zk--directory-files nil gr/dickinson-ref-regexp))
-         (all-notes (zk--directory-files))
+  (let* ((all-notes (zk--directory-files))
+         (ed-notes (zk--directory-files nil gr/dickinson-ref-regexp))
          (luhmann-notes (zk--directory-files nil "{"))
          (lit-notes (remq nil (mapcar
                                (lambda (x)
@@ -213,9 +213,8 @@ Also excludes, journal, poem, Dickinson, and literature notes."
 (defun gr/zk-unlinked-notes ()
   "Find unlinked notes, minus ED notes."
   (interactive)
-  (let* ((ids (gr/zk--unlinked-notes-list))
-         (notes (zk--parse-id 'file-path ids)))
-    (if notes
+  (let* ((ids (gr/zk--unlinked-notes-list)))
+    (if-let (notes (zk--parse-id 'file-path ids))
         (find-file (zk--select-file "Unlinked notes: " notes))
       (user-error "No unlinked notes found"))))
 

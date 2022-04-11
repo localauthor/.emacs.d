@@ -1,7 +1,6 @@
 ;;; elfeed-setup.el --- Setup elfeed     -*- lexical-binding: t; -*-
 
 (use-package elfeed
-  :defer t
   :bind
   (:map elfeed-show-mode-map
         ("r" . gr/elfeed-mark-as-read)
@@ -26,8 +25,6 @@
   (setq elfeed-search-filter "@6-months-ago +unread -journal -filtered")
   (setq elfeed-search-remain-on-entry t)
   (setq elfeed-show-entry-switch 'display-buffer)
-
-
 
   (defalias 'gr/elfeed-mark-as-read (elfeed-expose #'elfeed-show-untag 'unread) "Mark the current entry read.")
   (defalias 'elfeed-toggle-star (elfeed-expose #'elfeed-search-toggle-all 'star))
@@ -111,7 +108,6 @@
     (delete-windows-on "*elfeed-entry*")))
 
 (use-package elfeed-db
-  :defer 1
   :straight nil)
 
 (use-package elfeed-goodies
@@ -131,13 +127,24 @@
   :after elfeed
   :config
   (elfeed-org)
-  (setq rmh-elfeed-org-files (list "~/Dropbox/org/elfeed.org")))
+  (setq rmh-elfeed-org-files (list "~/Dropbox/org/elfeed.org"))
 
+  ;;prevent mark-as-read on open (does not work in elfeed-goodies)
+  ;;so instead I override the function with one that comments out a line
+  ;; original is line 54 in
+  ;;~/.emacs.d/straight/repos/elfeed-goodies/elfeed-goodies-split-pane.el ;;(elfeed-untag entry 'unread)
 
-;;prevent mark-as-read on open (does not work in elfeed-goodies)
-;;so instead I commented out line 54 in
-;;~/.emacs.d/straight/repos/elfeed-goodies/elfeed-goodies-split-pane.el ;;(elfeed-untag entry 'unread)
+  (defun gr/elfeed-goodies/split-search-show-entry (entry)
+    "Display the currently selected item in a buffer."
+    (interactive (list (elfeed-search-selected :ignore-region)))
+    (when (elfeed-entry-p entry)
+      ;;(elfeed-untag entry 'unread)
+      (elfeed-search-update-entry entry)
+      (elfeed-show-entry entry)))
 
+  (advice-add #'elfeed-goodies/split-search-show-entry :override #'gr/elfeed-goodies/split-search-show-entry))
+
+;;;###autoload
 (defun gr/elfeed-search-show-entry (entry)
   "Display the currently selected item in a buffer."
   (interactive (list (elfeed-search-selected :ignore-region)))
@@ -148,21 +155,16 @@
     (unless elfeed-search-remain-on-entry (forward-line))
     (elfeed-show-entry entry)))
 
+;;;###autoload
 (defun gr/elfeed-open-new-window ()
   (interactive)
   (select-frame (make-frame-command))
-  (elfeed)
-  (set-frame-size (selected-frame) 150 46)
-  (set-frame-position (selected-frame) 150 80)
-  (delete-other-windows)
-  (if (bound-and-true-p truncate-lines)
-      (elfeed-update)
-    (toggle-truncate-lines))
-  (elfeed-update)
-  )
+  (gr/elfeed-open))
 
+;;;###autoload
 (defun gr/elfeed-open ()
-  (interactive)
+(interactive)
+(let ((inhibit-message t))
   (elfeed)
   (set-frame-size (selected-frame) 150 46)
   (set-frame-position (selected-frame) 150 80)
@@ -170,7 +172,6 @@
   (if (bound-and-true-p truncate-lines)
       (elfeed-update)
     (toggle-truncate-lines))
-  (elfeed-update)
-  )
+  (elfeed-update)))
 
 (provide 'elfeed-setup)

@@ -7,7 +7,7 @@
 (load-library "~/.emacs.d/lisp/gcmh.el")
 (gcmh-mode 1)
 
-(add-variable-watcher 'zk-index-desktop-directory (lambda (&rest x) (message "Variable changed: %S" x)))
+;;; Straight setup
 
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
 
@@ -151,6 +151,12 @@
   (:map help-mode-map
         ("o" . link-hint-open-link))
   :config
+  (pixel-scroll-precision-mode)
+  ;; (display-time-mode 1)
+  ;; (setq display-time-24hr-format t
+  ;;       display-time-day-and-date t
+  ;;       display-time-default-load-average nil)
+  (setq set-mark-command-repeat-pop nil)
   (prefer-coding-system 'utf-8)
   (setq-default buffer-file-coding-system 'utf-8
                 default-buffer-file-coding-system 'utf-8
@@ -274,28 +280,28 @@
   :bind
   ("s-{" . tab-bar-switch-to-prev-tab)
   ("s-}" . tab-bar-switch-to-next-tab)
-  :hook
-  (server-after-make-frame-hook .
-                                (lambda ()
-                                  (progn
-                                    (set-face-attribute
-                                     'tab-bar nil
-                                     :font "Menlo" :height .75)
-                                    (set-face-attribute
-                                     'tab-bar-tab nil
-                                     :background "grey75"
-                                     :box '(:line-width 1 :style released-button))
-                                    (set-face-attribute
-                                     'tab-bar-tab-inactive nil
-                                     :background "lightgrey"
-                                     :box '(:line-width 1 :style pressed-button)))))
   :config
+  (defun gr/tab-bar-face-setup ()
+    (set-face-attribute
+     'tab-bar nil
+     :font "Menlo" :height .75)
+    (set-face-attribute
+     'tab-bar-tab nil
+     :background "grey75"
+     :box '(:line-width 1 :style released-button))
+    (set-face-attribute
+     'tab-bar-tab-inactive nil
+     :background "lightgrey"
+     :box '(:line-width 1 :style pressed-button)))
   (setq tab-bar-show t
         tab-bar-close-button-show nil
         tab-bar-new-button-show nil
         tab-bar-new-tab-to 'rightmost
         tab-bar-new-tab-choice "*scratch*"
-        tab-bar-tab-name-function 'tab-bar-tab-name-truncated))
+        tab-bar-tab-name-function 'tab-bar-tab-name-truncated)
+  (gr/tab-bar-face-setup)
+  :hook
+  (server-after-make-frame-hook . gr/tab-bar-face-setup))
 
 (use-package hydra
   :defer 1)
@@ -495,6 +501,16 @@ color."
         ;;  (window-height . 0.1)
         ;;  (inhibit-same-window . t))
 
+        ("\\*Completions"
+         (display-buffer-at-bottom)
+         (window-height . 0.3)
+         (side . bottom))
+
+        ("\\*elfeed-entry"
+         (display-buffer-at-bottom)
+         (window-height . 0.6)
+         (side . bottom))
+
         ("\\*elfeed-entry"
          (display-buffer-at-bottom)
          (window-height . 0.6)
@@ -681,20 +697,26 @@ Symbols and Diacritics
   (:map gr-map
         ("o" . link-hint-aw-select)))
 
+;;;; recentf
+
+(use-package recentf
+  :defer 1
+  :init
+  (recentf-mode))
+
 ;;;; diminish
 
 (use-package diminish
   :defer 1
-  :config
+  :init
   (eval-after-load 'org-indent '(diminish 'org-indent-mode))
+  (diminish 'eldoc-mode)
   (diminish 'outline-mode)
   (diminish 'gcmh-mode)
   (diminish 'visual-line-mode)
   (diminish 'buffer-face-mode)
   (diminish 'outline-minor-mode)
-  (diminish 'abbrev-mode)
-  (eval-after-load 'gumshoe-mode '(diminish 'global-gumshoe-mode))
-  )
+  (diminish 'abbrev-mode))
 
 (add-hook 'buffer-face-mode-hook #'(lambda () (diminish 'buffer-face-mode)))
 
@@ -747,6 +769,8 @@ Symbols and Diacritics
   ("C-c C" . org-clock-goto)
   (:map org-mode-map
         ("RET" . scimax/org-return)
+        ;("C-c *" . org-toggle-item)
+        ;("C-x *" . org-toggle-item)
         ("C-c ;" . nil)
         ("<tab>" . org-cycle)
         ("C-c C-<tab>" . org-force-cycle-archived)
@@ -1377,6 +1401,7 @@ parent."
 
 
 ;;; Completion
+
 ;;;; vertico
 
 (use-package vertico
@@ -1386,8 +1411,8 @@ parent."
                ("C-g" . keyboard-escape-quit))
   :custom
   (vertico-cycle t)
-  (vertico-count 7)
-  )
+  (vertico-count 7))
+
 
 ;; Add prompt indicator to `completing-read-multiple'.
 (defun crm-indicator (args)
@@ -1461,7 +1486,7 @@ parent."
 
   ;; enable completing read prompter
   ;;(setq embark-prompter 'embark-completing-read-prompter)
-  )
+
 
   ;; from https://karthinks.com/software/fifteen-ways-to-use-embark/
   (eval-when-compile
@@ -1470,75 +1495,78 @@ parent."
          (interactive)
          (with-demoted-errors "%s"
            (aw-switch-to-window (aw-select nil))
-           (call-interactively (symbol-function ',fn)))))
+           (call-interactively (symbol-function ',fn))))))
 
+  (with-eval-after-load "embark"
     (define-key embark-file-map (kbd "o") (embark-aw-select find-file))
     (define-key embark-buffer-map (kbd "o") (embark-aw-select switch-to-buffer))
     (define-key embark-bookmark-map (kbd "o") (embark-aw-select bookmark-jump)))
 
-;; embark action to attach file to email message
-(autoload 'gnus-dired-attach "gnus-dired")
+  ;; embark action to attach file to email message
+  (autoload 'gnus-dired-attach "gnus-dired")
 
-(defun embark-attach-file (file)
-  "Attach FILE to an  email message.
+  (defun embark-attach-file (file)
+    "Attach FILE to an  email message.
 The message to which FILE is attached is chosen as for
 `gnus-dired-attach`, that is: if no message buffers are found a
 new email is started; if some message buffer exist you are asked
 whether you want to start a new email anyway, if you say no and
 there is only one message buffer the attachements are place
 there, otherwise you are prompted for a message buffer."
-  (interactive "fAttach: ")
-  (gnus-dired-attach (list (abbreviate-file-name (expand-file-name file)))))
+    (interactive "fAttach: ")
+    (gnus-dired-attach (list (abbreviate-file-name (expand-file-name file)))))
 
-;; absolute-path functions
+  ;; absolute-path functions
 
-(defun gr/embark-insert-absolute-path (file)
-  "Insert absolute path to FILE."
-  (interactive "FFile: ")
-  (insert (abbreviate-file-name (expand-file-name file))))
+  (defun gr/embark-insert-absolute-path (file)
+    "Insert absolute path to FILE."
+    (interactive "FFile: ")
+    (insert (abbreviate-file-name (expand-file-name file))))
 
-(defun gr/embark-save-absolute-path (file)
-  "Save the absolute path to FILE in the kill ring."
-  (interactive "FFile: ")
-  (kill-new (abbreviate-file-name (expand-file-name file))))
+  (defun gr/embark-save-absolute-path (file)
+    "Save the absolute path to FILE in the kill ring."
+    (interactive "FFile: ")
+    (kill-new (abbreviate-file-name (expand-file-name file))))
 
 
-;; embark buffer actions
+  ;; embark buffer actions
 
-(defun embark-target-this-buffer ()
-  (cons 'this-buffer (buffer-name)))
+  (defun embark-target-this-buffer ()
+    (cons 'this-buffer (buffer-name)))
 
-(add-to-list 'embark-target-finders #'embark-target-this-buffer t)
+  (add-to-list 'embark-target-finders #'embark-target-this-buffer t)
 
-(add-to-list 'embark-keymap-alist '(this-buffer . this-buffer-map))
+  (add-to-list 'embark-keymap-alist '(this-buffer . this-buffer-map))
 
-(push 'embark--allow-edit
-      (alist-get 'write-file embark-target-injection-hooks))
+  (push 'embark--allow-edit
+        (alist-get 'write-file embark-target-injection-hooks))
 
-(embark-define-keymap this-buffer-map
-  "Commands to act on current file or buffer."
-  ("RET" eval-buffer)
-  ("e" eval-buffer)
-  ("R" rename-file)
-  ("D" delete-file)
-  ("W" write-file)
-  ("$" ispell)
-  ("!" shell-command)
-  ("&" async-shell-command)
-  ("x" consult-file-externally)         ; useful for PDFs
-  ("c" copy-file)
-  ("k" kill-buffer)
-  ("z" bury-buffer)
-  ("s" embark-eshell)
-  ("|" embark-shell-command-on-buffer)
-  ("g" revert-buffer)
-  ("p" pwd)
-  ("SPC" mark-whole-buffer)
-  ("<" previous-buffer)
-  (">" next-buffer))
+  (embark-define-keymap this-buffer-map
+    "Commands to act on current file or buffer."
+    ("RET" eval-buffer)
+    ("e" eval-buffer)
+    ("R" rename-file)
+    ("D" delete-file)
+    ("W" write-file)
+    ("$" ispell)
+    ("!" shell-command)
+    ("&" async-shell-command)
+    ("x" consult-file-externally)         ; useful for PDFs
+    ("c" copy-file)
+    ("k" kill-buffer)
+    ("z" bury-buffer)
+    ("s" embark-eshell)
+    ("|" embark-shell-command-on-buffer)
+    ("g" revert-buffer)
+    ("p" pwd)
+    ("SPC" mark-whole-buffer)
+    ("<" previous-buffer)
+    (">" next-buffer))
 
-(add-to-list 'embark-repeat-actions #'previous-buffer)
-(add-to-list 'embark-repeat-actions #'next-buffer)
+  (add-to-list 'embark-repeat-actions #'previous-buffer)
+  (add-to-list 'embark-repeat-actions #'next-buffer)
+
+  )
 
 (use-package embark-consult
   :after (embark consult)
@@ -2150,9 +2178,9 @@ parses its input."
 
 (defun gr/truncate-lines ()
   (interactive)
-  (if (bound-and-true-p truncate-lines)
-      ()
-    (toggle-truncate-lines)))
+  (let ((inhibit-message t))
+    (unless (bound-and-true-p truncate-lines)
+      (toggle-truncate-lines))))
 
 (defun force-truncate-lines ()
   "Force line truncation. For use in hooks."
@@ -2619,10 +2647,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; bookmark
 
 (use-package bookmark
-  :defer t
   :init
-  (setq bookmark-bmenu-toggle-filenames nil)
-  (setq bookmark-save-flag 1)
+  (setq bookmark-bmenu-toggle-filenames nil
+        bookmark-save-flag 1
+        bookmark-set-fringe-mark nil)
   :custom-face
   (bookmark-face ((t nil))))
 
@@ -2638,14 +2666,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :defer 1
   :init
   (require 'transient))
-
-
-;;;; recentf
-
-(use-package recentf
-  :defer 1
-  :init
-  (recentf-mode))
 
 
 ;;;; dogears
@@ -2841,7 +2861,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-<left>" . outline-promote)
   :custom-face
   (outline-1 ((t (:foreground "black" :weight bold :underline t))))
-  (outline-2 ((t (:foreground "blue3" :underline nil)))))
+  (outline-2 ((t (:foreground "blue3" :underline nil))))
+  :hook
+  (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode))))
 
 (use-package outshine
   :defer 1
@@ -2863,7 +2885,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; flycheck and package-lint
 
 (use-package flycheck-package
-  :hook (emacs-lisp-mode-hook . flycheck-mode)
+  :defer 1
+  ;;:hook (emacs-lisp-mode-hook . flycheck-mode)
   :custom
   (flycheck-emacs-lisp-load-path 'inherit))
 
@@ -2887,7 +2910,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (defvar gr/bibliography '("~/Dropbox/gr-bibliography.bib"))
 
 (use-package citar
-  :straight (:host github :repo "bdarcus/citar" :fork t)
+ ;; :straight (:host github :repo "bdarcus/citar" :fork t)
   :after (oc misc-file-handling devonthink-dir)
   :commands (citar-select-ref
              citar-select-refs
@@ -3199,7 +3222,10 @@ following the key as group 3."
         ("s" . zk-search)
         ("r" . zk-consult-grep)
         ("o" . link-hint--aw-select-zk-link))
-  :hook (completion-at-point-functions . zk-completion-at-point)
+  :hook
+  (completion-at-point-functions . zk-completion-at-point)
+  ;; runs after every completion
+  ;;(company-completion-finished-hook . zk-make-button-before-point)
   :custom
   (zk-directory "~/Dropbox/ZK/Zettels")
   (zk-file-extension "md")
@@ -3217,7 +3243,7 @@ following the key as group 3."
   :config
   (zk-setup-auto-link-buttons)
   (zk-setup-embark)
-  (add-to-list 'auto-mode-alist '("\\.md\\'" . outline-mode))
+  ;;(add-to-list 'auto-mode-alist '("\\.md\\'" . outline-mode))
   (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
   (add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
   (consult-customize
@@ -3235,6 +3261,9 @@ following the key as group 3."
   (zk-index-setup-embark)
   :custom
   (zk-index-desktop-directory zk-directory))
+
+(setq zk-index-desktop-directory (bound-and-true-p zk-directory))
+
 
 (use-package zk-luhmann
   :after zk-index
@@ -3661,8 +3690,9 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (if (not (one-window-p))
       (delete-window)))
 
-(define-key org-mode-map (kbd "C-c o") #'split-and-indirect-orgtree)
-(define-key org-mode-map (kbd "C-c b")  #'kill-and-unsplit-orgtree)
+;; (define-key org-mode-map (kbd "C-c o") #'split-and-indirect-orgtree)
+;; (define-key org-mode-map (kbd "C-c b")  #'kill-and-unsplit-orgtree)
+
 
 ;;;; "Better Return" edited
 
@@ -3767,9 +3797,6 @@ Use a prefix arg to get regular RET. "
      ;; fall-through case
      (t
       (org-return)))))
-
-(define-key org-mode-map (kbd "RET") 'scimax/org-return)
-
 
 ;;;; ox-hugo
 
@@ -3919,7 +3946,8 @@ Navigate to files in dired, mark files, and execute command."
 
 (use-package elfeed-setup
   :straight nil
-  :defer t)
+  :defer t
+  :commands (gr/elfeed-open-new-window))
 
 (use-package misc-file-handling
   :straight nil
