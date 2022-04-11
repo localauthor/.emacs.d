@@ -1821,10 +1821,30 @@ That is, remove a non kept dired from the recent list."
 
 (use-package orderless
   :init
-  (setq orderless-matching-styles '(orderless-literal orderless-regexp)
+  (setq orderless-matching-styles '(orderless-prefixes
+                                    orderless-regexp)
         completion-styles '(orderless partial-completion initials)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles . (partial-completion initials))))))
+        completion-category-overrides '((file (styles . (partial-completion initials)))))
+  (setq orderless-style-dispatchers
+          '(orderless-literal-dispatcher
+            orderless-initialism-dispatcher))
+  (setq orderless-component-separator "[ +]")
+  :config
+  (defun orderless-literal-dispatcher (pattern _index _total)
+  "Literal style dispatcher using the equals sign as a suffix.
+It matches PATTERN _INDEX and _TOTAL according to how Orderless
+parses its input."
+  (when (string-suffix-p "=" pattern)
+    `(orderless-literal . ,(substring pattern 0 -1))))
+
+(defun orderless-initialism-dispatcher (pattern _index _total)
+  "Leading initialism dispatcher using the comma suffix.
+It matches PATTERN _INDEX and _TOTAL according to how Orderless
+parses its input."
+  (when (string-suffix-p "," pattern)
+    `(orderless-initialism . ,(substring pattern 0 -1))))
+)
 
 ;;;; savehist
 
