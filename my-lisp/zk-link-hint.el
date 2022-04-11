@@ -39,7 +39,8 @@
 
 (defun zk-link-hint--zk-link-at-point-p ()
   "Return the ID for the zk-link at the point or nil."
-  (thing-at-point-looking-at zk-link-regexp))
+  (and (zk--id-at-point)
+       (thing-at-point-looking-at zk-link-regexp)))
 
 (defun zk-link-hint--next-zk-link (bound)
   "Find the unext zk-link.
