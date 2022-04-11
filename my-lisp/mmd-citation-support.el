@@ -22,14 +22,14 @@
 ;;; variables
 
 (defvar gr/mmd-citation-regexp "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]")
-(defvar gr/full-mmd-citation-regex "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]\\)")
+(defvar gr/full-mmd-citation-regexp "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#\\(?4:.[[:alpha:]-']+[[:digit:]]\\{4\\}.?\\)]\\)")
 
 
 ;;; add highlighting and tooltips to mmd-citekeys
 
 (defun gr/mmd-citation-activate (limit)
-  (when (re-search-forward "\\[\\(?2:#\\(?1:.[[:alpha:]-']+[[:digit:]]\\{4\\}\\)\\)\\]" limit t)
-    (if (member (match-string 1) (org-cite-basic--all-keys))
+  (when (re-search-forward gr/full-mmd-citation-regexp limit t)
+    (if (member (match-string 4) (org-cite-basic--all-keys))
         (add-text-properties (match-beginning 2)
                              (match-end 2)
                              '(font-lock-face 'font-lock-keyword-face
@@ -128,7 +128,7 @@
   ;; allow accurate target identification when point is on "[" or "#" at
   ;; beginning of mmd citation maybe better to do thing-at-point thing
   ;; manually, like citar does for markdown?
-  (when (thing-at-point-looking-at "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}]")
+  (when (thing-at-point-looking-at gr/mmd-citation-regexp)
     (when (thing-at-point-looking-at "[#|\\[]")
       (forward-char 2))
     (let ((mmd-citation (thing-at-point 'symbol t)))
@@ -193,7 +193,7 @@ Collects mmd-citation keys from current buffer."
     (find-file file))
     (goto-char (point-min))
     (save-match-data
-      (while (re-search-forward gr/full-mmd-citation-regex nil t)
+      (while (re-search-forward gr/full-mmd-citation-regexp nil t)
         (let ((pos)
               (prefix (match-string-no-properties 1))
               (new-cite (string-replace "#" "@" (match-string-no-properties 2)))
@@ -224,7 +224,7 @@ Collects mmd-citation keys from current buffer."
     (find-file file))
     (goto-char (point-min))
     (save-match-data
-      (while (re-search-forward gr/full-mmd-citation-regex nil t)
+      (while (re-search-forward gr/full-mmd-citation-regexp nil t)
         (let ((pos)
               (prefix (match-string-no-properties 1))
               (new-cite (string-replace "#" "cite:@" (match-string-no-properties 2)))
