@@ -26,30 +26,24 @@
 
 
 ;;; add highlighting and tooltips to mmd-citekeys
-;; these tooltips are pretty memory intensive
 
-;; (font-lock-add-keywords 'org-mode
-;;                         '(("\\[@.*?\\]" . font-lock-keyword-face)
-;;                           ("\\[-@.*?\\]" . font-lock-keyword-face)
-;;                           ("\\[#.*?\\]" . font-lock-keyword-face)
-;;                           ("\\[-#.*?\\]" . font-lock-keyword-face)))
-;; (font-lock-add-keywords 'outline-mode
-;;                         '(("\\[@.*?\\]" . font-lock-keyword-face)
-;;                           ("\\[-@.*?\\]" . font-lock-keyword-face)
-;;                           ("\\[#.*?\\]" . font-lock-keyword-face)
-;;                           ("\\[-#.*?\\]" . font-lock-keyword-face)))
+(defun gr/mmd-citation-activate (limit)
+  (when (re-search-forward "\\[\\(?2:#\\(?1:.[[:alpha:]-']+[[:digit:]]\\{4\\}\\)\\)\\]" limit t)
+    (if (member (match-string 1) (org-cite-basic--all-keys))
+        (add-text-properties (match-beginning 2)
+                             (match-end 2)
+                             '(font-lock-face 'font-lock-keyword-face
+                                              help-echo mmd-tooltip))
+      (add-text-properties (match-beginning 2)
+                           (match-end 2)
+                           '(font-lock-face 'font-lock-warning-face)))))
 
 (font-lock-add-keywords 'org-mode
-                        '(("\\[#.*?\\]" 0 '(face font-lock-keyword-face
-                                                 help-echo mmd-tooltip))
-                          ("\\[-#.*?\\]" 0 '(face font-lock-keyword-face
-                                                  help-echo mmd-tooltip))))
+                        '((gr/mmd-citation-activate)))
 
 (font-lock-add-keywords 'outline-mode
-                        '(("\\[#.*?\\]" 0 '(face font-lock-keyword-face
-                                                 help-echo mmd-tooltip))
-                          ("\\[-#.*?\\]" 0 '(face font-lock-keyword-face
-                                                  help-echo mmd-tooltip))))
+                        '((gr/mmd-citation-activate)))
+
 
 ;; (gr/bibtex-all-field-values gr/bibliography "=key=")
 
@@ -60,15 +54,6 @@
 
 
 (defvar mmd-tooltip-enable nil)
-
-;; (defun mmd-tooltip (_win _obj pos)
-;;   (when mmd-tooltip-enable
-;;     (save-excursion
-;;       (goto-char pos)
-;;       (let* ((mmd-citation (list (thing-at-point 'symbol t)))
-;;              (citar-citeproc-csl-style
-;; "chicago-fullnote-bibliography-short-title-subsequent.csl"))
-;;         (citar-citeproc-format-reference mmd-citation)))))
 
 (defun mmd-tooltip (_win _obj pos)
     (save-excursion
