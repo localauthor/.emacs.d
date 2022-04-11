@@ -167,6 +167,8 @@
   "Append formatted bibliography to end of current file.
 Collects mmd-citation keys from current buffer."
   (interactive)
+  (unless citar-citeproc-csl-style
+    (citar-citeproc-select-csl-style))
   (let* ((keys (gr/list-buffer-mmd-citations))
          (proc (citeproc-create (concat citar-citeproc-csl-styles-dir "/" citar-citeproc-csl-style)
                                 (citeproc-itemgetter-from-bibtex citar-bibliography)
