@@ -104,9 +104,9 @@
 (defun gr/open-init-file (p)
   "Open myinit.org in new frame. With universal argument, open in current window."
   (interactive "P")
-  (cond ((equal p '(4)) (find-file "~/.emacs.d/init.el"))
+  (cond ((equal p '(4)) (find-file (concat user-emacs-directory "init.el")))
         (t  (select-frame (make-frame-command))
-            (find-file "~/.emacs.d/init.el")
+            (find-file (concat user-emacs-directory "init.el"))
             (set-frame-position (selected-frame) 845 20)
             (delete-other-windows))))
 

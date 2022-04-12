@@ -4,7 +4,7 @@
 ;; collection.  The default is 800 kilobytes.  Measured in bytes.
 ;;(setq gc-cons-threshold (* 100 1000 1000))
 
-(load-library "~/.emacs.d/lisp/gcmh.el")
+(load-library (concat user-emacs-directory "lisp/gcmh.el"))
 (gcmh-mode 1)
 
 ;;; Straight setup
@@ -111,7 +111,7 @@
 ;;(require 'org-element)
 
 ;; (if (version< emacs-version "28")
-;;     (org-babel-load-file (expand-file-name "~/.emacs.d/lisp/myinitOSX13.org"))
+;;     (org-babel-load-file (expand-file-name (concat user-emacs-directory "lisp/myinitOSX13.org"))
 ;;   (org-babel-load-file (expand-file-name "~/Dropbox/org/myinit.org")))
 
 ;; (when (version< "28" emacs-version)
@@ -124,9 +124,9 @@
 ;;; Basics
 ;;;; Emacs
 
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/my-lisp"))
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/priv-lisp"))
+(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "lisp")))
+(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "my-lisp")))
+(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "priv-lisp")))
 
 (setq elisp-flymake-byte-compile-load-path load-path)
 
@@ -217,8 +217,8 @@
 
   (add-to-list 'completion-ignored-extensions ".DS_Store")
 
-  (setq custom-file "~/.emacs.d/custom.el")
-  (setq backup-directory-alist `(("." . "~/.emacs.d/backups")))
+  (setq custom-file (concat user-emacs-directory "custom.el"))
+  (setq backup-directory-alist `(("." . (concat user-emacs-directory "backups"))))
 
   (setq epg-gpg-program "/usr/local/bin/gpg")
   (setq xref-search-program 'ripgrep)
@@ -308,7 +308,7 @@
 
 ;;;; Faces / Themes Setup
 
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+(add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 
 (load-theme 'gr-light t)
 ;;(load-theme 'gr-dark t)
@@ -2661,12 +2661,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; transient
 
-(use-package transient
-  :straight (:type built-in)
-  :defer 1
-  :init
-  (require 'transient))
-
+;; (use-package transient
+;;   :straight (:type built-in)
+;;   :defer 1
+;;   :init
+;;   (require 'transient))
 
 ;;;; dogears
 
@@ -3212,7 +3211,7 @@ following the key as group 3."
 ;;;; zk
 
 (use-package zk
-  :straight (zk :local-repo "~/.emacs.d/my-lisp/zk/"
+  :straight (zk :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
                 :files (:defaults "zk-consult.el"))
   ;; :init
   ;; (require 'zk-consult)
@@ -3252,7 +3251,7 @@ following the key as group 3."
 
 (use-package zk-index
   :after zk
-  :straight (zk-index :local-repo "~/.emacs.d/my-lisp/zk/"
+  :straight (zk-index :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
                       :files ("zk-index.el"))
   :bind (:map zk-index-map
               ("g" . consult-line)
@@ -3267,7 +3266,7 @@ following the key as group 3."
 
 (use-package zk-luhmann
   :after zk-index
-  :straight (zk-luhmann :local-repo "~/.emacs.d/my-lisp/zk-luhmann")
+  :straight (zk-luhmann :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk-luhmann")
   :bind (:map zk-index-map
               ("L" . zk-luhmann-index-sort)
               ("l" . zk-luhmann-index)
