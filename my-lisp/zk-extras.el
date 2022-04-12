@@ -11,6 +11,34 @@
 ;;; General Utilities
 
 ;;;###autoload
+(defun zk-luhmann-insert-link (id &optional title)
+  (interactive (list (zk--parse-file 'id (funcall zk-select-file-function "Insert link: "))))
+  (let* ((pref-arg current-prefix-arg)
+         (title (if title title
+                  (zk--parse-id 'title id)))
+         (luhmann-id (ignore-errors
+                       (string-match zk-luhmann-id-regexp title)
+                       (match-string 0 title))))
+    (cond
+     ((or (and (not pref-arg) (eq 't zk-link-and-title))
+          (and pref-arg (not zk-link-and-title)))
+      (zk--insert-link-and-title id title))
+     ((and (not pref-arg) (eq 'ask zk-link-and-title))
+      (if (y-or-n-p "Include title? ")
+          (zk--insert-link-and-title id title)
+        (progn
+          (when luhmann-id
+              (insert luhmann-id " "))
+          (zk--insert-link id))))
+     ((or t
+          (and pref-arg (eq 't zk-link-and-title)))
+      (progn
+        (when luhmann-id
+          (insert luhmann-id " "))
+        (zk--insert-link id))))))
+
+
+;;;###autoload
 (defun zk-copy-link-to-current-note ()
   "Copy link to current note."
   (interactive)
