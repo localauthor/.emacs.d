@@ -122,25 +122,10 @@ Optionally takes list of FILES."
 (defun zk-stats ()
   "Report number of notes, various categories."
   (interactive)
-  (let* ((all-notes (zk--directory-files))
-         (ed-notes (zk--directory-files nil gr/dickinson-ref-regexp))
-         (luhmann-notes (zk--directory-files nil "{"))
-         (lit-notes (remq nil (mapcar
-                               (lambda (x)
-                                 (unless (member x ed-notes)
-                                   x))
-                               (zk--directory-files nil "[a-z]+[0-9]\\{4\\}"))))
-         (journal (length (zk--grep-file-list "journalentry")))
-         (poem (length (zk--grep-file-list "mypoem")))
-         (notes (- (length all-notes)
-                   (+ journal poem
-                      (length luhmann-notes)
-                      (length lit-notes)
-                      (length ed-notes)))))
-    (message (format "Notes: %s | Luhmann: %s | Lit: %s"
-                     notes
-                     (length luhmann-notes)
-                     (length lit-notes)))))
+  (message (format "Notes: %s | Luhmann: %s | Lit: %s"
+                   (length (zk-non-luhmann-list))
+                   (length (zk-luhmann-files))
+                   (length (zk-lit-notes-list)))))
 
 ;;;###autoload
 (defun zk-non-luhmann-list ()
@@ -150,25 +135,20 @@ Also excludes, journal, poem, Dickinson, and literature notes."
          (ed-notes (zk--directory-files t gr/dickinson-ref-regexp))
          (luhmann-notes (zk--directory-files t "{"))
          (lit-notes (zk--directory-files t "[a-z]+[0-9]\\{4\\}"))
-         (film (zk--grep-file-list "filmnotes"))
-         (personal (zk--grep-file-list "#personal"))
-         (creative (zk--grep-file-list "#creative"))
-         (songs (zk--grep-file-list "#song"))
-         (booknote (zk--grep-file-list "#booknote"))
-         (journal (zk--grep-file-list "journalentry"))
-         (poem (zk--grep-file-list "mypoem"))
+         (list (zk--grep-file-list (string-join '("\\#creative"
+                                                  "\\#personal"
+                                                  "\\#song"
+                                                  "\\#booknote"
+                                                  "\\#exclude"
+                                                  "journalentry"
+                                                  "mypoem"
+                                                  "filmnotes")
+                                                "\\|")))
          (notes
           (append ed-notes
-                  booknote
                   luhmann-notes
-                  film
-                  songs
-                  creative
-                  personal
                   lit-notes
-                  journal
-                  poem)))
-    (message "%s" (length (delete-dups notes)))
+                  list)))
     (remq nil (mapcar
                (lambda (x)
                  (unless (member x notes)
