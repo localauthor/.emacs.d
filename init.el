@@ -564,8 +564,11 @@ color."
            ("/" . switch-to-minibuffer-window)
            ("C-/" . exit-minibuffer)
 
+           ("n" . gr/daily-notes)
+
+           ("o" . link-hint-aw-select)
+
            ("i" . gr/open-init-file)
-           ("I" . open-user-init-file)
 
            ("C-t" . gr/open-tasks-file)
            ("t" . gr/open-tasks-upcoming-agenda-other-frame)
@@ -590,16 +593,20 @@ color."
 
            ("l" . gr/symbol-menu/body)
 
-           ;;("T" . gr/google-translate-lt-en)
+           ("D" . gr/lookup-word-at-point)
+           ("d" . sdcv-search)
+
+           ("L" . toggle-truncate-lines)
+
            ("T" . google-translate-smooth-translate)
+
+           ;;("T" . gr/google-translate-lt-en)
            ;; ("T" . go-translate-popup-current)
 
            ;;("p" . hydra-persp/body)
-           ("n" . hydra-annotate/body)
+           ;;("n" . hydra-annotate/body)
            ("s" . hydra-mac-speak/body)
-           ("L" . toggle-truncate-lines)
-           ("D" . gr/lookup-word-at-point)
-           ("d" . sdcv-search)
+
            ("P" . password-store-copy-field)
            ;; ("C-c" . 'flyspell-popup-correct)
            ("C-c" . 'flyspell-auto-correct-previous-word))
