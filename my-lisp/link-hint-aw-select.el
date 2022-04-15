@@ -12,15 +12,6 @@
 (require 'ace-window)
 (require 'dired)
 
-;; NOTE: To for this function to work on org-links, it is necessary to change
-;; default behavior for opening files in org-mode by evaluating the
-;; following, which changes the value of the key 'file in the alist
-;; 'org-link-frame-setup' from the default, 'find-file-other-window', to
-;; 'find-file'. I prefer this globally, but it would also be possible to
-;; let-bind this variable in the function itself.
-
-(setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)
-
 ;;; General command
 
 ;;;###autoload
@@ -37,17 +28,26 @@
 (link-hint-define-type 'file-link
 :aw-select #'link-hint--aw-select-file-link)
 
-;; (defun link-hint--aw-select-file-link (link)
-;;   (let ((aw-dispatch-function #'ignore))
-;;     (aw-switch-to-window (aw-select nil))
-;;     (find-file link)))
-
 (defun link-hint--aw-select-file-link (link)
   (with-demoted-errors "%s"
     (aw-switch-to-window (aw-select nil))
     (find-file link)))
 
-;;; Macro for similar types
+;;; Macro for similar link types
+
+;; This macro can be used for link types that open the target in the current
+;; window.
+
+;; NOTE: For this macro to work on org-links, it is necessary to change
+;; default behavior from 'find-file-other-window' to 'find-file'. To do this,
+;; evaluate the 'setf' function below.
+
+;; This function changes the value of the key 'file in the alist
+;; 'org-link-frame-setup' from the default, 'find-file-other-window', to
+;; 'find-file'. I prefer this globally, but it would also be possible to
+;; let-bind this variable in the function itself.
+
+(setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)
 
 (defmacro define-link-hint-aw-select (link-type fn)
   `(progn
@@ -69,5 +69,42 @@
 (define-link-hint-aw-select button push-button)
 (define-link-hint-aw-select org-link org-open-at-point)
 (define-link-hint-aw-select dired-filename dired-find-file)
+
+;; (defun link-hint--aw-select-org-link (_link)
+;;   (let ((org-link-frame-setup
+;;          '((file . find-file))))
+;;     (with-demoted-errors "%s"
+;;       (if (and (> (length (aw-window-list)) 1)
+;;                (not (member (org-element-property
+;;                              :type (org-element-context))
+;;                        '("http" "https"))))
+;;           (let ((window (aw-select nil))
+;;                 (buffer (current-buffer))
+;;                 (new-buffer))
+;;             (org-open-at-point)
+;;             (setq new-buffer
+;;                   (current-buffer))
+;;             (switch-to-buffer buffer)
+;;             (aw-switch-to-window window)
+;;             (switch-to-buffer new-buffer))
+;;         (link-hint-open-link-at-point)))))
+
+(defun link-hint--aw-select-org-link (_link)
+    (with-demoted-errors "%s"
+      (if (and (> (length (aw-window-list)) 1)
+               (not (member (org-element-property
+                             :type (org-element-context))
+                       '("http" "https"))))
+          (let ((window (aw-select nil))
+                (buffer (current-buffer))
+                (new-buffer))
+            (org-open-at-point)
+            (setq new-buffer
+                  (current-buffer))
+            (switch-to-buffer buffer)
+            (aw-switch-to-window window)
+            (switch-to-buffer new-buffer))
+        (link-hint-open-link-at-point))))
+
 
 (provide 'link-hint-aw-select)
