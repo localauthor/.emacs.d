@@ -151,7 +151,7 @@
   (:map help-mode-map
         ("o" . link-hint-open-link))
   :config
-  (pixel-scroll-precision-mode)
+  ;; (pixel-scroll-precision-mode)
   ;; (display-time-mode 1)
   ;; (setq display-time-24hr-format t
   ;;       display-time-day-and-date t
@@ -446,7 +446,8 @@ color."
 ;;   (split-window-below)
 ;;   (find-file-other-window "~/Dropbox/org/tasks.org"))
 
-(setq initial-buffer-choice "~/Dropbox/org/fragments.org")
+(setq initial-buffer-choice "~/Dropbox/org/dailynotes.org")
+;; (setq initial-buffer-choice "~/Dropbox/org/fragments.org")
 ;; (setq initial-buffer-choice #'gr/initial-window-setup)
 
 ;; (if (daemonp)
@@ -1362,6 +1363,43 @@ parent."
   (vertico-cycle t)
   (vertico-count 7))
 
+(use-package vertico-unobtrusive
+  :straight nil
+  :load-path "/straight/build/vertico/extensions"
+  :after vertico)
+
+(use-package vertico-flat
+  :straight nil
+  :load-path "/straight/build/vertico/extensions"
+  :after vertico)
+
+(use-package vertico-quick
+  :straight nil
+  :load-path "/straight/build/vertico/extensions"
+  :after vertico
+  :bind (:map vertico-map
+              ("M-i" . vertico-quick-insert)
+              ("M-o" . vertico-quick-exit)))
+
+(use-package vertico-buffer
+  :straight nil
+  :load-path "/straight/build/vertico/extensions")
+
+(use-package vertico-grid
+  :straight nil
+  :load-path "/straight/build/vertico/extensions")
+
+(use-package vertico-multiform
+  :disabled
+  :straight nil
+  :load-path "/straight/build/vertico/extensions"
+  :after vertico-flat
+  :config
+  (vertico-multiform-mode -1)
+  (setq vertico-multiform-commands
+        '((consult-dir flat)
+          (execute-extended-command flat))))
+
 
 ;; Add prompt indicator to `completing-read-multiple'.
 (defun crm-indicator (args)
@@ -1383,8 +1421,8 @@ parent."
   :defer 1
   :bind
   ("C-," . embark-act)
-  ("C->" . embark-act-noquit)
-  ("C-<" . embark-act-all)
+  ("C-<" . embark-act-noquit)
+  ("C->" . embark-act-all)
   ("M-," . embark-dwim)
   ("C-h b" . embark-bindings)
   (:map embark-identifier-map
@@ -1819,7 +1857,7 @@ parses its input."
   "Leading initialism dispatcher using the comma suffix.
 It matches PATTERN _INDEX and _TOTAL according to how Orderless
 parses its input."
-  (when (string-suffix-p "," pattern)
+  (when (string-suffix-p "~" pattern)
     `(orderless-initialism . ,(substring pattern 0 -1))))
 )
 
@@ -2192,7 +2230,8 @@ parses its input."
                              (?n . avy-action-open-in-new-frame)
                              (?m . avy-action-mark)
                              (?w . avy-action-copy)
-                             (?k . avy-action-kill-stay)
+                             (?k . avy-action-kill-move)
+                             (?K . avy-action-kill-stay)
                              (?  . avy-action-mark-to-char)
                              (?y . avy-action-yank)
                              (?$ . avy-action-ispell)
@@ -2532,18 +2571,29 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           (?m aw-copy-window "Move Current to Target")
           (?2 aw-split-window-vert "Split Vert Window")
           (?3 aw-split-window-horz "Split Horz Window")
-          (?x aw-delete-window "Delete Window")
+          (?0 aw-delete-window "Delete Window")
 
           ;;(?F aw-split-window-fair "Split Fair Window")
           ;;(?m aw-move-window "Move Curr. to Targ.")
           ;;(?n aw-flip-window "Flip Window")
           ;;(?J aw-switch-buffer-other-window "Select Buffer in Targ.")
-          ;;(?o delete-other-windows "Delete Other Windows")a
+          ;;(?o delete-other-windows "Delete Other Windows")
           ;;(?T aw-transpose-frame "Transpose Frame")
           ;; ?i ?r ?t are used by hyperbole.el
           ;;(?e aw-execute-command-other-window "Execute Command Other Window")
 
           (?? aw-show-dispatch-help)))
+
+  (defun aw--consult-buffer ()
+    (cond ((bound-and-true-p ivy-mode)
+           (ivy-switch-buffer))
+          ((bound-and-true-p ido-mode)
+           (ido-switch-buffer))
+          (t
+           (call-interactively 'consult-buffer))))
+
+  (advice-add #'aw--switch-buffer :override #'aw--consult-buffer)
+
   )
 
 
@@ -2557,6 +2607,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (setq popper-reference-buffers
         '("^\\*Messages\\*"
           "^\\*Warnings\\*"
+          "^\\*sdcv\\*"
           "^\\*Backtrace\\*"
           "^\\*ZK-Index\\*"
           "^\\*ZK-Desktop"
@@ -2566,6 +2617,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*PDF-Occur\\*"
           "^\\*Org Agenda"
           "^\\*compilation"
+          "^dailynotes.org"
           "^\\*elfeed-entry\\*"
           "^\\*calfw-details\\*"
           "^\\*Python\\*"
@@ -2876,7 +2928,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         ("C-h" . embark-keymap-help))
   (:map citar-map
         ("F" . devonthink-dir-find-file)
-        ("e" . citar-ebib-jump-to-entry)
         ("c" . citar-insert-citation)
         ("z" . zk-search)
         ("s" . ex/citar-search-pdf-contents))
@@ -3073,6 +3124,9 @@ following the key as group 3."
 (use-package ebib-extras
   :straight nil
   :defer t
+  :bind
+  (:map citar-map
+        ("e" . citar-ebib-jump-to-entry))
   :config
   (require 'ebib-zotero))
 
@@ -3195,7 +3249,7 @@ following the key as group 3."
   (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
   (add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
   (consult-customize
-   zk-find-file zk-find-file-by-full-text-search zk-network
+   zk-find-file zk-find-file-by-full-text-search zk-network zk-backlinks zk-links-in-note
       :preview-key (list (kbd "C-{"))))
 
 (use-package zk-index
@@ -3288,7 +3342,7 @@ following the key as group 3."
     ("N" zk-new-note)
     ("R" zk-rename-note)
     ("r" zk-rename-note)
-    ("i" zk-insert-link)
+    ("i" zk-luhmann-insert-link)
     ("e" hydra-ebib/body)
     ("B" hydra-bib/body)
     ;;("B b" gr/append-bibliography)
@@ -3302,13 +3356,14 @@ following the key as group 3."
     ("C" zk-current-notes)
     ("m" zk-make-link-buttons)
     ("o" link-hint-aw-select)
-    ("b" zk-network)
+    ("b" zk-backlinks)
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)
     ("z" zk-consult-grep)
     ("g" zk-consult-grep)
     ("s" zk-search)
     ("d" zk-index-send-to-desktop)
+    ("D" zk-index-desktop)
     ;; ("d" gr/consult-ripgrep-select-dir)
     ("p" devonthink-dir-find-file)
     ("q" nil)))
@@ -3754,7 +3809,7 @@ Use a prefix arg to get regular RET. "
 
 (defun gr/blog-deploy-localauthor ()
   (interactive)
-  (shell-command "cd ~/Dropbox/Writings/localauthor & ./deploy.sh"))
+  (shell-command "cd ~/Dropbox/Writings/localauthor && ./deploy.sh"))
 
 (defun gr/blog-test-localauthor ()
   (interactive)
@@ -3765,6 +3820,18 @@ Use a prefix arg to get regular RET. "
       nil)
     (browse-url "http://localhost:1313/")))
 
+(defun gr/web-deploy ()
+  (interactive)
+  (shell-command "cd ~/Dropbox/gr-web && ./deploy.sh"))
+
+(defun gr/web-test ()
+  (interactive)
+  (let ((browse-url-browser-function 'browse-url-default-browser))
+    (if
+        (equal 1 (shell-command "pgrep 'hugo'"))
+        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/gr-web && hugo server")
+      nil)
+    (browse-url "http://localhost:1313/")))
 
 ;;;; capitalize, upcase, downcase dwim
 

@@ -1,5 +1,18 @@
 ;;; gr-functions.el --- Miscellaneous helpful functions     -*- lexical-binding: t; -*-
 
+(defun gr/daily-notes (p)
+  "Pop up dailynotes.org."
+  (interactive "P")
+  (let ((buffer (find-file-noselect
+                 (concat org-directory "/dailynotes.org"))))
+  (cond ((equal p '(4))
+         (select-frame (make-frame-command))
+            (find-file (concat org-directory "/dailynotes.org"))
+            (set-frame-position (selected-frame) 845 20)
+            (delete-other-windows))
+        (t (pop-to-buffer buffer
+                          '(display-buffer-at-bottom))))))
+
 (defun gr/calfw-open-org-calendar ()
   (interactive)
   (select-frame (make-frame-command))
@@ -21,8 +34,7 @@
 ;;   (interactive)
 ;;   (select-frame (make-frame-command))
 ;;   (delete-other-windows)
-;;   (org-journal-new-entry nil nil)
-;;   )
+;;   (org-journal-new-entry nil nil))
 
 (defun gr/org-journal-new-entry ()
   (interactive)
@@ -43,8 +55,7 @@
   (mu4e)
   ;; (switch-to-buffer " *mu4e-main*")
   (pop-to-buffer-same-window " *mu4e-main*")
-  (delete-other-windows)
-  )
+  (delete-other-windows))
 
 (defun gr/open-fragments-file ()
   (interactive)
@@ -62,11 +73,11 @@
     (select-window (active-minibuffer-window))))
 
 ;; load ~/.emacs.d/init.el
-(defun refresh-emacs ()
-  (interactive)
-  (load "~/.emacs.d/init.el"))
+;; (defun refresh-emacs ()
+;;   (interactive)
+;;   (load "~/.emacs.d/init.el"))
 
-(global-set-key (kbd "C-c I") 'refresh-emacs)
+;; (global-set-key (kbd "C-c I") 'refresh-emacs)
 
 (defun gr/open-tasks-file ()
   (interactive)
@@ -80,15 +91,13 @@
   (split-window-below)
   (org-agenda nil "y")
   (other-window 1)
-  (enlarge-window 5)
-  )
+  (enlarge-window 5))
 
 (defun gr/open-tasks-below ()
   (interactive)
-  (split-window-below)
-  (other-window 1)
-  (find-file "~/Dropbox/org/tasks.org")
-  )
+  (let ((buffer (find-file-noselect "~/Dropbox/org/tasks.org")))
+    (pop-to-buffer buffer
+                   '(display-buffer-at-bottom))))
 
 (defun gr/open-tasks-upcoming-agenda-other-frame ()
   (interactive)
@@ -126,8 +135,7 @@
   ;;    (kill-buffer " *company-posframe-buffer*"))
   (select-frame (make-frame-command))
   (set-frame-position (selected-frame) 200 100)
-  (delete-other-windows)
-  )
+  (delete-other-windows))
 
 (defun gr/insert-line (p)
   (interactive "P")
@@ -138,7 +146,7 @@
              (end-of-line)
              (open-line 1)))))
 
-(bind-key* (kbd "C-o") 'gr/insert-line)
+(global-set-key (kbd "C-o") 'gr/insert-line)
 
 (defun gr/comment-and-copy ()
   (interactive)
