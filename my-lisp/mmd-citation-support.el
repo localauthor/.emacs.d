@@ -30,12 +30,12 @@
 (defun gr/mmd-citation-activate (limit)
   (when (re-search-forward gr/full-mmd-citation-regexp limit t)
     (if (member (match-string 4) (org-cite-basic--all-keys))
-        (add-text-properties (match-beginning 2)
-                             (match-end 2)
+        (add-text-properties (- (match-beginning 4) 1) ;; -1 to match the #
+                             (match-end 4)
                              '(font-lock-face 'font-lock-keyword-face
                                               help-echo mmd-tooltip))
-      (add-text-properties (match-beginning 2)
-                           (match-end 2)
+      (add-text-properties (- (match-beginning 4) 1)
+                           (match-end 4)
                            '(font-lock-face 'font-lock-warning-face)))))
 
 (font-lock-add-keywords 'org-mode
@@ -44,16 +44,23 @@
 (font-lock-add-keywords 'outline-mode
                         '((gr/mmd-citation-activate)))
 
-
+;; different ways to get list of all citekeys
 ;; (gr/bibtex-all-field-values gr/bibliography "=key=")
-
 ;; or: (hash-table-keys (parsebib-parse gr/bibliography))
 ;; or: (progn (ebib) (ebib--list-keys ebib--cur-db))
 ;; or: (ebib-db-list-keys ebib--cur-db)
 ;; or: (org-cite-basic--all-keys)
 
 
-(defvar mmd-tooltip-enable nil)
+(defvar mmd-tooltip-enable t)
+
+(setq tooltip-delay 0.1)
+
+;; auto show tooltip in echo area
+;; (progn
+;;   (setq help-at-pt-display-when-idle nil)
+;;   (setq help-at-pt-timer-delay 0.5)
+;;   (help-at-pt-set-timer))
 
 (defun mmd-tooltip (_win _obj pos)
     (save-excursion
