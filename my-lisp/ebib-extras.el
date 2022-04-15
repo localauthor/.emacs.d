@@ -4,7 +4,7 @@
 
 (require 'ebib)
 
-;;;###autoload
+;;;###autoload (autoload 'ebib-open "ebib-extras.el")
 (defun ebib-open (&optional key)
   "Open ebib and set up frame."
   (interactive)
