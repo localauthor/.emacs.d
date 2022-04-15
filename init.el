@@ -467,101 +467,43 @@ color."
 ;;;; display-buffer-alist
 
 (setq display-buffer-alist
-      '(
-
+      `(
         ("magit:"
          (display-buffer-at-bottom)
          (window-height . 0.5)
          (side . bottom))
 
-        ;; ("\\*Vertico"
-        ;;  (display-buffer-in-side-window
-        ;;   (window-height . 6)
-        ;;   (side . bottom))
-        ;;  (window-parameters (mode-line-format . none))
-        ;;  )
-
-        ("\\*PDF-Occur"
-         (+select-buffer-in-side-window)
-         (side . left)
-         (window-width . 0.15)
-         )
-
-        ;; ("annots\\*$"
-        ;;  (display-buffer-in-direction
-        ;;   +select-buffer-in-direction)
-        ;;  (direction . left)
-        ;;  (window-width . 0.2)
-        ;;  (inhibit-same-window . t))
-
-        ;; ("\\*Contents"
-        ;;  (display-buffer-in-side-window)
-        ;;  (side . bottom)
-        ;;  (slot . 0)
-        ;;  (window-height . 0.1)
-        ;;  (inhibit-same-window . t))
-
-        ("\\*Completions"
-         (display-buffer-at-bottom)
-         (window-height . 0.3)
-         (side . bottom))
-
         ("\\*elfeed-entry"
          (display-buffer-at-bottom)
          (window-height . 0.6)
-         (side . bottom))
-
-        ("\\*elfeed-entry"
-         (display-buffer-at-bottom)
-         (window-height . 0.6)
-         (side . bottom))
-
-        ("\\*Async"
-         (display-buffer-at-bottom)
-         (window-height . 0.3)
          (side . bottom))
 
         ("\\*Luhmann-Index"
          (display-buffer-at-bottom)
-          (window-height . 0.4)
-          (side . bottom))
+         (window-height . 0.4)
+         (side . bottom))
 
         ("\\*ZK-Index"
          (display-buffer-at-bottom)
-          (window-height . 0.4)
-          (side . bottom))
-
-        ("\\*Backups:"
-         (display-buffer-at-bottom)
-         (window-height . 0.3)
+         (window-height . 0.4)
          (side . bottom))
 
-        ("\\*helpful"
+        (,(concat
+           "dailynotes.org\\|"
+           "\\*\\("
+           (string-join
+            '("Completions" "Async" "Backups:" "helpful"
+              "CAPTURE" "Pp Eval Output" "eshell" "Backtrace"
+              "Messages" "Metahelp" "Python" "Org Agenda"
+              "Warnings" "Go Translate" "Google Translate"
+              "Org Select" "Compile-Log" "[Hh]elp" "annotations"
+              "calfw-details"  "Embark Collect")
+            "\\|") "\\)")
          (display-buffer-at-bottom)
          (window-height . 0.38)
          (side . bottom))
-
-        ("\\*CAPTURE"
-         (display-buffer-at-bottom)
-         (window-height . 0.3)
-         (side . bottom))
-
-        ("\\*Pp Eval Output"
-         (display-buffer-at-bottom)
-         (window-height . 0.38)
-         (side . bottom))
-
-        ("\\*\\(eshell\\|Backtrace\\|Messages\\|Metahelp\\|Python\\|Org Agenda\\|Warnings\\|Go Translate\\|Google Translate\\|Org Select\\|Compile-Log\\|[Hh]elp\\|annotations\\|calfw-details\\)\\*"
-         (display-buffer-at-bottom)
-         (window-height . 0.38)
-         (side . bottom))
-
-        ("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-         (display-buffer-at-bottom)
-         (window-height . 0.38))
         )
       )
-
 
 (defun my-switch-to-buffer-list (buffer alist)
   (select-window  (display-buffer-use-some-window buffer alist)))
