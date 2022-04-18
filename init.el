@@ -886,44 +886,6 @@ parent."
   (vertico-cycle t)
   (vertico-count 7))
 
-(use-package vertico-unobtrusive
-  :straight nil
-  :load-path "/straight/build/vertico/extensions"
-  :after vertico)
-
-(use-package vertico-flat
-  :straight nil
-  :load-path "/straight/build/vertico/extensions"
-  :after vertico)
-
-(use-package vertico-quick
-  :straight nil
-  :load-path "/straight/build/vertico/extensions"
-  :after vertico
-  :bind (:map vertico-map
-              ("M-i" . vertico-quick-insert)
-              ("M-o" . vertico-quick-exit)))
-
-(use-package vertico-buffer
-  :straight nil
-  :load-path "/straight/build/vertico/extensions")
-
-(use-package vertico-grid
-  :straight nil
-  :load-path "/straight/build/vertico/extensions")
-
-(use-package vertico-multiform
-  :disabled
-  :straight nil
-  :load-path "/straight/build/vertico/extensions"
-  :after vertico-flat
-  :config
-  (vertico-multiform-mode -1)
-  (setq vertico-multiform-commands
-        '((consult-dir flat)
-          (execute-extended-command flat))))
-
-
 ;; Add prompt indicator to `completing-read-multiple'.
 (defun crm-indicator (args)
   (cons (concat "[CRM] " (car args)) (cdr args)))
