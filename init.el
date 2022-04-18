@@ -498,7 +498,7 @@ color."
               "Messages" "Metahelp" "Python" "Org Agenda"
               "Warnings" "Go Translate" "Google Translate"
               "Org Select" "Compile-Log" "[Hh]elp" "annotations"
-              "calfw-details"  "Embark Collect")
+              "calfw-details" "Embark Collect")
             "\\|") "\\)")
          (display-buffer-at-bottom)
          (window-height . 0.38)
@@ -1376,7 +1376,6 @@ parses its input."
   (set-fringe-mode '(8 . 0))
   )
 
-
 ;;;; esup
 
 (use-package esup
@@ -1522,8 +1521,7 @@ parses its input."
 (use-package all-the-icons-dired
   :defer t
   :hook (dired-mode-hook . all-the-icons-dired-mode)
-  :diminish
-  )
+  :diminish)
 
 
 ;;;; avy
@@ -1923,7 +1921,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
          ("C-M-\\" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
-        '("^\\*Messages\\*"
+        '("^dailynotes.org"
+          "^magit\\:"
+          "Output"
+          "^\\*Messages\\*"
           "^\\*Warnings\\*"
           "^\\*sdcv\\*"
           "^\\*Backtrace\\*"
@@ -1935,7 +1936,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*PDF-Occur\\*"
           "^\\*Org Agenda"
           "^\\*compilation"
-          "^dailynotes.org"
           "^\\*elfeed-entry\\*"
           "^\\*calfw-details\\*"
           "^\\*Python\\*"
@@ -1947,8 +1947,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*annotations\\*"
           "^\\*Ilist\\*"
           "^\\*Backups:"
-          "^magit\\:"
-          "Output"
           undo-tree-mode
           helpful-mode
           help-mode
@@ -2009,6 +2007,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; paredit
 
 (use-package paredit
+  :defer t
   ;; :hook
   ;; (emacs-lisp-mode-hook . enable-paredit-mode)
   ;; (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
@@ -2016,7 +2015,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;; (lisp-mode-hook . enable-paredit-mode)
   ;; (lisp-interaction-mode-hook . enable-paredit-mode)
   )
-
 
 ;;;; golden-ratio-scroll-screen
 
@@ -2065,8 +2063,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;; :hook
   ;; (emacs-lisp-mode-hook . whitespace-mode)
   :custom
-  (whitespace-style '(face trailing lines))
-  )
+  (whitespace-style '(face trailing lines)))
 
 ;;;; flycheck and package-lint
 
@@ -2078,7 +2075,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package package-lint
   :defer t)
-
 
 ;;;; visual-fill-column
 
@@ -2218,7 +2214,6 @@ following the key as group 3."
   :straight nil
   :defer 1
   :init
-  ;; added to make org-cite work
   (setq org-cite-csl-styles-dir "~/.csl"
         org-cite-csl-locales-dir "~/.csl/locales"
         org-odt-preferred-output-format nil ;; "docx"
@@ -2227,8 +2222,7 @@ following the key as group 3."
   (setq org-cite-insert-processor 'citar
         org-cite-follow-processor 'citar
         org-cite-activate-processor 'citar
-        org-cite-export-processors '((t csl "~/.csl/chicago-fullnote-bibliography-short-title-subsequent.csl")))
-  )
+        org-cite-export-processors '((t csl "~/.csl/chicago-fullnote-bibliography-short-title-subsequent.csl"))))
 
 (use-package oc-csl
   :straight nil
@@ -2745,7 +2739,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (pdf-annot-activate-created-annotations t "automatically annotate highlights")
 
   :config
-  (pdf-tools-install 'no-query)
+  (pdf-tools-install)
   (require 'tablist)
   (setq-default pdf-view-display-size 'fit-width)
   (setq pdf-view-use-scaling t)
