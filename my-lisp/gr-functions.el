@@ -1,5 +1,23 @@
 ;;; gr-functions.el --- Miscellaneous helpful functions     -*- lexical-binding: t; -*-
 
+(defhydra gr/symbol-menu (:hint nil :color blue)
+  "
+Symbols and Diacritics
+    _a_: ą   _e_: ė   _u_: ū   _U_: ų  _E_: €
+    _s_: š   _c_: č   _z_: ž   _i_: į
+    "
+  ("q" nil)
+  ("a" (insert "ą"))
+  ("e" (insert "ė"))
+  ("u" (insert "ū"))
+  ("U" (insert "ų"))
+  ("s" (insert "š"))
+  ("c" (insert "č"))
+  ("z" (insert "ž"))
+  ("i" (insert "į"))
+  ("E" (insert "€"))
+)
+
 (defun gr/daily-notes (p)
   "Pop up dailynotes.org."
   (interactive "P")
@@ -161,5 +179,26 @@
     (newline 2))))
 
 (bind-key* (kbd "C-M-;") 'gr/comment-and-copy)
+
+(defun gr/copy-file-path ()
+  "Copy the current buffer file path to the clipboard."
+  (interactive)
+  (let ((filepath (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (when filepath
+      (kill-new filepath)
+      (message "Copied buffer file path '%s' to the clipboard." filepath))))
+
+
+(defun gr/copy-file-name ()
+  "Copy the current buffer file name to the clipboard."
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-name))))
+    (when filename
+      (kill-new filename)
+      (message "Copied buffer file name '%s' to the clipboard." filename))))
 
 (provide 'gr-functions)
