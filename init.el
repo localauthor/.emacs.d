@@ -1118,17 +1118,6 @@ there, otherwise you are prompted for a message buffer."
         (let ((embark-quit-after-action))
           (embark-dwim)))))
 
-  ;; persp-source consult-buffer
-
-  (defvar persp-source
-    `(:name "Persp"
-            :narrow ?p
-            :hidden t
-            :category buffer
-            :state ,#'consult--buffer-state
-            :items ,(lambda () (mapcar #'buffer-name (persp-buffer-list-restricted)))))
-;;  (add-to-list 'consult-buffer-sources 'persp-source 'append)
-
   (defun my/consult-outline-narrow-heading (heading)
     "Narrow to and expand HEADING."
     (embark-consult-goto-location heading)
