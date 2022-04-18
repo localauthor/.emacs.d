@@ -1334,31 +1334,6 @@ parses its input."
 (add-hook 'company-after-completion-hook (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
 (kill-buffer " *company-posframe-buffer*"))))
 
-;;this function is supposed to sort all completions with uppercase to the end; doesn't work so far
-(defun my-sort-uppercase (candidates)
-  (let (case-fold-search
-        (re "\\`[[:upper:]]*\\'"))
-    (sort candidates
-          (lambda (s1 s2)
-            (and (string-match-p re s2)
-                 (not (string-match-p re s1)))))))
-
-;; (push 'my-sort-uppercase company-transformers)
-
-;; Add yasnippet support for all company backends
-;; https://github.com/syl20bnr/spacemacs/pull/179
-;; (defvar company-mode/enable-yas t
-;;   "Enable yasnippet for all backends.")
-
-;; (defun company-mode/backend-with-yas (backend)
-;;   (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
-;;       backend
-;;     (append (if (consp backend) backend (list backend))
-;;             '(:with company-yasnippet))))
-
-;; (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))
-
-
 ;;;; prescient / company-prescient
 
 (use-package prescient
