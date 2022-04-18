@@ -1974,15 +1974,6 @@ parses its input."
   )
 
 
-;;;; ace-link
-
-(use-package ace-link
-  :disabled
-  :defer t
-  :init
-  (ace-link-setup-default)
-  )
-
 ;;;; esup
 
 (use-package esup
@@ -2018,14 +2009,6 @@ parses its input."
 
 ;; remaps C-x b to
 ;;(defalias 'list-buffers 'ibuffer)
-
-(use-package ibuffer-sidebar
-  :disabled
-  :bind ("C-x C-u" . ibuffer-sidebar-toggle-sidebar)
-  :hook
-  (ibuffer-sidebar-mode-hook . gr/truncate-lines)
-  (ibuffer-sidebar-mode-hook . gr/ibuffer-set-filter-group)
-  :commands (ibuffer-sidebar-toggle-sidebar))
 
 (defun gr/ibuffer-set-filter-group ()
   (ibuffer-switch-to-saved-filter-groups "default")
@@ -2586,10 +2569,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         bookmark-set-fringe-mark nil)
   :custom-face
   (bookmark-face ((t nil))))
-
-(use-package bookmark+
-  :disabled
-  :straight (bookmark-plus :host github :repo "emacsmirror/bookmark-plus"))
 
 
 ;;;; transient
