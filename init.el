@@ -1344,8 +1344,7 @@ parses its input."
 
 (use-package company-prescient
   :config
-  ;;(company-prescient-mode 1)
-  )
+  (company-prescient-mode 1))
 
 ;;; Packages
 ;;;; magit
