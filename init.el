@@ -1283,29 +1283,6 @@ direct children of this heading."
   )
 
 
-;;;; org-superstar
-
-(use-package org-superstar
-  :disabled
-  :defer t
-  :after org
-  :init
-  :hook (org-mode-hook . org-superstar-mode)
-  :config
-  (setq org-superstar-headline-bullets-list  '("◉" "○" "▪" "◦" "•" "▫" "•" "▫"))
-  (setq org-superstar-item-bullet-alist
-        '((?+ . ?◦)
-          (?* . ?➤)
-          (?- . ?–)))
-  )
-
-
-;;;; org-transclusion
-
-(use-package org-transclusion
-  :straight (org-transclusion :host github :repo "nobiot/org-transclusion")
-  :disabled)
-
 ;;;; org-contrib
 
 (use-package org-contrib
@@ -2951,6 +2928,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (citar-citeproc-csl-style "chicago-fullnote-bibliography-short-title-subsequent.csl")
   (citar-display-transform-functions '((t . citar-clean-string)))
   (citar-open-note-function 'gr/citar-zk-open-note)
+  (citar-select-multiple nil)
   ;; (citar-templates
   ;;  '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
   ;;    (suffix . "          ${=key= id:15}    ${=type=:12}    ${crossref tags keywords keywords:*}")
@@ -3991,14 +3969,3 @@ Navigate to files in dired, mark files, and execute command."
 ;;(setq gc-cons-threshold (* 2 1000 1000))
 
 (setq debug-on-error nil)
-
-;; (defun org-babel-tangle-config ()
-;;   (interactive)
-;;   (when (string-equal (buffer-file-name)
-;;                       (expand-file-name "~/Dropbox/org/myinit.org"))
-;;     (let ((org-config-babel-evaluate nil))
-;;       (org-babel-tangle nil "~/Dropbox/org/myinit.el"))))
-
-;; (add-hook 'org-mode-hook
-;;        (lambda ()
-;;          (add-hook 'after-save-hook #'org-babel-tangle-config)))
