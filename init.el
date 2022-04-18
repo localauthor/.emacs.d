@@ -1848,51 +1848,6 @@ parses its input."
   (setq savehist-additional-variables '(citar-history search-ring regexp-search-ring))
   )
 
-
-;;;; corfu / cape
-
-(use-package corfu
-  ;; annoyingly finds zk-link after completion
-  :disabled
-  :init (corfu-global-mode 1)
-  :custom
-  (corfu-cycle t)
-  (corfu-auto t)
-  (corfu-auto-delay .7)
-  (corfu-auto-prefix 1)
-  (corfu-quit-no-match .5)
-  (corfu-quit-at-boundary nil)
-  (corfu-preview-current nil)
-  (corfu-commit-predicate nil)
-  :config
-  (set-face-attribute 'corfu-default nil
-                      :background "cornsilk"
-                      :font "Menlo")
-  (set-face-attribute 'corfu-current nil
-                      :background "light blue"))
-
-(setq read-file-name-completion-ignore-case t
-      read-buffer-completion-ignore-case t
-      completion-ignore-case t)
-
-;; (setq tab-always-indent 'complete)
-
-(use-package cape
-  :disabled
-  :init
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  :bind (("C-c p p" . completion-at-point) ;; capf
-         ("C-c p t" . complete-tag)        ;; etags
-         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
-         ("C-c p f" . cape-file)
-         ("C-c p k" . cape-keyword)
-         ("C-c p s" . cape-symbol)
-         ("C-c p a" . cape-abbrev)
-         ("C-c p i" . cape-ispell)))
-
-
 ;;;; company
 
 (use-package company
