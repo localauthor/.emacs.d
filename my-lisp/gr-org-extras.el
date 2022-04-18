@@ -417,3 +417,40 @@ direct children of this heading."
 ;;(require 'org-habit)
 ;;(add-to-list 'org-modules 'ol-habit)
 
+
+
+;;;; Indirect Buffer -> Split Outline
+
+;;Functions for Using a Split Outline in Org-Mode
+
+;;Problems:
+;;- doesn't truncate long lines, so tagged lines wrap
+;;- isn't as good as org-sidebar
+
+(defun split-and-indirect-orgtree ()
+  "Split window to the right and open an org tree section in it."
+  (interactive)
+  (delete-other-windows)
+  (split-window-right)
+  (org-tree-to-indirect-buffer)
+  (windmove-right))
+
+(defun kill-and-unsplit-orgtree ()
+  "Kill the cloned buffer and delete the window."
+  (interactive)
+  (kill-this-buffer)
+  (delete-window))
+
+;;Not for split outline view specifically, but useful generally
+(defun close-and-kill-next-pane ()
+  "When multiple windows, close other pane and kill its buffer."
+  (interactive)
+  (other-window 1)
+  (kill-this-buffer)
+  (if (not (one-window-p))
+      (delete-window)))
+
+;; (define-key org-mode-map (kbd "C-c o") #'split-and-indirect-orgtree)
+;; (define-key org-mode-map (kbd "C-c b")  #'kill-and-unsplit-orgtree)
+
+(provide 'gr-org-extras)

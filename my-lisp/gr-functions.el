@@ -201,4 +201,195 @@ Symbols and Diacritics
       (kill-new filename)
       (message "Copied buffer file name '%s' to the clipboard." filename))))
 
+
+;;;; capitalize, upcase, downcase dwim
+
+(defun ct/word-boundary-at-point-or-region (&optional callback)
+  "Return the boundary (beginning and end) of the word at point, or region, if any.
+Forwards the points to CALLBACK as (CALLBACK p1 p2), if present.
+
+URL: https://christiantietze.de/posts/2021/03/change-case-of-word-at-point/"
+  (let ((deactivate-mark nil)
+        $p1 $p2)
+    (if (use-region-p)
+        (setq $p1 (region-beginning)
+              $p2 (region-end))
+      (save-excursion
+        (skip-chars-backward "[:alpha:]")
+        (setq $p1 (point))
+        (skip-chars-forward "[:alpha:]")
+        (setq $p2 (point))))
+    (when callback
+      (funcall callback $p1 $p2))
+    (list $p1 $p2)))
+
+;; (defun ct/capitalize-word-at-point ()
+;;   (interactive)
+;;   (ct/word-boundary-at-point-or-region #'upcase-initials-region))
+
+(defun ct/downcase-word-at-point ()
+  (interactive)
+  (ct/word-boundary-at-point-or-region #'downcase-region))
+(defun ct/upcase-word-at-point ()
+  (interactive)
+  (ct/word-boundary-at-point-or-region #'upcase-region))
+
+(defun ct/capitalize-region (p1 p2)
+  (downcase-region p1 p2)
+  (upcase-initials-region p1 p2))
+(defun ct/capitalize-word-at-point ()
+  (interactive)
+  (ct/word-boundary-at-point-or-region #'ct/capitalize-region))
+
+;; Set global shortcuts
+(global-set-key (kbd "M-c") #'ct/capitalize-word-at-point)
+(global-set-key (kbd "M-u") #'ct/upcase-word-at-point)
+(global-set-key (kbd "M-l") #'ct/downcase-word-at-point)
+
+
+
+;;;; convert docx to org
+
+(defun gr/flush-properties-drawers ()
+  (interactive)
+  (goto-line 2)
+  (flush-lines ":PROPERTIES:")
+  (flush-lines ":CUSTOM_ID:")
+  (flush-lines ":END:")
+  )
+
+(defun gr/convert-pandoc-docx-org ()
+  "Use pandoc via shell command to convert a docx file to an org file.
+Navigate to files in dired, mark files, and execute command."
+  (interactive)
+  (dired-do-async-shell-command
+   "pandoc -f docx -t org --wrap=none" current-prefix-arg
+   (dired-get-marked-files t current-prefix-arg))
+  (switch-to-buffer-other-window "*Async Shell Command*")
+  (run-with-idle-timer 1 nil
+                       'gr/flush-properties-drawers)
+  (goto-line 2)
+  (run-with-idle-timer 1 nil
+                       'gr/flush-properties-drawers)
+  )
+
+(defun gr/clear-empty-org-headers ()
+  (interactive)
+  (goto-line 2)
+  (replace-string "
+  ,* " " ")
+  (goto-line 2)
+  (replace-string "
+  ,** " " ")
+  (goto-line 2)
+  (replace-string "
+  ,*** " " ")
+  )
+
+
+;;;; "Better Return" edited
+
+;; a better return; inserts list item with RET instead of M-RET
+
+(defun scimax/org-return (&optional ignore)
+  "Add new list item, heading or table row with RET.
+A double return on an empty element deletes it.
+Use a prefix arg to get regular RET. "
+  (interactive "P")
+  (if ignore
+      (org-return)
+    (cond
+
+     ((eq 'line-break (car (org-element-context)))
+      (org-return t))
+
+     ;; Open links like usual, unless point is at the end of a line.
+     ;; and if at beginning of line, just press enter.
+     ((or (and (eq 'link (car (org-element-context))) (not (eolp)))
+          (bolp))
+      (org-return))
+
+     ;; checkboxes - add new or delete empty
+     ((org-at-item-checkbox-p)
+      (cond
+       ;; at the end of a line.
+       ((and (eolp)
+             (not (eq 'item (car (org-element-context)))))
+        (org-insert-todo-heading nil))
+       ;; no content, delete
+       ((and (eolp) (eq 'item (car (org-element-context))))
+        (setf (buffer-substring (line-beginning-position) (point)) ""))
+       ((eq 'paragraph (car (org-element-context)))
+        (goto-char (org-element-property :end (org-element-context)))
+        (org-insert-todo-heading nil))
+       (t
+        (org-return))))
+
+     ;; lists end with two blank lines, so we need to make sure we are also not
+     ;; at the beginning of a line to avoid a loop where a new entry gets
+     ;; created with only one blank line.
+     ((org-in-item-p)
+      (cond
+       ;; empty definition list
+       ((and (looking-at " ::")
+             (looking-back "- " 3))
+        (beginning-of-line)
+        (delete-region (line-beginning-position) (line-end-position)))
+       ;; empty item
+       ((and (looking-at "$")
+             (or
+              (looking-back "- " 3)
+              (looking-back "+ " 3)
+              (looking-back " \\* " 3)))
+        (beginning-of-line)
+        (delete-region (line-beginning-position) (line-end-position)))
+       ;; numbered list
+       ((and (looking-at "$")
+             (looking-back "[0-9]+. " (line-beginning-position)))
+        (beginning-of-line)
+        (delete-region (line-beginning-position) (line-end-position)))
+       ;; insert new item
+       (t
+        (if (not (looking-at "$"))
+            (org-return)
+          (end-of-line)
+          (org-insert-item)))))
+
+     ;; org-heading
+     ((org-at-heading-p)
+      (if (not (string= "" (org-element-property :title (org-element-context))))
+          (if (not (looking-at "$"))
+              (org-return)
+            (progn
+              ;; Go to end of subtree suggested by Pablo GG on Disqus post.
+              ;;(org-end-of-subtree)
+              (org-meta-return)
+              ;;(org-metaright)
+              ;;(org-insert-heading-respect-content)
+              (outline-show-entry)
+              ))
+        ;; The heading was empty, so we delete it
+        (beginning-of-line)
+        (setf (buffer-substring
+               (line-beginning-position) (line-end-position)) "")))
+
+     ;; tables
+     ((org-at-table-p)
+      (if (-any?
+           (lambda (x) (not (string= "" x)))
+           (nth
+            (- (org-table-current-dline) 1)
+            (remove 'hline (org-table-to-lisp))))
+          (org-return)
+        ;; empty row
+        (beginning-of-line)
+        (setf (buffer-substring
+               (line-beginning-position) (line-end-position)) "")
+        (org-return)))
+
+     ;; fall-through case
+     (t
+      (org-return)))))
+
+
 (provide 'gr-functions)
