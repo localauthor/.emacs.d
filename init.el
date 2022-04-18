@@ -3432,20 +3432,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 
 
-;;;; Org-Sidebar
-
-(use-package org-sidebar
-  :disabled
-  :defer t
-  :bind
-  ("C-c o" . org-sidebar-tree-toggle)
-  ;;("C-c k" . org-sidebar-toggle)
-  (:map org-sidebar-tree-map
-        ("q" . bury-buffer))
-  :custom
-  (setq org-sidebar-side 'right)
-  )
-
 ;;;; Indirect Buffer -> Split Outline
 
 ;;Functions for Using a Split Outline in Org-Mode
