@@ -4,6 +4,10 @@
 ;; collection.  The default is 800 kilobytes.  Measured in bytes.
 ;;(setq gc-cons-threshold (* 100 1000 1000))
 
+(setq user-emacs-directory "~/.dotfiles/.emacs.d/")
+
+(setq use-package-always-defer nil)
+
 (load-library (concat user-emacs-directory "lisp/gcmh.el"))
 (gcmh-mode 1)
 
@@ -137,12 +141,15 @@
   :init
   (setq exec-path-from-shell-arguments '("-l"))
   ;; (setq exec-path-from-shell-warn-duration-millis 999)
-  :config (exec-path-from-shell-initialize))
+  :config
+  (exec-path-from-shell-initialize))
 
 (use-package emacs
   :straight nil
   :defer 1
   :bind
+  ("C-x [" . beginning-of-buffer)
+  ("C-x ]" . end-of-buffer)
   ("C-c e" . eval-buffer)
   ("C-x e" . eval-last-sexp)
   ("C-x E" .  kmacro-end-and-call-macro)
@@ -180,7 +187,7 @@
 
   (setq use-dialog-box nil)
 
-  (setq recenter-positions '(top middle bottom))
+  (setq recenter-positions '(middle top bottom))
 
   (add-hook 'after-make-frame-functions
             #'(lambda (frame)
@@ -363,7 +370,7 @@ color."
  ("s-q" . save-buffers-kill-emacs)
  ("s-f" . consult-line)
  ("s-w" . delete-frame)
- ("s-n" . gr/new-window))
+ ("s-n" . gr/new-frame))
 
 (setq ns-alternate-modifier 'meta)
 (setq ns-command-modifier 'super)
@@ -585,6 +592,8 @@ color."
 
            ("b" . consult-bookmark)
 
+           ("g" . eww-duckduckgo)
+
            ("j" . gr/org-journal-new-entry)
 
            ("e" . gr/elfeed-open-new-window)
@@ -741,8 +750,8 @@ color."
   (unbind-key "C-'" org-mode-map)
 
   :custom-face
-  (org-drawer ((t (:foreground "gray92" :height .7))))
-  (org-special-keyword ((t (:foreground "gray50" :height .7))))
+  (org-drawer ((t (:foreground "gray60" :height .8))))
+  (org-special-keyword ((t (:foreground "gray50" :height .8))))
   :custom
   (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
   (default-major-mode 'org-mode)
@@ -1866,11 +1875,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
                         :files (:defaults "ace-window-posframe.el"))
   :defer 2
-  ;; :init
-  ;; (progn
-  ;;   (global-set-key [remap other-window] 'ace-window))
   :bind
-  ;; ([remap other-window] . ace-window)
   ("C-x o" . ace-window)
   :custom-face
   (aw-leading-char-face ((t (:family "Menlo" :foreground "red" :height 4.0))))
@@ -1964,6 +1969,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; bookmark
 
 (use-package bookmark
+  :defer t
   :init
   (setq bookmark-bmenu-toggle-filenames nil
         bookmark-save-flag 1
@@ -2028,7 +2034,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; explain-pause-mode
 
 (use-package explain-pause-mode
-  :disabled
+;;  :disabled
   :defer t
   :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
   :diminish)
@@ -2085,6 +2091,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (org-mode-hook . visual-fill-column-mode)
   :custom
   (visual-fill-column-width 90))
+
+
 
 ;;; Citation / Bibliography
 ;;;; citar
@@ -2240,7 +2248,6 @@ following the key as group 3."
 ;;;; ebib
 
 (use-package ebib
-  :commands (ebib-open)
   :bind
   (:map ebib-index-mode-map
         ("?" . (lambda () (interactive) (embark-bindings-in-keymap ebib-index-mode-map)))
@@ -2272,18 +2279,20 @@ following the key as group 3."
   :custom
   (ebib-preload-bib-files gr/bibliography)
   (ebib-autogenerate-keys t)
+  (ebib-create-backups nil)
   (ebib-uniquify-keys nil)
   ;; (ebib-index-default-sort '("timestamp" . descend))
   (ebib-use-timestamp t)
   (ebib-index-columns '(("Author/Editor" 40 t)
                         ("Entry Key" 15 t)
                         ;;("Year" 6 t)
-                        ("Title" 50 t))))
+                        ("Title" 50 t)))
+  :config
 
   (defhydra hydra-ebib (:hint nil :color blue)
     "
   _j_: Jump to Entry   _k_: Add Keyword    _!_: Auto-Citekey     _s_: DOI Lookup
-  _O_: Apply Filter                        _E_: Edit Citekey     _S_: ISBN Lookup
+  _O_: Apply Filter    _e_: ebib-open      _E_: Edit Citekey     _S_: ISBN Lookup
   _C_: Cancel Filter   _D_: Delete Field   _X_: Delete Entry     _I_: Auto Import
   "
     ("k" ebib-add-keywords-to-entry)
@@ -2301,10 +2310,12 @@ following the key as group 3."
     ("S" ebib-isbn-search)
     ("s" crossref-lookup)
     ("q" nil))
+  )
 
 (use-package ebib-extras
   :straight nil
-  :defer t
+  :after ebib
+  :commands (ebib-open)
   :bind
   (:map citar-map
         ("e" . citar-ebib-jump-to-entry))
@@ -2416,7 +2427,7 @@ following the key as group 3."
   (zk-link-and-title 'ask)
   (zk-new-note-link-insert 'ask)
   (zk-link-and-title-format "%t [[%i]]")
-  (zk-tag-grep-function #'zk-consult-grep-tag-search)
+  (zk-tag-grep-function #'zk-grep) ;; #'zk-consult-grep-tag-search)
   (zk-grep-function #'zk-grep) ;; #'zk-consult-grep
   (zk-current-notes-function nil)
   (zk-select-file-function 'zk-consult-select-file)
@@ -2554,7 +2565,7 @@ following the key as group 3."
     ("C" zk-current-notes)
     ("m" zk-make-link-buttons)
     ("o" link-hint-aw-select)
-    ("b" zk-backlinks)
+    ("b" zk-network)
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)
     ("z" zk-consult-grep)
@@ -2740,6 +2751,13 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 (use-package pdf-tools
   :straight (pdf-tools :host github :repo "vedang/pdf-tools" :fork "localauthor/pdf-tools")
+  ;; :straight (pdf-tools :host github :repo "dalanicolai/pdf-tools"
+  ;;                      :files (:defaults "lisp/*.el"
+  ;;                                        "README"
+  ;;                                        "vimura-server/*.py"
+  ;;                                        ("build" "Makefile")
+  ;;                                        ("build" "server")
+  ;;       		                 (:exclude "lisp/tablist.el" "lisp/tablist-filter.el")))
   :defer 3
   :bind
   (:map pdf-view-mode-map
@@ -2751,7 +2769,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :hook
   (pdf-annot-list-mode-hook . (lambda () (pdf-annot-list-follow-minor-mode)))
   (pdf-occur-buffer-mode-hook . next-error-follow-minor-mode)
-  (pdf-view-mode-hook . pdf-keynav-minor-mode)
+  ;;(pdf-view-mode-hook . pdf-keynav-minor-mode)
   :custom
   (pdf-annot-activate-created-annotations t "automatically annotate highlights")
 
