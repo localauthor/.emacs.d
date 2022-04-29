@@ -19,24 +19,29 @@
 ;; (require 'embark)
 ;; (require 'link-hint)
 
+
 ;;; variables
 
 (defvar gr/mmd-citation-regexp "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]")
 (defvar gr/full-mmd-citation-regexp "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#\\(?4:.[[:alpha:]-']+[[:digit:]]\\{4\\}.?\\)]\\)")
 
-
 ;;; add highlighting and tooltips to mmd-citekeys
 
+(require 'oc)
+(require 'oc-basic)
+
+;;;###autoload
 (defun gr/mmd-citation-activate (limit)
-  (when (re-search-forward gr/full-mmd-citation-regexp limit t)
-    (if (member (match-string 4) (org-cite-basic--all-keys))
-        (add-text-properties (- (match-beginning 4) 1) ;; -1 to match the #
+  (let ((all-keys (org-cite-basic--all-keys)))
+    (when (re-search-forward gr/full-mmd-citation-regexp limit t)
+      (if (member (match-string 4) all-keys)
+          (add-text-properties (- (match-beginning 4) 1) ;; -1 to match the #
+                               (match-end 4)
+                               '(font-lock-face font-lock-keyword-face
+                                                help-echo mmd-tooltip))
+        (add-text-properties (- (match-beginning 4) 1)
                              (match-end 4)
-                             '(font-lock-face 'font-lock-keyword-face
-                                              help-echo mmd-tooltip))
-      (add-text-properties (- (match-beginning 4) 1)
-                           (match-end 4)
-                           '(font-lock-face 'font-lock-warning-face)))))
+                             '(font-lock-face font-lock-warning-face))))))
 
 (font-lock-add-keywords 'org-mode
                         '((gr/mmd-citation-activate)))
@@ -46,11 +51,10 @@
 
 ;; different ways to get list of all citekeys
 ;; (gr/bibtex-all-field-values gr/bibliography "=key=")
-;; or: (hash-table-keys (parsebib-parse gr/bibliography))
+;; or: (hash-table-keys (parsebib-parse gr/bibliography)) ;; slow
 ;; or: (progn (ebib) (ebib--list-keys ebib--cur-db))
 ;; or: (ebib-db-list-keys ebib--cur-db)
-;; or: (org-cite-basic--all-keys)
-
+;; or: (org-cite-basic--all-keys) ;; (require 'oc)
 
 (defvar mmd-tooltip-enable t)
 
@@ -62,13 +66,14 @@
 ;;   (setq help-at-pt-timer-delay 0.5)
 ;;   (help-at-pt-set-timer))
 
+;;;###autoload
 (defun mmd-tooltip (_win _obj pos)
     (save-excursion
       (goto-char pos)
       (let* ((citar-templates
               '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
                 (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords keywords:*}")
-                (preview . "${author editor} (${year issued date})\n${title}")
+                (preview . "${author editor} (${year issued date})\n${title}\n${journal publisher}")
                 (note . "Notes on ${author editor}, ${title}")))
              (mmd-citation (progn
                              (when (thing-at-point-looking-at "[#|\\[]")
@@ -79,7 +84,7 @@
             (citar-format-reference entry)
           (message "No record")))))
 
-
+;;;###autoload
 (defun mmd-tooltip-toggle ()
   (interactive)
   (if (bound-and-true-p mmd-tooltip-enable)
@@ -129,32 +134,33 @@
 
 ;;; embark integration
 
-(defun embark-target-mmd-citation-at-point ()
-  "Target a multimarkdown style citation at point."
-  ;; Includes a hack, a result of limitation of (thing-at-point 'symbol), to
-  ;; allow accurate target identification when point is on "[" or "#" at
-  ;; beginning of mmd citation maybe better to do thing-at-point thing
-  ;; manually, like citar does for markdown?
-  (when (thing-at-point-looking-at gr/mmd-citation-regexp)
-    (when (thing-at-point-looking-at "[#|\\[]")
-      (forward-char 2))
-    (let ((mmd-citation (thing-at-point 'symbol t)))
-      `(mmd-citation ,mmd-citation . ,(bounds-of-thing-at-point 'symbol)))))
+(with-eval-after-load 'embark
+  (defun embark-target-mmd-citation-at-point ()
+    "Target a multimarkdown style citation at point."
+    ;; Includes a hack, a result of limitation of (thing-at-point 'symbol), to
+    ;; allow accurate target identification when point is on "[" or "#" at
+    ;; beginning of mmd citation maybe better to do thing-at-point thing
+    ;; manually, like citar does for markdown?
+    (when (thing-at-point-looking-at gr/mmd-citation-regexp)
+      (when (thing-at-point-looking-at "[#|\\[]")
+        (forward-char 2))
+      (let ((mmd-citation (thing-at-point 'symbol t)))
+        `(mmd-citation ,mmd-citation . ,(bounds-of-thing-at-point 'symbol)))))
 
-(embark-define-keymap embark-mmd-citation-map
-  "Keymap for Embark comment actions."
-  ("RET" citar-open)
-  ("z" zk-search)
-  ("f" devonthink-dir-find-file)
-  ("r" citar-copy-reference)
-  ("e" citar-ebib-jump-to-entry)
-  ("F" citar-open-library-file)
-  ("o" citar-open)
-  ("n" citar-open-notes))
+  (embark-define-keymap embark-mmd-citation-map
+    "Keymap for Embark comment actions."
+    ("RET" citar-open)
+    ("z" zk-search)
+    ("f" devonthink-dir-find-file)
+    ("r" citar-copy-reference)
+    ("e" citar-ebib-jump-to-entry)
+    ("F" citar-open-library-file)
+    ("o" citar-open)
+    ("n" citar-open-notes))
 
-(add-to-list 'embark-keymap-alist '(mmd-citation . embark-mmd-citation-map))
-(add-to-list 'embark-target-finders 'embark-target-mmd-citation-at-point)
-
+  (add-to-list 'embark-keymap-alist '(mmd-citation . embark-mmd-citation-map))
+  (add-to-list 'embark-target-finders 'embark-target-mmd-citation-at-point)
+  )
 
 ;;; append-bibliography
 
