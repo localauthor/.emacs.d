@@ -33,6 +33,33 @@
     (aw-switch-to-window (aw-select nil))
     (find-file link)))
 
+;;; Shr-url
+
+(link-hint-define-type 'file-link
+  :aw-select #'link-hint--aw-select-file-link)
+
+(defun link-hint--aw-select-file-link (link)
+  (with-demoted-errors "%s"
+    (aw-switch-to-window (aw-select nil))
+    (find-file link)))
+
+;; (define-link-hint-aw-select shr-url (browse-url _link))
+
+(defun link-hint--aw-select-shr-url (link)
+  (with-demoted-errors "%s"
+      (if (> (length (aw-window-list)) 1)
+          (let ((window (aw-select nil))
+               (buffer (current-buffer))
+               (new-buffer))
+            (browse-url link)
+            (setq new-buffer
+                  (current-buffer))
+            (switch-to-buffer buffer)
+            (aw-switch-to-window window)
+            (switch-to-buffer new-buffer))
+        (link-hint-open-link-at-point))))
+
+
 ;;; Macro for similar link types
 
 ;; This macro can be used for link types that open the target in the current
@@ -70,25 +97,7 @@
 (define-link-hint-aw-select org-link org-open-at-point)
 (define-link-hint-aw-select dired-filename dired-find-file)
 
-;; (defun link-hint--aw-select-org-link (_link)
-;;   (let ((org-link-frame-setup
-;;          '((file . find-file))))
-;;     (with-demoted-errors "%s"
-;;       (if (and (> (length (aw-window-list)) 1)
-;;                (not (member (org-element-property
-;;                              :type (org-element-context))
-;;                        '("http" "https"))))
-;;           (let ((window (aw-select nil))
-;;                 (buffer (current-buffer))
-;;                 (new-buffer))
-;;             (org-open-at-point)
-;;             (setq new-buffer
-;;                   (current-buffer))
-;;             (switch-to-buffer buffer)
-;;             (aw-switch-to-window window)
-;;             (switch-to-buffer new-buffer))
-;;         (link-hint-open-link-at-point)))))
-
+;; add exception for http/s
 (defun link-hint--aw-select-org-link (_link)
     (with-demoted-errors "%s"
       (if (and (> (length (aw-window-list)) 1)
