@@ -146,14 +146,20 @@ Symbols and Diacritics
   (find-file-other-frame user-init-file)
   (set-frame-position (selected-frame) 845 20))
 
-;;OPEN New Window
-(defun gr/new-window ()
+;;OPEN New Frame
+;; (defun gr/new-window ()
+;;   (interactive)
+;;   (select-frame (make-frame-command))
+;;   (set-frame-position (selected-frame) 200 100)
+;;   (delete-other-windows))
+
+(defun gr/new-frame ()
+  "Open new frame, centered, on current monitor/"
   (interactive)
-  ;;  (when (get-buffer " *company-posframe-buffer*")
-  ;;    (kill-buffer " *company-posframe-buffer*"))
-  (select-frame (make-frame-command))
-  (set-frame-position (selected-frame) 200 100)
-  (delete-other-windows))
+  (make-frame-on-current-monitor)
+  (unless (eq 'maximised (frame-parameter nil 'fullscreen))
+    (modify-frame-parameters
+     (selected-frame) '((user-position . t) (top . 0.5) (left . 0.5)))))
 
 (defun gr/insert-line (p)
   (interactive "P")
