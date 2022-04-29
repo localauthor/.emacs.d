@@ -43,7 +43,7 @@
        (thing-at-point-looking-at zk-link-regexp)))
 
 (defun zk-link-hint--next-zk-link (bound)
-  "Find the unext zk-link.
+  "Find the next zk-link.
 Only search the range between just after the point and BOUND."
   (link-hint--next-regexp zk-id-regexp bound))
 
