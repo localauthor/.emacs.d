@@ -2499,6 +2499,23 @@ following the key as group 3."
             (switch-to-buffer buffer)
             (aw-switch-to-window window)
             (switch-to-buffer new-buffer))
+        (link-hint-open-link-at-point))))
+
+  ;; add exception for zk-index buttons
+  (defun link-hint--aw-select-button (_link)
+    (with-demoted-errors "%s"
+      (if (> (length (aw-window-list)) 1)
+          (let ((window (aw-select nil))
+                (buffer (current-buffer))
+                (new-buffer))
+            (if (re-search-forward zk-id-regexp (line-end-position))
+                (zk-follow-link-at-point (match-string-no-properties 0))
+              (push-button))
+            (setq new-buffer
+                  (current-buffer))
+            (switch-to-buffer buffer)
+            (aw-switch-to-window window)
+            (switch-to-buffer new-buffer))
         (link-hint-open-link-at-point)))))
 
 (with-eval-after-load "embark"
