@@ -2902,6 +2902,33 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 ;; (use-package markdown-mode)
 
+
+;;;; org-mind-map
+
+(use-package org-mind-map
+  :straight (:host github :repo "the-ted/org-mind-map")
+  :defer t
+  :config
+  (setq org-mind-map-engine "dot")
+  ;; if t, links don't work
+  ;; error in org-mind-map-write-tags
+  (setq org-mind-map-include-text nil)
+  (setq org-mind-map-default-graph-attribs '(("autosize" . "false")
+  ("size" . "9,12")
+  ("resolution" . "100")
+  ("nodesep" . "0.75")
+  ("overlap" . "false")
+  ("spline" . "true")
+  ("rankdir" . "TB")))
+  (setq org-mind-map-dot-output '("pdf" "png" "svg")))
+
+
+;;;; emacs-benchmark
+
+(use-package elisp-benchmarks
+  :disabled)
+
+
 ;;; my-lisp
 
 (use-package elfeed-setup
