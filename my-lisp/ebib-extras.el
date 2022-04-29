@@ -4,17 +4,16 @@
 
 (require 'ebib)
 
-;;;###autoload (autoload 'ebib-open "ebib-extras.el")
+;;;###autoload
 (defun ebib-open (&optional key)
   "Open ebib and set up frame."
   (interactive)
   (if (get-buffer-window "*Ebib-entry*" 'visible)
       (ebib nil key)
     (progn
-      (select-frame (make-frame-command))
+      (make-frame-on-current-monitor)
       (ebib nil key)
-      (set-frame-size (selected-frame) 150 46)
-      (set-frame-position (selected-frame) 150 80))))
+      (set-frame-size (selected-frame) 150 46))))
 
 (defun ebib-smart-quit ()
   "Cancels filter or quits."
