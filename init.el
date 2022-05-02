@@ -1355,744 +1355,6 @@ parses its input."
   :config
   (company-prescient-mode 1))
 
-;;; Packages
-;;;; magit
-
-(use-package magit
-  :bind
-  ("C-c m" . magit-status)
-  ("C-x m" . magit-status)
-  :custom-face
-  (diff-refine-added ((t (:background "yellow" :foreground "red"))))
-  :custom
-  (magit-diff-refine-hunk t))
-
-(setq-default mode-line-format
-              (delete '(vc-mode vc-mode) mode-line-format))
-
-
-;;;; git-gutter
-
-(use-package git-gutter
-  :init
-  :diminish (git-gutter-mode)
-  :hook
-  (emacs-lisp-mode-hook . git-gutter-mode)
-  :config
-  (set-face-foreground 'git-gutter:modified "orange")
-  (set-face-foreground 'git-gutter:added    "forestgreen")
-  (set-face-foreground 'git-gutter:deleted  "red")
-  (set-fringe-mode '(8 . 0))
-  )
-
-;;;; esup
-
-(use-package esup
-  :defer t
-  :config
-  (setq esup-depth 0)
-  )
-
-;;;; re-builder
-
-(use-package re-builder
-  :defer 1
-  :init
-  (setq reb-re-syntax 'string))
-
-;;;; ibuffer
-
-(use-package ibuffer
-  :straight (:type built-in)
-  :defer 1
-  :bind
-  (:map ctl-x-map
-        ("C-b" . ibuffer))
-  (:map ibuffer-mode-map
-        ("TAB". ibuffer-toggle-filter-group))
-  :hook
-  (ibuffer-hook . gr/truncate-lines)
-  (ibuffer-hook . gr/ibuffer-set-filter-group)
-  :custom
-  (ibuffer-expert t)
-  (ibuffer-show-empty-filter-groups nil)
-  (ibuffer-auto-mode t))
-
-;; remaps C-x b to
-;;(defalias 'list-buffers 'ibuffer)
-
-(defun gr/ibuffer-set-filter-group ()
-  (ibuffer-switch-to-saved-filter-groups "default")
-  (setq ibuffer-hidden-filter-groups (list "***" "ORG" "ZK" "el"))
-  (ibuffer-update nil t)
-  )
-
-(use-package ibuffer-vc
-  :defer 1
-  :config
-
-  (defun gr/ibuffer-vc-run ()
-    "Set up `ibuffer-vc."
-    (ibuffer-vc-set-filter-groups-by-vc-root)
-    (unless (eq ibuffer-sorting-mode 'recency)
-      (ibuffer-do-sort-by-recency)))
-
-  ;; Use human readable Size column instead of original one
-  (define-ibuffer-column size-h
-    (:name "Size" :inline t)
-    (cond
-     ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
-     ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
-     ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
-
-     (t (format "%8d" (buffer-size)))))
-
-  (setq ibuffer-saved-filter-groups
-        (list
-         (cons "default"
-               (append
-                '(
-                  ("Article" (or (and (filename . "/Academic Writing/*")
-                                      (not (name . "magit")))))
-                  ("Autumn 2021" (or (and (filename . "/Spring 2022/*")
-                                          (not (name . "magit")))))
-                  ("Writing" (or (and (filename . "/Writings/*")
-                                      (not (name . "magit")))))
-                  ("ZK" (or (name . "*ZK")
-                            (and (filename . "/Zettels/")
-                                 (not (name . "magit")))))
-                  ("ORG" (or (and (filename . "/org/")
-                                  (name . "\\.org$"))
-                             (name . "^\\*calfw-calendar")))
-                  ("PDF" (or (mode . pdf-view-mode)
-                             (mode . pdf-occur-buffer-mode)
-                             (mode . pdf-annot-list-mode)
-                             (name . "^\\*Contents")
-                             (name . "^\\*Edit Annotation ")))
-                  ("magit" (name . "magit"))
-                  ;;("dired" (or (name . ":~/")
-                  ;;             (mode . dired-mode)))
-                  ;;("helpful" (name . "^\\*helpful"))
-                  ("el" (and (mode . emacs-lisp-mode)
-                             (not (name . "^\\*scratch"))
-                             (not (name . "init.el"))))
-                  ("dired" (mode . dired-mode))
-                  ("helpful" (mode . helpful-mode))
-                  ("***" (or (name . "^\\*scratch")
-                             (name . "init.el")
-                             (name . "^\\*Messages")
-                             (name . "^\\*mu4e-")
-                             (name . "org_archive")
-                             (name . ".persp")
-                             ))
-                  )))))
-  )
-
-
-(defun gr/truncate-lines ()
-  (interactive)
-  (let ((inhibit-message t))
-    (unless (bound-and-true-p truncate-lines)
-      (toggle-truncate-lines))))
-
-(defun force-truncate-lines ()
-  "Force line truncation. For use in hooks."
-  (setq truncate-lines t))
-
-;;;; dired
-
-(use-package dired
-  :defer t
-  :straight (:type built-in)
-  :bind
-  ("C-x C-j" . dired-jump)
-  ("C-x d" . dired-jump)
-  ;;("C-x d" . dired)
-  (:map dired-mode-map
-        ("o" . link-hint-aw-select)
-        ("C-x C-q" . dired-toggle-read-only))
-  :hook
-  (dired-mode-hook . dired-omit-mode)
-  (dired-mode-hook . dired-hide-details-mode)
-  :custom
-  (dired-listing-switches "-algho --group-directories-first")
-  (delete-by-moving-to-trash t)
-  (dired-hide-details-mode t)
-  :config
-  (setq dired-omit-files "\\.DS_Store\\|\\.dropbox\\|Icon\\\015")
-  (setq dired-kill-when-opening-new-dired-buffer t)
-  )
-
-;; to allow --group-directories-first to work on osx
-(setq insert-directory-program "/usr/local/bin/gls" dired-use-ls-dired t)
-
-
-(use-package all-the-icons-dired
-  :defer t
-  :hook (dired-mode-hook . all-the-icons-dired-mode)
-  :diminish)
-
-
-;;;; avy
-
-(use-package avy
-  :defer t
-  :bind
-  ("M-g w" . avy-goto-word-1)
-  :bind*
-  ;;("C-l" . gr/avy-goto)
-  ("C-. C-," . gr/avy-goto-string)
-  ("C-'" . gr/avy-goto-string)
-  ;;("C-'" . avy-goto-char-timer)
-  :custom
-  (avy-timeout-seconds 0.4)
-  :config
-  (setq avy-keys '(?g ?d ?l ?r ?u ?e ?i ?c ?p ?f ?s))
-
-  (setq avy-dispatch-alist '((?, . avy-action-embark)
-                             (?j . avy-action-aw-select)
-                             (?2 . avy-action-split-below)
-                             (?n . avy-action-open-in-new-frame)
-                             (?m . avy-action-mark)
-                             (?w . avy-action-copy)
-                             (?k . avy-action-kill-move)
-                             (?K . avy-action-kill-stay)
-                             (?  . avy-action-mark-to-char)
-                             (?y . avy-action-yank)
-                             (?$ . avy-action-ispell)
-                             (?z . avy-action-zap-to-char)
-                             (?h . avy-action-helpful)
-                             ;;(?= . avy-action-define)
-                             (?t . avy-action-teleport)))
-
-  (defun gr/avy-goto-string (str &optional arg)
-    "Jump to the currently visible STR.
-The window scope is determined by `avy-all-windows' (ARG negates it)."
-    (interactive (list (read-string "Input: ")
-                       current-prefix-arg))
-    (avy-with avy-goto-char
-      (avy-jump
-       (regexp-quote str)
-       :window-flip arg)))
-
-  (defun gr/avy-goto ()
-    (interactive)
-    (avy-goto-line)
-    (let ((beg (line-beginning-position))
-          (end (line-end-position)))
-      (avy-goto-word-0 nil beg end)))
-
-  (defun avy-action-aw-select (pt)
-    (if (> (length (aw-window-list)) 1)
-        (let ((window (aw-select nil))
-              (buffer (current-buffer))
-              (new-buffer))
-          (goto-char pt)
-          (link-hint-open-link-at-point)
-          (setq new-buffer (current-buffer))
-          (switch-to-buffer buffer)
-          (aw-switch-to-window window)
-          (switch-to-buffer new-buffer))
-      (link-hint-open-link-at-point)))
-
-  (defun avy-action-mark-to-char (pt)
-    (activate-mark)
-    (goto-char pt))
-
-  (defun avy-action-split-below (pt)
-    (goto-char pt)
-    (delete-other-windows nil)
-    (split-window-below nil))
-
-  (defun avy-action-mark-to-char (pt)
-    (activate-mark)
-    (goto-char pt))
-
-  (defun avy-action-embark (pt)
-    (goto-char pt)
-    (embark-act))
-  ;; (select-window
-  ;;  (cdr (ring-ref avy-ring 0)))
-  ;; t)
-
-  (defun avy-action-helpful (pt)
-    (save-excursion
-      (goto-char pt)
-      (helpful-at-point))
-    (select-window
-     (cdr (ring-ref avy-ring 0)))
-    t)
-
-  (defun avy-action-open-in-new-frame (pt)
-    (let ((buffer (current-buffer))
-          (new-buffer))
-      (goto-char pt)
-      (link-hint-open-link-at-point)
-      (setq new-buffer (current-buffer))
-      (switch-to-buffer buffer)
-      (switch-to-buffer-other-frame new-buffer))
-    (link-hint-open-link-at-point))
-
-  (define-key isearch-mode-map (kbd "C-'") 'avy-isearch)
-  )
-
-;; (defun gr/avy-goto-char-timer ()
-;;   (interactive)
-;;   (call-interactively #'avy-goto-char-timer)
-;;   (forward-word)
-;;   )
-
-
-;;;; helpful
-
-(use-package helpful
-  :defer 1
-  :bind
-  (:map help-map
-        ("f" . helpful-symbol)
-        ("v" . helpful-symbol)
-        ("h" . helpful-symbol)
-        ("C-h" . helpful-symbol)
-        ("k" . helpful-key)
-        ;;("f" . helpful-callable)
-        ;;("v" . helpful-variable)
-        ("l" . find-library)
-        ("?" . (lambda ()
-                 (interactive)
-                 (embark-bindings-in-keymap help-map))))
-  (:map helpful-mode-map
-        ("o" . link-hint-open-link))
-  :custom
-  (helpful-max-buffers 5)
-  :config
-  (with-eval-after-load 'semantic/symref/grep
-    (add-to-list 'semantic-symref-filepattern-alist '(helpful-mode "*.el" "*.ede" ".emacs" "_emacs")))
-  )
-
-;;;; Undo-tree
-
-(use-package undo-tree
-  :diminish undo-tree-mode
-  :defer 1
-  :init
-  (global-undo-tree-mode)
-  :custom
-  (undo-tree-auto-save-history nil))
-
-
-;;;; python
-
-(use-package python-mode
-  :disabled
-  :defer 1
-  :straight nil
-  :config
-  (setq python-shell-interpreter (format "%s/.pyenv/shims/python" home-dir))
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((python . t)
-     (dot .t)))
-  )
-
-(with-eval-after-load "python"
-  (defun python-shell-completion-native-try ()
-    "Return non-nil if can trigger native completion."
-    (let ((python-shell-completion-native-enable t)
-          (python-shell-completion-native-output-timeout
-           python-shell-completion-native-try-output-timeout))
-      (python-shell-completion-native-get-completions
-       (get-buffer-process (current-buffer))
-       "_"))))
-
-;;;; wgrep
-
-(use-package wgrep
-  :defer t)
-
-;;;; web browsing / eww / xwidget webkit /xwwp
-
-(use-package eww
-  :defer t
-  :straight (:type built-in)
-  :bind
-  (:map eww-mode-map
-        ("o" . link-hint-open-link))
-  :config
-  (setq shr-inhibit-images nil)
-  (setq eww-search-prefix "https://html.duckduckgo.com/html/?q=")
-  (setq eww-download-directory (expand-file-name "~/Downloads"))
-  )
-
-(use-package prot-eww
-  ;;located in ~/.emacs.d/lisp/prot-eww.el
-  :straight nil
-  :defer 1
-  :config
-  (setq prot-eww-save-history-file
-        (locate-user-emacs-file "prot-eww-visited-history"))
-  (setq prot-eww-save-visited-history t)
-  (setq prot-eww-bookmark-link nil)
-  (define-prefix-command 'prot-eww-map)
-  (define-key global-map (kbd "C-. w") 'prot-eww-map)
-  (setq shr-folding-mode t
-        shr-use-colors nil
-        shr-bullet "• ")
-  :hook
-  (prot-eww-history-mode-hook . hl-line-mode)
-  :bind
-  (:map prot-eww-map
-        ("b" . prot-eww-visit-bookmark)
-        ("e" . prot-eww-browse-dwim)
-        ("g" . eww-duckduckgo)
-        ("w" . eww-wiki))
-  (:map eww-mode-map
-        ("B" . prot-eww-bookmark-page)
-        ("D" . prot-eww-download-html)
-        ("F" . prot-eww-find-feed)
-        ("H" . prot-eww-list-history)
-        ("b" . prot-eww-visit-bookmark)
-        ("e" . prot-eww-browse-dwim)
-        ("O" . prot-eww-open-in-other-window)
-        ("E" . prot-eww-visit-url-on-page)
-        ("J" . prot-eww-jump-to-url-on-page)
-        ("R" . prot-eww-readable)
-        ("Q" . prot-eww-quit)))
-
-(defun eww-wiki (text)
-  "Function used to search Wikipedia for the given text."
-  (interactive (list (read-string "Wiki for: ")))
-  (eww (format "https://en.m.wikipedia.org/wiki/Special:Search?search=%s"
-               (url-encode-url text))))
-
-(defun eww-duckduckgo (text)
-  "Function used to search DuckDuckGo for the given text."
-  (interactive (list (read-string "Search for: ")))
-  (eww (format "https://duckduckgo.com/?q=%s"
-               (url-encode-url text))))
-
-(defun gr/switch-browser (choice)
-  (interactive (list (completing-read "Choose: " '(safari eww xwidget) nil t)))
-   (let ((completion-ignore-case  t))
-     (setq browse-url-browser-function
-           (pcase choice
-             ("safari" 'browse-url-default-browser)
-             ("eww" 'eww)
-             ("xwidget" 'xwwp-browse-url-other-window)))
-     (message (format "browse-url set to `%s'" choice))))
-
-(setq browse-url-generic-program "/usr/bin/open")
-(setq browse-url-browser-function #'browse-url-default-browser)
-
-(defvar gr/open-url-browsers-list '("eww" "xwidget" "safari")
-  "Web browsers list.")
-
-(defun gr/open-url-select-browser ()
-  (interactive)
-  (let ((browser (completing-read "Select web browser to open the url: " gr/open-url-browsers-list))
-        (url (thing-at-point-url-at-point))
-        (browse-url-generic-program "open")
-        (browse-url-generic-args nil))
-    (pcase browser
-      ("eww" (eww-browse-url url t))
-      ("safari" (browse-url-generic url))
-      ("xwidget" (xwidget-webkit-browse-url url t)))))
-
-(global-set-key (kbd "C-. q") ' gr/open-url-select-browser)
-
-
-(use-package xwidget
-  :defer t
-  :config
-  ;; causes problems if this variable is not defined
-  (defvar xwidget-webkit-enable-plugins nil))
-
-(use-package ctable)
-
-(use-package xwwp-full
-  :after xwidget
-  :init (require 'xwwp-full)
-  :straight (xwwp-full :host github
-                       :repo "BlueFlo0d/xwwp"
-                       :files (:defaults "*.js" "*.css"))
-  :custom
-  (xwwp-follow-link-completion-system 'default)
-  :bind (:map xwidget-webkit-mode-map
-              ("o" . xwwp-follow-link)
-              ("l" . xwwp-ace-toggle)
-              ("h" . xwwp-history-show)
-              ("s" . xwwp-section)
-              ("R" . xwwp-reader-toggle)))
-
-
-;;;; pass
-
-(use-package pass
-  :defer t
-  :after (embark consult)
-  :custom
-  (password-store-password-length 12)
-  :init
-  (setf epg-pinentry-mode 'loopback)
-
-  ;; add embark actions for password-store
-  (embark-define-keymap embark-password-store-actions
-    "Keymap for actions for password-store."
-    ("c" password-store-copy)
-    ("f" password-store-copy-field)
-    ("i" password-store-insert)
-    ("I" password-store-generate)
-    ("r" password-store-rename)
-    ("e" password-store-edit)
-    ("k" password-store-remove)
-    ("U" password-store-url))
-
-  (add-to-list 'embark-keymap-alist '(password-store . embark-password-store-actions))
-
-  ;; Either add a prompt classifier or overwrite password-store--completing-read
-  (add-to-list 'marginalia-prompt-categories '("Password entry" . password-store))
-
-  ;; (defun password-store--completing-read ()
-  ;;   "Read a password entry in the minibuffer, with completion."
-  ;;   (completing-read
-  ;;    "Password entry: "
-  ;;    (let ((passwords (password-store-list)))
-  ;;      (lambda (string pred action)
-  ;;        (if (eq action 'metadata)
-  ;;            '(metadata (category . password-store))
-  ;;          (complete-with-action action passwords string pred))))))
-  )
-
-(use-package password-generator
-  :custom
-  (password-generator-custom-alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()+?")
-  (password-generator-custom-length 12)
-  )
-
-
-;;;; ace-window
-
-(use-package ace-window
-  :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
-                        :files (:defaults "ace-window-posframe.el"))
-  :defer 2
-  :bind
-  ("C-x o" . ace-window)
-  :custom-face
-  (aw-leading-char-face ((t (:family "Menlo" :foreground "red" :height 4.0))))
-  :custom
-  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-  (aw-scope 'visible)
-  (aw-dispatch-always t)
-  :config
-  (ace-window-posframe-mode 1)
-  (setq aw-dispatch-alist
-        '(
-          (?b aw-switch-buffer-in-window "Select Buffer in Target")
-          (?w aw-swap-window "Swap Current and Target")
-          (?m aw-copy-window "Move Current to Target")
-          (?2 aw-split-window-vert "Split Vert Window")
-          (?3 aw-split-window-horz "Split Horz Window")
-          (?0 aw-delete-window "Delete Window")
-
-          ;;(?F aw-split-window-fair "Split Fair Window")
-          ;;(?m aw-move-window "Move Curr. to Targ.")
-          ;;(?n aw-flip-window "Flip Window")
-          ;;(?J aw-switch-buffer-other-window "Select Buffer in Targ.")
-          ;;(?o delete-other-windows "Delete Other Windows")
-          ;;(?T aw-transpose-frame "Transpose Frame")
-          ;; ?i ?r ?t are used by hyperbole.el
-          ;;(?e aw-execute-command-other-window "Execute Command Other Window")
-
-          (?? aw-show-dispatch-help)))
-
-  (defun aw--consult-buffer ()
-    (cond ((bound-and-true-p ivy-mode)
-           (ivy-switch-buffer))
-          ((bound-and-true-p ido-mode)
-           (ido-switch-buffer))
-          (t
-           (call-interactively 'consult-buffer))))
-
-  (advice-add #'aw--switch-buffer :override #'aw--consult-buffer)
-
-  )
-
-
-;;;; popper
-
-(use-package popper
-  :bind (("C-\\"   . popper-toggle-latest)
-         ("M-\\"   . popper-cycle)
-         ("C-M-\\" . popper-toggle-type))
-  :init
-  (setq popper-reference-buffers
-        '("^dailynotes.org"
-          "^magit\\:"
-          "Output"
-          "^\\*Messages\\*"
-          "^\\*Warnings\\*"
-          "^\\*sdcv\\*"
-          "^\\*Backtrace\\*"
-          "^\\*ZK-Index\\*"
-          "^\\*ZK-Desktop"
-          "^\\*Luhmann-Index\\*"
-          "^\\*Apropos\\*"
-          "^\\*eshell\\*"
-          "^\\*PDF-Occur\\*"
-          "^\\*Org Agenda"
-          "^\\*compilation"
-          "^\\*elfeed-entry\\*"
-          "^\\*calfw-details\\*"
-          "^\\*Python\\*"
-          "^\\*grep\\*"
-          "^\\*undo-tree\\*"
-          "^\\*Async Shell Command\\*"
-          "^\\*Embark Collect\\*"
-          "^\\*Google Translate\\*"
-          "^\\*annotations\\*"
-          "^\\*Ilist\\*"
-          "^\\*Backups:"
-          undo-tree-mode
-          helpful-mode
-          help-mode
-          compilation-mode))
-  (popper-mode 1)
-  :config
-  (setq popper-display-function #'popper-select-popup-at-bottom)
-  (setq popper-display-control 'user))
-
-;;;; expand-region
-
-(use-package expand-region
-  :bind ("C-=" . er/expand-region))
-
-;;;; bookmark
-
-(use-package bookmark
-  :defer t
-  :init
-  (setq bookmark-bmenu-toggle-filenames nil
-        bookmark-save-flag 1
-        bookmark-set-fringe-mark nil)
-  :custom-face
-  (bookmark-face ((t nil))))
-
-
-;;;; google-translate
-
-(use-package google-translate
-  :bind ("C-c t" . google-translate-smooth-translate)
-  )
-
-(use-package google-translate-smooth-ui
-  :straight nil
-  :defer t
-  :config
-  (setq google-translate-backend-method 'curl)
-
-  (defun google-translate--search-tkk () "Search TKK." (list 430675 2721866130))
-
-  (setq google-translate-translation-directions-alist
-        '(("lt" . "en")
-          ("en" . "lt")))
-
-  (defun gr/google-translate-lt-en ()
-    (interactive)
-    (call-interactively #'google-translate-smooth-translate)
-    (pop-to-buffer "*Google Translate*" 'display-buffer-below-selected))
-  )
-
-;;;; nov.el
-
-(use-package nov
-  :defer t
-  :init
-  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
-
-
-;;;; paredit
-
-(use-package paredit
-  :defer t
-  ;; :hook
-  ;; (emacs-lisp-mode-hook . enable-paredit-mode)
-  ;; (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
-  ;; (ielm-mode-hook . enable-paredit-mode)
-  ;; (lisp-mode-hook . enable-paredit-mode)
-  ;; (lisp-interaction-mode-hook . enable-paredit-mode)
-  )
-
-;;;; golden-ratio-scroll-screen
-
-(use-package golden-ratio-scroll-screen
-  :defer t
-  :config
-  (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
-  (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
-
-
-;;;; explain-pause-mode
-
-(use-package explain-pause-mode
-;;  :disabled
-  :defer t
-  :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
-  :diminish)
-
-;;;; outshine-mode
-
-(use-package outline-mode
-  :straight nil
-  :diminish
-  :bind
-  ("C-S-<right>" . outline-demote)
-  ("C-S-<left>" . outline-promote)
-  ("C-<right>" . outline-demote)
-  ("C-<left>" . outline-promote)
-  :custom-face
-  (outline-1 ((t (:foreground "black" :weight bold :underline t))))
-  (outline-2 ((t (:foreground "blue3" :underline nil))))
-  :hook
-  (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode))))
-
-(use-package outshine
-  :defer 1
-  :diminish
-  :hook
-  (emacs-lisp-mode-hook . outshine-mode)
-  (outline-minor-mode-hook . outshine-mode))
-
-;;;; whitespace-mode
-
-(use-package whitespace
-  :defer 1
-  ;; :hook
-  ;; (emacs-lisp-mode-hook . whitespace-mode)
-  :custom
-  (whitespace-style '(face trailing lines)))
-
-;;;; flycheck and package-lint
-
-(use-package flycheck-package
-  :defer 1
-  ;;:hook (emacs-lisp-mode-hook . flycheck-mode)
-  :custom
-  (flycheck-emacs-lisp-load-path 'inherit))
-
-(use-package package-lint
-  :defer t)
-
-;;;; visual-fill-column
-
-(use-package visual-fill-column
-  ;;only used in zk, as dir-local
-  ;;because it doesn't work with git-gutter
-  :hook
-  (org-mode-hook . visual-fill-column-mode)
-  :custom
-  (visual-fill-column-width 90))
-
-
 
 ;;; Citation / Bibliography
 ;;;; citar
@@ -2960,11 +2222,11 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 ;;;; emacs-benchmark
 
-(use-package elisp-benchmarks
-  :disabled)
+(use-package elisp-benchmarks)
 
 
 ;;; my-lisp
+
 
 (use-package elfeed-setup
   :straight nil
@@ -2992,6 +2254,743 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (use-package mu4e-setup
   :straight nil
   :defer 1)
+
+;;; Packages
+;;;; magit
+
+(use-package magit
+  :bind
+  ("C-c m" . magit-status)
+  ("C-x m" . magit-status)
+  :custom-face
+  (diff-refine-added ((t (:background "yellow" :foreground "red"))))
+  :custom
+  (magit-diff-refine-hunk t))
+
+(setq-default mode-line-format
+              (delete '(vc-mode vc-mode) mode-line-format))
+
+
+;;;; git-gutter
+
+(use-package git-gutter
+  :init
+  :diminish (git-gutter-mode)
+  :hook
+  (emacs-lisp-mode-hook . git-gutter-mode)
+  :config
+  (set-face-foreground 'git-gutter:modified "orange")
+  (set-face-foreground 'git-gutter:added    "forestgreen")
+  (set-face-foreground 'git-gutter:deleted  "red")
+  (set-fringe-mode '(8 . 0))
+  )
+
+;;;; esup
+
+(use-package esup
+  :defer t
+  :config
+  (setq esup-depth 0)
+  )
+
+;;;; re-builder
+
+(use-package re-builder
+  :defer 1
+  :init
+  (setq reb-re-syntax 'string))
+
+;;;; ibuffer
+
+(use-package ibuffer
+  :straight (:type built-in)
+  :defer 1
+  :bind
+  (:map ctl-x-map
+        ("C-b" . ibuffer))
+  (:map ibuffer-mode-map
+        ("TAB". ibuffer-toggle-filter-group))
+  :hook
+  (ibuffer-hook . gr/truncate-lines)
+  (ibuffer-hook . gr/ibuffer-set-filter-group)
+  :custom
+  (ibuffer-expert t)
+  (ibuffer-show-empty-filter-groups nil)
+  (ibuffer-auto-mode t))
+
+;; remaps C-x b to
+;;(defalias 'list-buffers 'ibuffer)
+
+(defun gr/ibuffer-set-filter-group ()
+  (ibuffer-switch-to-saved-filter-groups "default")
+  (setq ibuffer-hidden-filter-groups (list "***" "ORG" "ZK" "el"))
+  (ibuffer-update nil t)
+  )
+
+(use-package ibuffer-vc
+  :defer 1
+  :config
+
+  (defun gr/ibuffer-vc-run ()
+    "Set up `ibuffer-vc."
+    (ibuffer-vc-set-filter-groups-by-vc-root)
+    (unless (eq ibuffer-sorting-mode 'recency)
+      (ibuffer-do-sort-by-recency)))
+
+  ;; Use human readable Size column instead of original one
+  (define-ibuffer-column size-h
+    (:name "Size" :inline t)
+    (cond
+     ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
+     ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
+     ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
+
+     (t (format "%8d" (buffer-size)))))
+
+  (setq ibuffer-saved-filter-groups
+        (list
+         (cons "default"
+               (append
+                '(
+                  ("Article" (or (and (filename . "/Academic Writing/*")
+                                      (not (name . "magit")))))
+                  ("Autumn 2021" (or (and (filename . "/Spring 2022/*")
+                                          (not (name . "magit")))))
+                  ("Writing" (or (and (filename . "/Writings/*")
+                                      (not (name . "magit")))))
+                  ("ZK" (or (name . "*ZK")
+                            (and (filename . "/Zettels/")
+                                 (not (name . "magit")))))
+                  ("ORG" (or (and (filename . "/org/")
+                                  (name . "\\.org$"))
+                             (name . "^\\*calfw-calendar")))
+                  ("PDF" (or (mode . pdf-view-mode)
+                             (mode . pdf-occur-buffer-mode)
+                             (mode . pdf-annot-list-mode)
+                             (name . "^\\*Contents")
+                             (name . "^\\*Edit Annotation ")))
+                  ("magit" (name . "magit"))
+                  ;;("dired" (or (name . ":~/")
+                  ;;             (mode . dired-mode)))
+                  ;;("helpful" (name . "^\\*helpful"))
+                  ("el" (and (mode . emacs-lisp-mode)
+                             (not (name . "^\\*scratch"))
+                             (not (name . "init.el"))))
+                  ("dired" (mode . dired-mode))
+                  ("helpful" (mode . helpful-mode))
+                  ("***" (or (name . "^\\*scratch")
+                             (name . "init.el")
+                             (name . "^\\*Messages")
+                             (name . "^\\*mu4e-")
+                             (name . "org_archive")
+                             (name . ".persp")
+                             ))
+                  )))))
+  )
+
+
+(defun gr/truncate-lines ()
+  (interactive)
+  (let ((inhibit-message t))
+    (unless (bound-and-true-p truncate-lines)
+      (toggle-truncate-lines))))
+
+(defun force-truncate-lines ()
+  "Force line truncation. For use in hooks."
+  (setq truncate-lines t))
+
+;;;; dired
+
+(use-package dired
+  :defer t
+  :straight (:type built-in)
+  :bind
+  ("C-x C-j" . dired-jump)
+  ("C-x d" . dired-jump)
+  ;;("C-x d" . dired)
+  (:map dired-mode-map
+        ("o" . link-hint-aw-select)
+        ("C-x C-q" . dired-toggle-read-only))
+  :hook
+  (dired-mode-hook . dired-omit-mode)
+  (dired-mode-hook . dired-hide-details-mode)
+  :custom
+  (dired-listing-switches "-algho --group-directories-first")
+  (delete-by-moving-to-trash t)
+  (dired-hide-details-mode t)
+  :config
+  (setq dired-omit-files "\\.DS_Store\\|\\.dropbox\\|Icon\\\015")
+  (setq dired-kill-when-opening-new-dired-buffer t)
+  )
+
+;; to allow --group-directories-first to work on osx
+(setq insert-directory-program "/usr/local/bin/gls" dired-use-ls-dired t)
+
+
+(use-package all-the-icons-dired
+  :defer t
+  :hook (dired-mode-hook . all-the-icons-dired-mode)
+  :diminish)
+
+
+;;;; avy
+
+(use-package avy
+  :defer t
+  :bind
+  ("M-g w" . avy-goto-word-1)
+  :bind*
+  ;;("C-l" . gr/avy-goto)
+  ("C-. C-," . gr/avy-goto-string)
+  ("C-'" . gr/avy-goto-string)
+  ;;("C-'" . avy-goto-char-timer)
+  :custom
+  (avy-timeout-seconds 0.4)
+  :config
+  (setq avy-keys '(?g ?d ?l ?r ?u ?e ?i ?c ?p ?f ?s))
+
+  (setq avy-dispatch-alist '((?, . avy-action-embark)
+                             (?j . avy-action-aw-select)
+                             (?2 . avy-action-split-below)
+                             (?n . avy-action-open-in-new-frame)
+                             (?m . avy-action-mark)
+                             (?w . avy-action-copy)
+                             (?k . avy-action-kill-move)
+                             (?K . avy-action-kill-stay)
+                             (?  . avy-action-mark-to-char)
+                             (?y . avy-action-yank)
+                             (?$ . avy-action-ispell)
+                             (?z . avy-action-zap-to-char)
+                             (?h . avy-action-helpful)
+                             ;;(?= . avy-action-define)
+                             (?t . avy-action-teleport)))
+
+  (defun gr/avy-goto-string (str &optional arg)
+    "Jump to the currently visible STR.
+The window scope is determined by `avy-all-windows' (ARG negates it)."
+    (interactive (list (read-string "Input: ")
+                       current-prefix-arg))
+    (avy-with avy-goto-char
+      (avy-jump
+       (regexp-quote str)
+       :window-flip arg)))
+
+  (defun gr/avy-goto ()
+    (interactive)
+    (avy-goto-line)
+    (let ((beg (line-beginning-position))
+          (end (line-end-position)))
+      (avy-goto-word-0 nil beg end)))
+
+  (defun avy-action-aw-select (pt)
+    (if (> (length (aw-window-list)) 1)
+        (let ((window (aw-select nil))
+              (buffer (current-buffer))
+              (new-buffer))
+          (goto-char pt)
+          (link-hint-open-link-at-point)
+          (setq new-buffer (current-buffer))
+          (switch-to-buffer buffer)
+          (aw-switch-to-window window)
+          (switch-to-buffer new-buffer))
+      (link-hint-open-link-at-point)))
+
+  (defun avy-action-mark-to-char (pt)
+    (activate-mark)
+    (goto-char pt))
+
+  (defun avy-action-split-below (pt)
+    (goto-char pt)
+    (delete-other-windows nil)
+    (split-window-below nil))
+
+  (defun avy-action-mark-to-char (pt)
+    (activate-mark)
+    (goto-char pt))
+
+  (defun avy-action-embark (pt)
+    (goto-char pt)
+    (embark-act))
+  ;; (select-window
+  ;;  (cdr (ring-ref avy-ring 0)))
+  ;; t)
+
+  (defun avy-action-helpful (pt)
+    (save-excursion
+      (goto-char pt)
+      (helpful-at-point))
+    (select-window
+     (cdr (ring-ref avy-ring 0)))
+    t)
+
+  (defun avy-action-open-in-new-frame (pt)
+    (let ((buffer (current-buffer))
+          (new-buffer))
+      (goto-char pt)
+      (link-hint-open-link-at-point)
+      (setq new-buffer (current-buffer))
+      (switch-to-buffer buffer)
+      (switch-to-buffer-other-frame new-buffer))
+    (link-hint-open-link-at-point))
+
+  (define-key isearch-mode-map (kbd "C-'") 'avy-isearch)
+  )
+
+;; (defun gr/avy-goto-char-timer ()
+;;   (interactive)
+;;   (call-interactively #'avy-goto-char-timer)
+;;   (forward-word)
+;;   )
+
+
+;;;; helpful
+
+(use-package helpful
+  :defer 1
+  :bind
+  (:map help-map
+        ("f" . helpful-symbol)
+        ("v" . helpful-symbol)
+        ("h" . helpful-symbol)
+        ("C-h" . helpful-symbol)
+        ("k" . helpful-key)
+        ;;("f" . helpful-callable)
+        ;;("v" . helpful-variable)
+        ("l" . find-library)
+        ("?" . (lambda ()
+                 (interactive)
+                 (embark-bindings-in-keymap help-map))))
+  (:map helpful-mode-map
+        ("o" . link-hint-open-link))
+  :custom
+  (helpful-max-buffers 5)
+  :config
+  (with-eval-after-load 'semantic/symref/grep
+    (add-to-list 'semantic-symref-filepattern-alist '(helpful-mode "*.el" "*.ede" ".emacs" "_emacs")))
+  )
+
+;;;; Undo-tree
+
+(use-package undo-tree
+  :diminish undo-tree-mode
+  :defer 1
+  :init
+  (global-undo-tree-mode)
+  :custom
+  (undo-tree-auto-save-history nil))
+
+
+;;;; python
+
+(use-package python-mode
+  :disabled
+  :defer 1
+  :straight nil
+  :config
+  (setq python-shell-interpreter (format "%s/.pyenv/shims/python" home-dir))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t)
+     (dot .t)))
+  )
+
+(with-eval-after-load "python"
+  (defun python-shell-completion-native-try ()
+    "Return non-nil if can trigger native completion."
+    (let ((python-shell-completion-native-enable t)
+          (python-shell-completion-native-output-timeout
+           python-shell-completion-native-try-output-timeout))
+      (python-shell-completion-native-get-completions
+       (get-buffer-process (current-buffer))
+       "_"))))
+
+;;;; wgrep
+
+(use-package wgrep
+  :defer t)
+
+;;;; web browsing / eww / xwidget webkit /xwwp
+
+(use-package eww
+  :defer t
+  :straight (:type built-in)
+  :bind
+  (:map eww-mode-map
+        ("o" . link-hint-open-link))
+  :config
+  (setq shr-inhibit-images nil)
+  (setq eww-search-prefix "https://html.duckduckgo.com/html/?q=")
+  (setq eww-download-directory (expand-file-name "~/Downloads"))
+  )
+
+(use-package prot-eww
+  ;;located in ~/.emacs.d/lisp/prot-eww.el
+  :straight nil
+  :defer 1
+  :config
+  (setq prot-eww-save-history-file
+        (locate-user-emacs-file "prot-eww-visited-history"))
+  (setq prot-eww-save-visited-history t)
+  (setq prot-eww-bookmark-link nil)
+  (define-prefix-command 'prot-eww-map)
+  (define-key global-map (kbd "C-. w") 'prot-eww-map)
+  (setq shr-folding-mode t
+        shr-use-colors nil
+        shr-bullet "• ")
+  :hook
+  (prot-eww-history-mode-hook . hl-line-mode)
+  :bind
+  (:map prot-eww-map
+        ("b" . prot-eww-visit-bookmark)
+        ("e" . prot-eww-browse-dwim)
+        ("g" . eww-duckduckgo)
+        ("w" . eww-wiki))
+  (:map eww-mode-map
+        ("B" . prot-eww-bookmark-page)
+        ("D" . prot-eww-download-html)
+        ("F" . prot-eww-find-feed)
+        ("H" . prot-eww-list-history)
+        ("b" . prot-eww-visit-bookmark)
+        ("e" . prot-eww-browse-dwim)
+        ("O" . prot-eww-open-in-other-window)
+        ("E" . prot-eww-visit-url-on-page)
+        ("J" . prot-eww-jump-to-url-on-page)
+        ("R" . prot-eww-readable)
+        ("Q" . prot-eww-quit)))
+
+(defun eww-wiki (text)
+  "Function used to search Wikipedia for the given text."
+  (interactive (list (read-string "Wiki for: ")))
+  (eww (format "https://en.m.wikipedia.org/wiki/Special:Search?search=%s"
+               (url-encode-url text))))
+
+(defun eww-duckduckgo (text)
+  "Function used to search DuckDuckGo for the given text."
+  (interactive (list (read-string "Search for: ")))
+  (eww (format "https://duckduckgo.com/?q=%s"
+               (url-encode-url text))))
+
+(defun gr/switch-browser (choice)
+  (interactive (list (completing-read "Choose: " '(safari eww xwidget) nil t)))
+   (let ((completion-ignore-case  t))
+     (setq browse-url-browser-function
+           (pcase choice
+             ("safari" 'browse-url-default-browser)
+             ("eww" 'eww)
+             ("xwidget" 'xwwp-browse-url-other-window)))
+     (message (format "browse-url set to `%s'" choice))))
+
+(setq browse-url-generic-program "/usr/bin/open")
+(setq browse-url-browser-function #'browse-url-default-browser)
+
+(defvar gr/open-url-browsers-list '("eww" "xwidget" "safari")
+  "Web browsers list.")
+
+(defun gr/open-url-select-browser ()
+  (interactive)
+  (let ((browser (completing-read "Select web browser to open the url: " gr/open-url-browsers-list))
+        (url (thing-at-point-url-at-point))
+        (browse-url-generic-program "open")
+        (browse-url-generic-args nil))
+    (pcase browser
+      ("eww" (eww-browse-url url t))
+      ("safari" (browse-url-generic url))
+      ("xwidget" (xwidget-webkit-browse-url url t)))))
+
+(global-set-key (kbd "C-. q") ' gr/open-url-select-browser)
+
+
+(use-package xwidget
+  :defer t
+  :config
+  ;; causes problems if this variable is not defined
+  (defvar xwidget-webkit-enable-plugins nil))
+
+(use-package ctable)
+
+(use-package xwwp-full
+  :after xwidget
+  :init (require 'xwwp-full)
+  :straight (xwwp-full :host github
+                       :repo "BlueFlo0d/xwwp"
+                       :files (:defaults "*.js" "*.css"))
+  :custom
+  (xwwp-follow-link-completion-system 'default)
+  :bind (:map xwidget-webkit-mode-map
+              ("o" . xwwp-follow-link)
+              ("l" . xwwp-ace-toggle)
+              ("h" . xwwp-history-show)
+              ("s" . xwwp-section)
+              ("R" . xwwp-reader-toggle)))
+
+
+;;;; pass
+
+(use-package pass
+  :defer t
+  :after (embark consult)
+  :custom
+  (password-store-password-length 12)
+  :init
+  (setf epg-pinentry-mode 'loopback)
+
+  ;; add embark actions for password-store
+  (embark-define-keymap embark-password-store-actions
+    "Keymap for actions for password-store."
+    ("c" password-store-copy)
+    ("f" password-store-copy-field)
+    ("i" password-store-insert)
+    ("I" password-store-generate)
+    ("r" password-store-rename)
+    ("e" password-store-edit)
+    ("k" password-store-remove)
+    ("U" password-store-url))
+
+  (add-to-list 'embark-keymap-alist '(password-store . embark-password-store-actions))
+
+  ;; Either add a prompt classifier or overwrite password-store--completing-read
+  (add-to-list 'marginalia-prompt-categories '("Password entry" . password-store))
+
+  ;; (defun password-store--completing-read ()
+  ;;   "Read a password entry in the minibuffer, with completion."
+  ;;   (completing-read
+  ;;    "Password entry: "
+  ;;    (let ((passwords (password-store-list)))
+  ;;      (lambda (string pred action)
+  ;;        (if (eq action 'metadata)
+  ;;            '(metadata (category . password-store))
+  ;;          (complete-with-action action passwords string pred))))))
+  )
+
+(use-package password-generator
+  :custom
+  (password-generator-custom-alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()+?")
+  (password-generator-custom-length 12)
+  )
+
+
+;;;; ace-window
+
+(use-package ace-window
+  :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
+                        :files (:defaults "ace-window-posframe.el"))
+  :defer 2
+  :bind
+  ("C-x o" . ace-window)
+  :custom-face
+  (aw-leading-char-face ((t (:family "Menlo" :foreground "red" :height 4.0))))
+  :custom
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (aw-scope 'visible)
+  (aw-dispatch-always t)
+  :config
+  (ace-window-posframe-mode 1)
+  (setq aw-dispatch-alist
+        '(
+          (?b aw-switch-buffer-in-window "Select Buffer in Target")
+          (?w aw-swap-window "Swap Current and Target")
+          (?m aw-copy-window "Move Current to Target")
+          (?2 aw-split-window-vert "Split Vert Window")
+          (?3 aw-split-window-horz "Split Horz Window")
+          (?0 aw-delete-window "Delete Window")
+
+          ;;(?F aw-split-window-fair "Split Fair Window")
+          ;;(?m aw-move-window "Move Curr. to Targ.")
+          ;;(?n aw-flip-window "Flip Window")
+          ;;(?J aw-switch-buffer-other-window "Select Buffer in Targ.")
+          ;;(?o delete-other-windows "Delete Other Windows")
+          ;;(?T aw-transpose-frame "Transpose Frame")
+          ;; ?i ?r ?t are used by hyperbole.el
+          ;;(?e aw-execute-command-other-window "Execute Command Other Window")
+
+          (?? aw-show-dispatch-help)))
+
+  (defun aw--consult-buffer ()
+    (cond ((bound-and-true-p ivy-mode)
+           (ivy-switch-buffer))
+          ((bound-and-true-p ido-mode)
+           (ido-switch-buffer))
+          (t
+           (call-interactively 'consult-buffer))))
+
+  (advice-add #'aw--switch-buffer :override #'aw--consult-buffer)
+
+  )
+
+
+;;;; popper
+
+(use-package popper
+  :bind (("C-\\"   . popper-toggle-latest)
+         ("M-\\"   . popper-cycle)
+         ("C-M-\\" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("^dailynotes.org"
+          "^magit\\:"
+          "Output"
+          "^\\*Messages\\*"
+          "^\\*Warnings\\*"
+          "^\\*sdcv\\*"
+          "^\\*Backtrace\\*"
+          "^\\*ZK-Index\\*"
+          "^\\*ZK-Desktop"
+          "^\\*Luhmann-Index\\*"
+          "^\\*Apropos\\*"
+          "^\\*eshell\\*"
+          "^\\*PDF-Occur\\*"
+          "^\\*Org Agenda"
+          "^\\*compilation"
+          "^\\*elfeed-entry\\*"
+          "^\\*calfw-details\\*"
+          "^\\*Python\\*"
+          "^\\*grep\\*"
+          "^\\*undo-tree\\*"
+          "^\\*Async Shell Command\\*"
+          "^\\*Embark Collect\\*"
+          "^\\*Google Translate\\*"
+          "^\\*annotations\\*"
+          "^\\*Ilist\\*"
+          "^\\*Backups:"
+          undo-tree-mode
+          helpful-mode
+          help-mode
+          compilation-mode))
+  (popper-mode 1)
+  :config
+  (setq popper-display-function #'popper-select-popup-at-bottom)
+  (setq popper-display-control 'user))
+
+;;;; expand-region
+
+(use-package expand-region
+  :bind ("C-=" . er/expand-region))
+
+;;;; bookmark
+
+(use-package bookmark
+  :defer t
+  :init
+  (setq bookmark-bmenu-toggle-filenames nil
+        bookmark-save-flag 1
+        bookmark-set-fringe-mark nil)
+  :custom-face
+  (bookmark-face ((t nil))))
+
+
+;;;; google-translate
+
+(use-package google-translate
+  :bind ("C-c t" . google-translate-smooth-translate)
+  )
+
+(use-package google-translate-smooth-ui
+  :straight nil
+  :defer t
+  :config
+  (setq google-translate-backend-method 'curl)
+
+  (defun google-translate--search-tkk () "Search TKK." (list 430675 2721866130))
+
+  (setq google-translate-translation-directions-alist
+        '(("lt" . "en")
+          ("en" . "lt")))
+
+  (defun gr/google-translate-lt-en ()
+    (interactive)
+    (call-interactively #'google-translate-smooth-translate)
+    (pop-to-buffer "*Google Translate*" 'display-buffer-below-selected))
+  )
+
+;;;; nov.el
+
+(use-package nov
+  :defer t
+  :init
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+
+
+;;;; paredit
+
+(use-package paredit
+  :defer t
+  ;; :hook
+  ;; (emacs-lisp-mode-hook . enable-paredit-mode)
+  ;; (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
+  ;; (ielm-mode-hook . enable-paredit-mode)
+  ;; (lisp-mode-hook . enable-paredit-mode)
+  ;; (lisp-interaction-mode-hook . enable-paredit-mode)
+  )
+
+;;;; golden-ratio-scroll-screen
+
+(use-package golden-ratio-scroll-screen
+  :defer t
+  :config
+  (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
+  (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
+
+
+;;;; explain-pause-mode
+
+(use-package explain-pause-mode
+;;  :disabled
+  :defer t
+  :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
+  :diminish)
+
+;;;; outshine-mode
+
+(use-package outline-mode
+  :straight nil
+  :diminish
+  :bind
+  ("C-S-<right>" . outline-demote)
+  ("C-S-<left>" . outline-promote)
+  ("C-<right>" . outline-demote)
+  ("C-<left>" . outline-promote)
+  :custom-face
+  (outline-1 ((t (:foreground "black" :weight bold :underline t))))
+  (outline-2 ((t (:foreground "blue3" :underline nil))))
+  :hook
+  (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode))))
+
+(use-package outshine
+  :defer 1
+  :diminish
+  :hook
+  (emacs-lisp-mode-hook . outshine-mode)
+  (outline-minor-mode-hook . outshine-mode))
+
+;;;; whitespace-mode
+
+(use-package whitespace
+  :defer 1
+  ;; :hook
+  ;; (emacs-lisp-mode-hook . whitespace-mode)
+  :custom
+  (whitespace-style '(face trailing lines)))
+
+;;;; flycheck and package-lint
+
+(use-package flycheck-package
+  :defer 1
+  ;;:hook (emacs-lisp-mode-hook . flycheck-mode)
+  :custom
+  (flycheck-emacs-lisp-load-path 'inherit))
+
+(use-package package-lint
+  :defer t)
+
+;;;; visual-fill-column
+
+(use-package visual-fill-column
+  ;;only used in zk, as dir-local
+  ;;because it doesn't work with git-gutter
+  :hook
+  (org-mode-hook . visual-fill-column-mode)
+  :custom
+  (visual-fill-column-width 90))
 
 ;;; variable resets
 
