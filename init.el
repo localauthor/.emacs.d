@@ -348,9 +348,9 @@
 (load-theme 'gr-light t)
 ;;(load-theme 'gr-dark t)
 
-;; (progn
-;;    (load-theme 'modus-operandi t)
-;;    (set-face-attribute 'show-paren-match nil :underline nil :foreground "#ffffff" :background "systemGreenColor"))
+;; (progn (load-theme 'modus-operandi t) (set-face-attribute
+;;    'show-paren-match nil :underline nil :foreground "#ffffff" :background
+;;    "systemGreenColor"))
 
 ;; set region highlighting, per
 ;; https://github.com/DarwinAwardWinner/dotemacs#dont-use-ns_selection_fg_color-and-ns_selection_bg_color
@@ -382,7 +382,8 @@ color."
 
 ;; I set this here so that the down-arrow remains the right color and size
 ;; even if I change themes
-;; (set-face-attribute 'org-ellipsis nil :inherit 'fixed-pitch :foreground "grey50" :underline nil :height 1.1)
+;; (set-face-attribute 'org-ellipsis nil :inherit 'fixed-pitch :foreground
+;; "grey50" :underline nil :height 1.1)
 
 
 ;;;; MacOS Keybindings
@@ -488,14 +489,25 @@ color."
 ;; (if (daemonp)
 ;;     (add-hook 'window-setup-hook #'gr/initial-window-setup))
 
-;; (setq initial-frame-alist '((width . 100) (height . 60) (left . 200) (top . 20) (menu-bar-lines . 0) (ns-appearance . dark)))
+;; (setq initial-frame-alist '((width . 100)
+;;                             (height . 60)
+;;                             (left . 200)
+;;                             (top . 20)
+;;                             (menu-bar-lines . 0)
+;;                             (ns-appearance . dark)))
 
-;; (setq default-frame-alist '((width . 80) (height . 35) (left . 100) (top . 100) (menu-bar-lines . 0) (ns-appearance . dark)))
+;; (setq default-frame-alist '((width . 80)
+;;                             (height . 35)
+;;                             (left . 100)
+;;                             (top . 100)
+;;                             (menu-bar-lines . 0)
+;;                             (ns-appearance . dark)))
 
 (setq ns-use-proxy-icon nil)
 (setq frame-title-format '("%b"))
 
-;; if the whole window is 160 or more (char, not px), then a buffer will split to the right, instead of below;
+;; if the whole window is 160 or more (char, not px), then a buffer will
+;; split to the right, instead of below;
 (setq split-height-threshold nil)
 (setq split-width-threshold 160)
 
@@ -647,7 +659,8 @@ color."
 
            ("P" . password-store-copy-field)
            ;; ("C-c" . 'flyspell-popup-correct)
-           ("C-c" . 'flyspell-auto-correct-previous-word))
+           ;;("C-c" . 'flyspell-auto-correct-previous-word)
+           )
 
 
 ;;;; link-hint
@@ -662,7 +675,12 @@ color."
   :defer 1
   :bind
   (:map gr-map
-        ("o" . link-hint-aw-select)))
+        ("o" . link-hint-aw-select))
+  :config
+  ;; open org-links in same window
+  ;; allows link-hint--aw-select-org-link to work properly
+  (with-eval-after-load "org"
+    (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)))
 
 ;;;; recentf
 
@@ -766,10 +784,6 @@ color."
   (with-eval-after-load "org"
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist '("n" . "notes")))
-
-  ;; open org-links in same window; allows link-hint--aw-select-org-link to work properly
-  (with-eval-after-load "org"
-    (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file))
 
   ;; :hook
   ;; (org-mode-hook . variable-pitch-mode)
@@ -879,7 +893,7 @@ color."
 
   ;; change "ignore" tag to "noheadline"
   (defun org-export-ignore-headlines (data backend info)
-    "Remove headlines tagged \"ignore\" retaining contents and promoting children.
+    "Remove headlines tagged \"noheadline\" retaining contents and promoting children.
 Each headline tagged \"ignore\" will be removed retaining its
 contents and promoting any children headlines to the level of the
 parent."
@@ -1150,7 +1164,8 @@ there, otherwise you are prompted for a message buffer."
 
   (defun my-embark-preview ()
     (interactive)
-    (unless (bound-and-true-p consult--preview-function) ;; Disable preview for Consult commands
+    ;; Disable preview for Consult commands
+    (unless (bound-and-true-p consult--preview-function)
       (save-selected-window
         (let ((embark-quit-after-action))
           (embark-dwim)))))
@@ -1168,7 +1183,8 @@ there, otherwise you are prompted for a message buffer."
   (defun with-embark-consult-outline-map (fn &rest args)
     "Let-bind `embark-keymap-alist' to include `consult-location'."
     (let ((embark-keymap-alist
-           (cons '(consult-location . embark-consult-outline-map) embark-keymap-alist)))
+           (cons '(consult-location . embark-consult-outline-map)
+                 embark-keymap-alist)))
       (apply fn args)))
 
   (advice-add 'consult-outline :around #'with-embark-consult-outline-map)
@@ -1190,8 +1206,11 @@ there, otherwise you are prompted for a message buffer."
       (run-at-time 0 nil #'exit-minibuffer))
     (vertico-exit))
 
-  (define-key consult-crm-map [remap vertico-insert] #'consult-vertico--crm-select)
-  (define-key consult-crm-map [remap exit-minibuffer] #'consult-vertico--crm-exit)
+  (define-key consult-crm-map [remap vertico-insert]
+              #'consult-vertico--crm-select)
+
+  (define-key consult-crm-map [remap exit-minibuffer]
+              #'consult-vertico--crm-exit)
 
   (defun gr/consult-ripgrep-select-dir ()
     (interactive)
@@ -1283,7 +1302,8 @@ That is, remove a non kept dired from the recent list."
                                     orderless-regexp)
         completion-styles '(orderless partial-completion initials)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles . (partial-completion initials)))))
+        completion-category-overrides
+        '((file (styles . (partial-completion initials)))))
   (setq orderless-style-dispatchers
           '(orderless-literal-dispatcher
             orderless-initialism-dispatcher))
@@ -1311,7 +1331,8 @@ parses its input."
   :init
   (savehist-mode 1)
   :config
-  (setq savehist-additional-variables '(citar-history search-ring regexp-search-ring))
+  (setq savehist-additional-variables
+        '(citar-history search-ring regexp-search-ring))
   )
 
 ;;;; company
@@ -1336,6 +1357,7 @@ parses its input."
         ("C-e" . 'company-other-backend)
         ("C-s" . 'company-filter-candidates))
   :custom
+  (company-require-match nil)
   (company-minimum-prefix-length 1)
   (company-selection-wrap-around t)
   (company-tooltip-limit 12)
@@ -1346,11 +1368,20 @@ parses its input."
   (company-sort-prefer-same-case-prefix t)
   (company-format-margin-function nil)
   (company-dabbrev-other-buffers t)
-  ;;(company-transformers '(company-sort-by-occurrence))
+  ;; sort Luhmann and zk ids in order:
+  (company-transformers '(company-sort-by-occurrence))
   :config
-  (setq company-backends '(company-capf company-bbdb company-files (company-elisp company-dabbrev-code company-gtags company-etags company-keywords) company-dabbrev company-yasnippet))
-  (setq company-files-exclusions '(".git/" ".DS_Store"))
-  )
+  (setq company-backends '(company-capf
+                           company-bbdb
+                           company-files
+                           (company-elisp
+                            company-dabbrev-code
+                            company-gtags
+                            company-etags
+                            company-keywords)
+                           company-dabbrev
+                           company-yasnippet))
+  (setq company-files-exclusions '(".git/" ".DS_Store")))
 
 (use-package company-posframe
   :defer 1
@@ -1367,8 +1398,10 @@ parses its input."
   (company-posframe-quickhelp-delay nil)
   )
 
-;; kills company buffer after completion, to prevent it from showing up when new window is created, like elfeed or mu4e
-(add-hook 'company-after-completion-hook (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
+;; kills company buffer after completion, to prevent it from showing up when
+;; new window is created, like elfeed or mu4e
+(add-hook 'company-after-completion-hook
+          (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
 (kill-buffer " *company-posframe-buffer*"))))
 
 ;;;; prescient / company-prescient
@@ -1428,7 +1461,8 @@ parses its input."
   (citar-citeproc-csl-styles-dir "~/.csl")
   (citar-citeproc-csl-locales-dir "~/.csl/locales")
   (citar-format-reference-function 'citar-citeproc-format-reference)
-  (citar-citeproc-csl-style "chicago-fullnote-bibliography-short-title-subsequent.csl")
+  (citar-citeproc-csl-style
+   "chicago-fullnote-bibliography-short-title-subsequent.csl")
   (citar-display-transform-functions '((t . citar-clean-string)))
   (citar-open-note-function 'gr/citar-zk-open-note)
   (citar-select-multiple nil)
@@ -1478,7 +1512,8 @@ parses its input."
     "Search pdfs."
     (interactive)
     (let* ((refs (citar-select-refs))
-           (files (citar-file--files-for-multiple-entries refs citar-library-paths '("pdf")))
+           (files (citar-file--files-for-multiple-entries
+                   refs citar-library-paths '("pdf")))
            (string (read-string "Search string: ")))
       (pdf-occur-search files string t)))
 
