@@ -1883,7 +1883,8 @@ following the key as group 3."
   _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: dir ripgrep
   _h s_: Strct Nts  _c_: Insert Cite   _R_: Rename Note    _r_: zk grep
   _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib-open
-                  _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz "
+                  _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz
+   [Luhmann: %`zk-luhmann-notes-count | Notes: %`zk-core-notes-count]"
     ("h h" (lambda () (interactive) (zk-find-file-by-id "201801190001")))
     ("h i" (lambda () (interactive) (zk-find-file-by-id "201801180001")))
     ("h s" (lambda () (interactive) (zk-find-file-by-id "201801180002")))
@@ -1905,6 +1906,7 @@ following the key as group 3."
     ("m" zk-make-link-buttons)
     ("o" link-hint-aw-select)
     ("b" zk-network)
+    ("S" (lambda () (interactive) (zk-stats 1)) :color red)
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)
     ("z" zk-consult-grep)
