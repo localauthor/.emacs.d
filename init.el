@@ -1957,6 +1957,9 @@ Optional ARG."
 
 (use-package flyspell
   :defer 3
+  :bind
+  (:map gr-map
+        ("C-c" . flyspell-auto-correct-previous-word))
   ;;:custom-face
   ;;(flyspell-incorrect ((t nil)))
   )
@@ -2285,7 +2288,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 ;;;; emacs-benchmark
 
-(use-package elisp-benchmarks)
+(use-package elisp-benchmarks
+  :defer t)
 
 
 ;;; my-lisp
@@ -2638,8 +2642,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package undo-tree
   :diminish undo-tree-mode
   :defer 1
-  :init
-  (global-undo-tree-mode)
+  ;; :init
+  ;; (global-undo-tree-mode)
   :custom
   (undo-tree-auto-save-history nil))
 
@@ -2763,14 +2767,14 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (global-set-key (kbd "C-. q") ' gr/open-url-select-browser)
 
-
 (use-package xwidget
   :defer t
   :config
   ;; causes problems if this variable is not defined
   (defvar xwidget-webkit-enable-plugins nil))
 
-(use-package ctable)
+(use-package ctable
+  :defer t)
 
 (use-package xwwp-full
   :after xwidget
@@ -3055,6 +3059,14 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (org-mode-hook . visual-fill-column-mode)
   :custom
   (visual-fill-column-width 90))
+
+;;;; hyperbole
+
+(use-package hyperbole
+  :disabled
+  :diminish
+  :config
+  (hyperbole-mode 0))
 
 ;;; variable resets
 
