@@ -198,19 +198,20 @@ Collects mmd-citation keys from current buffer."
   (interactive)
   (unless citar-citeproc-csl-style
     (citar-citeproc-select-csl-style))
-  (let* ((keys (gr/list-buffer-mmd-citations))
-         (proc (citeproc-create (concat citar-citeproc-csl-styles-dir "/" citar-citeproc-csl-style)
-                                (citeproc-itemgetter-from-bibtex citar-bibliography)
-                                (citeproc-locale-getter-from-dir org-cite-csl-locales-dir)
-                                "en-US"))
-         (rendered-citations (progn
-                               (citeproc-add-uncited keys proc)
-                               (citeproc-render-bib proc 'plain))))
-    (goto-char (point-max))
-    (insert (concat "\n* Bibliography\n\n" (car rendered-citations)))
-    (when
-        (derived-mode-p 'org-mode)
-      (org-find-olp '("Bibliography") 'this-buffer))))
+  (if-let ((keys (gr/list-buffer-mmd-citations)))
+      (let* ((proc (citeproc-create (concat citar-citeproc-csl-styles-dir "/" citar-citeproc-csl-style)
+                                    (citeproc-itemgetter-from-bibtex citar-bibliography)
+                                    (citeproc-locale-getter-from-dir org-cite-csl-locales-dir)
+                                    "en-US"))
+             (rendered-citations (progn
+                                   (citeproc-add-uncited keys proc)
+                                   (citeproc-render-bib proc 'plain))))
+        (goto-char (point-max))
+        (insert (concat "\n* Bibliography\n\n" (car rendered-citations)))
+        (when
+            (derived-mode-p 'org-mode)
+          (org-find-olp '("Bibliography") 'this-buffer)))
+    (error "No citations")))
 
 
 ;;; convert mmd-citations to pandoc or org-mode
