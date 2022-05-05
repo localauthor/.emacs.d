@@ -24,6 +24,7 @@
       (shell-command-to-string
        (format "curl -s -d '%s' -H 'Content-Type: text/plain' '%s/%s' | curl -s -d @- -H 'Content-Type: application/json' '%s/export?format=%s'" item ebib-zotero-translation-server server-path ebib-zotero-translation-server export-format))))
 
+;;;###autoload
 (defun ebib-zotero-import-url (identifier)
     "Fetch a entry from zotero translation server via a URL.
 The entry is stored in the current database."
@@ -45,6 +46,7 @@ The entry is stored in the current database."
     (ebib-save-all-databases)
     (citar-refresh)))
 
+;;;###autoload
 (defun ebib-zotero-import-identifier (identifier)
   "Fetch a entry from zotero translation server via an IDENTIFIER.
 The entry is stored in the current database, and the identifier
@@ -66,6 +68,9 @@ can be DOI, ISBN, PMID, or arXiv ID."
     (ebib--update-entry-buffer)
     (ebib-save-all-databases)
     (citar-refresh)))
+
+;;;###autoload
+(defalias 'ebib-auto-import 'ebib-zotero-import-identifier)
 
 (provide 'ebib-zotero)
 

@@ -1579,13 +1579,12 @@ following the key as group 3."
         ("h" . hydra-ebib/body)
         ("k" . nil)
         ("D" . ebib-delete-entry)
-        ("I" . ebib-zotero-import-identifier)
         ("d" . nil)
         ("c" . ebib-filters-cancel-filter)
         ("z" . nil)
         ("s" . ebib-filter-any)
         ("O" . ebib-filters-apply-filter)
-        ("o" . ebib-citar-open)
+        ("s-s" . ebib-save-curent-database)
         ("q" . ebib-smart-quit)
         )
   (:map ebib-entry-mode-map
@@ -1596,7 +1595,7 @@ following the key as group 3."
         ("d" . nil)
         ("e" . ebib-edit-current-field)
         ("O" . ebib-filters-apply-filter)
-        ("o" . ebib-citar-open)
+        ("s-s" . ebib-save-curent-database)
         ("q" . ebib-quit-entry-buffer)
         ("k" . nil))
   :hook
@@ -1628,7 +1627,7 @@ following the key as group 3."
     ("D" ebib-delete-current-field-contents)
     ("j" ebib-jump-to-entry)
     ("O" ebib-filters-apply-filter)
-    ("o" ebib-citar-open)
+    ("o" ebib-citar-open-resource)
     ("C" ebib-filters-cancel-filter)
     ;; ("s" ebib-save-current-database)
     ("I" ebib-zotero-import-identifier)
@@ -1639,13 +1638,22 @@ following the key as group 3."
 
 (use-package ebib-extras
   :straight nil
-  :after ebib
-  :commands (ebib-open)
+  :defer 1
+  :commands (ebib-open ebib-isbn-search)
   :bind
+  (:map ebib-index-mode-map
+        ("o" . ebib-citar-open-resource))
+  (:map ebib-entry-mode-map
+        ("o" . ebib-citar-open-resource))
   (:map citar-map
-        ("e" . citar-ebib-jump-to-entry))
-  :config
-  (require 'ebib-zotero))
+        ("e" . citar-ebib-jump-to-entry)))
+
+(use-package ebib-zotero
+   :straight nil
+   :defer 1
+   :bind
+   (:map ebib-index-mode-map
+         ("I" . ebib-zotero-import-identifier)))
 
 ;;;; biblio / sci-hub
 
@@ -1868,7 +1876,7 @@ following the key as group 3."
     "
   _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: dir ripgrep
   _h s_: Strct Nts  _c_: Insert Cite   _R_: Rename Note    _r_: zk grep
-  _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib
+  _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib-open
                   _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz "
     ("h h" (lambda () (interactive) (zk-find-file-by-id "201801190001")))
     ("h i" (lambda () (interactive) (zk-find-file-by-id "201801180001")))
@@ -1877,7 +1885,7 @@ following the key as group 3."
     ("R" zk-rename-note)
     ("r" zk-rename-note)
     ("i" zk-luhmann-insert-link)
-    ("e" hydra-ebib/body)
+    ("e" ebib-open)
     ("B" hydra-bib/body)
     ;;("B b" gr/append-bibliography)
     ;;("B r" citar-insert-reference)
@@ -1909,13 +1917,13 @@ following the key as group 3."
   (defhydra hydra-bib (:hint nil
                             :color blue)
     "
-       _r_: Insert Ref          _e_: ebib              _d_: DOI Lookup
+       _r_: Insert Ref          _e_: ebib-hydra        _d_: DOI Lookup
        _b_: Insert Bib          _I_: Auto Import       _i_: ISBN Look up"
 
     ("b" gr/append-bibliography)
     ("r" citar-insert-reference)
     ("e" hydra-ebib/body)
-    ("I" ebib-zotero-import-identifier)
+    ("I" ebib-auto-import)
     ("i" ebib-isbn-search)
     ("d" crossref-lookup)
     ("c" gr/citar-mmd-insert-citation)

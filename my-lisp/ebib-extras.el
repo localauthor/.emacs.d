@@ -33,6 +33,7 @@
           (progn (ebib-quit t)
                  (delete-frame)))))))
 
+;;;###autoload
 (defun ebib-isbn-search (text)
   (interactive (list
                 (if (use-region-p)
@@ -109,10 +110,13 @@ Includes duplicate handling."
   (ebib-open (car key-entry)))
 
 ;;;###autoload
-(defun ebib-citar-open ()
+(defun ebib-citar-open-resource ()
+  "In 'ebib' buffers, call 'citar-open' on reference at point."
   (interactive)
-  (let ((key (list (ebib--get-key-at-point))))
-    (citar-open (citar--ensure-entries key))))
+  (if (or (derived-mode-p 'ebib-index-mode 'ebib-entry-mode))
+    (let ((key (list (ebib--get-key-at-point))))
+      (citar-open (citar--ensure-entries key)))
+    (user-error "Not in ebib")))
 
 (defun embark-target-ebib-citar-key-at-point ()
   "Target citar-key of current ebib entry."
