@@ -1,12 +1,17 @@
 ;;; ebib-extras.el --- Extra functions for ebib      -*- lexical-binding: t; -*-
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'ebib)
 
+(defvar gr/bibliography)
+
 ;;;###autoload
 (defun ebib-open (&optional key)
-  "Open ebib and set up frame."
+  "Open ebib and set up frame.
+Accepts optional KEY to go to entry."
   (interactive)
   (if (get-buffer-window "*Ebib-entry*" 'visible)
       (ebib nil key)
@@ -16,7 +21,7 @@
       (set-frame-size (selected-frame) 150 46))))
 
 (defun ebib-smart-quit ()
-  "Cancels filter or quits."
+  "Cancel filter or quit."
   (interactive)
   (ebib--execute-when
     (filtered-db
@@ -34,7 +39,8 @@
                  (delete-frame)))))))
 
 ;;;###autoload
-(defun ebib-isbn-search (text)
+(defun ebib-isbn-web-search (string)
+  "Search 'isbnsearch.org' for ISBN associated with STRING."
   (interactive (list
                 (if (use-region-p)
                   (buffer-substring
@@ -42,13 +48,14 @@
                    (region-end))
                   (read-string "Search for ISBN: "))))
   (browse-url (format "https://isbnsearch.org/search?s=%s"
-                      (url-encode-url text))))
+                      (url-encode-url string))))
 
 ;;;###autoload
-(defun ebib-filter-any (input)
+(defun ebib-filter-any (string)
+  "Search all fields for STRING."
   (interactive "MSearch All Fields:")
   (ebib)
-  (ebib-db-set-filter `(contains "any" ,input) ebib--cur-db)
+  (ebib-db-set-filter `(contains "any" ,string) ebib--cur-db)
   (ebib--update-buffers))
 
 
@@ -106,6 +113,7 @@ Includes duplicate handling."
 
 ;;;###autoload
 (defun citar-ebib-jump-to-entry (key-entry)
+  "Jump to selected KEY-ENTRY in Ebib."
   (interactive (list (citar-select-ref)))
   (ebib-open (car key-entry)))
 

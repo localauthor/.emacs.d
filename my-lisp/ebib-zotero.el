@@ -17,24 +17,28 @@
   :group 'ebib
   :type 'string)
 
-(defun ebib-zotero-translate (item server-path &optional export-format)
-  "Convert ITEM to EXPORT-FORMAT entry through `ebib-zotero-translation-server'."
+(defun ebib-zotero-translate (item server &optional export-format)
+  "Convert ITEM to EXPORT-FORMAT with SERVER `ebib-zotero-translation-server'."
   (let ((export-format (or export-format
                            (downcase (symbol-name (intern-soft bibtex-dialect))))))
       (shell-command-to-string
-       (format "curl -s -d '%s' -H 'Content-Type: text/plain' '%s/%s' | curl -s -d @- -H 'Content-Type: application/json' '%s/export?format=%s'" item ebib-zotero-translation-server server-path ebib-zotero-translation-server export-format))))
+       (format "curl -s -d '%s' -H 'Content-Type: text/plain'
+       '%s/%s' | curl -s -d @- -H 'Content-Type:
+       application/json' '%s/export?format=%s'" item
+       ebib-zotero-translation-server server
+       ebib-zotero-translation-server export-format))))
 
 ;;;###autoload
-(defun ebib-zotero-import-url (identifier)
+(defun ebib-zotero-import-url (URL)
     "Fetch a entry from zotero translation server via a URL.
 The entry is stored in the current database."
   (interactive "MURL: ")
   (let (entry-type key)
-    (kill-new identifier)
+    (kill-new URL)
     (unless (get-buffer "*Ebib-entry*") ;; check that ebib is running
       (ebib-open))
     (with-temp-buffer
-      (insert (ebib-zotero-translate identifier "web"))
+      (insert (ebib-zotero-translate URL "web"))
       (goto-char (point-min))
       (setq entry-type (ebib--bib-find-next-bibtex-item))
       (setq key (cdr (assoc-string "=key=" (parsebib-read-entry entry-type))))

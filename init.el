@@ -1598,8 +1598,6 @@ following the key as group 3."
         ("s-s" . ebib-save-curent-database)
         ("q" . ebib-quit-entry-buffer)
         ("k" . nil))
-  :hook
-  (ebib-index-mode-hook . (lambda () (gr/truncate-lines)))
   :custom
   (ebib-preload-bib-files gr/bibliography)
   (ebib-autogenerate-keys t)
@@ -1612,6 +1610,14 @@ following the key as group 3."
                         ;;("Year" 6 t)
                         ("Title" 50 t)))
   :config
+
+  (advice-add #'ebib :after #'ebib-truncate-lines)
+
+  (defun ebib-truncate-lines (&rest _)
+    (ebib--pop-to-buffer (ebib--buffer 'index))
+    (let ((inhibit-message t))
+      (unless (bound-and-true-p truncate-lines)
+        (toggle-truncate-lines))))
 
   (defhydra hydra-ebib (:hint nil :color blue)
     "
@@ -1631,15 +1637,15 @@ following the key as group 3."
     ("C" ebib-filters-cancel-filter)
     ;; ("s" ebib-save-current-database)
     ("I" ebib-zotero-import-identifier)
-    ("S" ebib-isbn-search)
+    ("S" ebib-isbn-web-search)
     ("s" crossref-lookup)
     ("q" nil))
   )
 
+
 (use-package ebib-extras
   :straight nil
   :defer 1
-  :commands (ebib-open ebib-isbn-search)
   :bind
   (:map ebib-index-mode-map
         ("o" . ebib-citar-open-resource))
@@ -1924,7 +1930,7 @@ following the key as group 3."
     ("r" citar-insert-reference)
     ("e" hydra-ebib/body)
     ("I" ebib-auto-import)
-    ("i" ebib-isbn-search)
+    ("i" ebib-isbn-web-search)
     ("d" crossref-lookup)
     ("c" gr/citar-mmd-insert-citation)
     ("q" nil)))
@@ -2464,14 +2470,13 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                   )))))
   )
 
-
-(defun gr/truncate-lines ()
+(defun gr/truncate-lines (&rest _)
   (interactive)
   (let ((inhibit-message t))
     (unless (bound-and-true-p truncate-lines)
       (toggle-truncate-lines))))
 
-(defun force-truncate-lines ()
+(defun force-truncate-lines (&rest _)
   "Force line truncation. For use in hooks."
   (setq truncate-lines t))
 
@@ -3005,7 +3010,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :config
   (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
   (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
-
 
 ;;;; explain-pause-mode
 
