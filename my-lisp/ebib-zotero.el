@@ -42,6 +42,7 @@ The entry is stored in the current database."
     ;; (ebib--goto-entry-in-index key)
     (ebib-generate-autokey)
     (ebib--update-entry-buffer)
+    (ebib-save-all-databases)
     (citar-refresh)))
 
 (defun ebib-zotero-import-identifier (identifier)
@@ -63,6 +64,7 @@ can be DOI, ISBN, PMID, or arXiv ID."
     ;; (ebib--goto-entry-in-index key)
     (ebib-generate-autokey)
     (ebib--update-entry-buffer)
+    (ebib-save-all-databases)
     (citar-refresh)))
 
 (provide 'ebib-zotero)
