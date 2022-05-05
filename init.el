@@ -159,10 +159,6 @@
         ("o" . link-hint-open-link))
   :config
   ;; (pixel-scroll-precision-mode)
-  ;; (display-time-mode 1)
-  ;; (setq display-time-24hr-format t
-  ;;       display-time-day-and-date t
-  ;;       display-time-default-load-average nil)
   (setq set-mark-command-repeat-pop nil)
   (prefer-coding-system 'utf-8)
   (setq-default buffer-file-coding-system 'utf-8
@@ -278,6 +274,38 @@
 
   ;; (global-set-key [remap eval-last-sexp] 'pp-eval-last-sexp)
 
+
+  ;; time and mode-line
+
+  (setq display-time-24hr-format t
+        display-time-day-and-date nil
+        display-time-default-load-average nil
+        display-time-format "[%H:%M]") ;; put time in brackets
+
+  (display-time-mode 1)
+
+  (setq global-mode-string '("")) ;; remove display-time-string from right
+
+  (setq-default mode-line-format
+                '(;;"%e"
+                  ;;mode-line-front-space
+                  ;;mode-line-mule-info
+                  ;;mode-line-client
+                  ;;mode-line-modified
+                  ;;mode-line-remote
+                  " "
+                  display-time-string ;; left align
+                  " "
+                  mode-line-frame-identification
+                  mode-line-buffer-identification
+                  mode-line-position
+                  "  "
+                  mode-line-modes
+                  "  "
+                  (vc-mode vc-mode)
+                  "  "
+                  mode-line-misc-info
+                  mode-line-end-spaces))
   )
 
 (use-package tab-bar
@@ -2267,8 +2295,9 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :custom
   (magit-diff-refine-hunk t))
 
-(setq-default mode-line-format
-              (delete '(vc-mode vc-mode) mode-line-format))
+;; (setq-default mode-line-format
+;;               (delete '(vc-mode vc-mode) mode-line-format))
+
 
 
 ;;;; git-gutter
