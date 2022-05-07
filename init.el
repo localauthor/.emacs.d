@@ -2376,9 +2376,10 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 (use-package esup
   :defer t
+  :custom
+  (esup-user-init-file (concat user-emacs-directory "init.el"))
   :config
-  (setq esup-depth 0)
-  )
+  (setq esup-depth 0))
 
 ;;;; re-builder
 
