@@ -1674,6 +1674,7 @@ following the key as group 3."
 
 (use-package biblio
   :defer t
+  :after (ebib)
   :custom
   (biblio-crossref-user-email-address vu-email)
   :config
@@ -1711,8 +1712,13 @@ following the key as group 3."
     "Download selected reference from Sci-Hub."
     (scihub (biblio-alist-get 'doi entry)))
 
+  (defun gr/biblio--import-to-ebib (entry)
+    (let ((doi (biblio-alist-get 'doi entry)))
+      (ebib-auto-import doi)))
+
   (setq biblio-selection-mode-actions-alist
-        '(("Copy DOI" . gr/biblio--copy-doi-ext)
+        '(("Import to ebib" . gr/biblio--import-to-ebib)
+          ("Copy DOI" . gr/biblio--copy-doi-ext)
           ("Grab from Sci-Hub" . gr/biblio--get-from-sci-hub-ext)
           ("Find open access copy on Dissemin" . biblio-dissemin--lookup-record)))
 
