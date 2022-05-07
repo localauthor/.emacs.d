@@ -1992,7 +1992,8 @@ Optional ARG."
   (let ((org-link-search-must-match-exact-headline t))
     (condition-case nil
 	(apply fn arg)
-      (error (zk-follow-link-at-point)))))
+      (error (unless (ignore-errors (zk-follow-link-at-point))
+               (message "Invalid org-link type"))))))
 
 (advice-add 'org-open-at-point :around #'zk-org-try-to-follow-link)
 
