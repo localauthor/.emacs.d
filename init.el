@@ -954,6 +954,7 @@ parent."
 ;;;; embark
 
 (use-package embark
+  :straight (:files (:defaults "embark-org.el"))
   :defer 1
   :bind
   ("C-," . embark-act)
@@ -1091,6 +1092,10 @@ there, otherwise you are prompted for a message buffer."
 
   )
 
+(use-package embark-org
+  :straight nil
+  :defer t)
+
 (use-package embark-consult
   :after (embark consult)
   :demand t ; only necessary if you have the hook below
@@ -1191,26 +1196,26 @@ there, otherwise you are prompted for a message buffer."
 
   ;; map TAB to select for consult-completing-read-multiple
 
-  (defun consult-vertico--crm-select ()
-    "Select/deselect candidate."
-    (interactive)
-    (when (let ((cand (vertico--candidate)))
-            (and (vertico--match-p cand) (not (equal cand ""))))
-      (vertico-exit)))
+  ;; (defun consult-vertico--crm-select ()
+  ;;   "Select/deselect candidate."
+  ;;   (interactive)
+  ;;   (when (let ((cand (vertico--candidate)))
+  ;;           (and (vertico--match-p cand) (not (equal cand ""))))
+  ;;     (vertico-exit)))
 
-  (defun consult-vertico--crm-exit ()
-    "Select/deselect candidate and exit."
-    (interactive)
-    (when (let ((cand (vertico--candidate)))
-            (and (vertico--match-p cand) (not (equal cand ""))))
-      (run-at-time 0 nil #'exit-minibuffer))
-    (vertico-exit))
+  ;; (defun consult-vertico--crm-exit ()
+  ;;   "Select/deselect candidate and exit."
+  ;;   (interactive)
+  ;;   (when (let ((cand (vertico--candidate)))
+  ;;           (and (vertico--match-p cand) (not (equal cand ""))))
+  ;;     (run-at-time 0 nil #'exit-minibuffer))
+  ;;   (vertico-exit))
 
-  (define-key consult-crm-map [remap vertico-insert]
-              #'consult-vertico--crm-select)
+  ;; (define-key consult-crm-map [remap vertico-insert]
+  ;;             #'consult-vertico--crm-select)
 
-  (define-key consult-crm-map [remap exit-minibuffer]
-              #'consult-vertico--crm-exit)
+  ;; (define-key consult-crm-map [remap exit-minibuffer]
+  ;;             #'consult-vertico--crm-exit)
 
   (defun gr/consult-ripgrep-select-dir ()
     (interactive)
@@ -1471,8 +1476,6 @@ parses its input."
   ;;    (suffix . "          ${=key= id:15}    ${=type=:12}    ${crossref tags keywords keywords:*}")
   ;;    (preview . "${author editor} (${year issued date}) ${title}, ${journal publisher container-title collection-title}.\n")
   ;;    (note . "${=key=} - ${title} (${year})")))
-  :init
-  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
 
   :config
   ;; are these requires necessary?
