@@ -132,10 +132,10 @@ Symbols and Diacritics
   "Open myinit.org in new frame. With universal argument, open in current window."
   (interactive "P")
   (cond ((equal p '(4)) (find-file (concat user-emacs-directory "init.el")))
-        (t  (select-frame (make-frame-command))
-            (find-file (concat user-emacs-directory "init.el"))
-            (set-frame-position (selected-frame) 845 20)
-            (delete-other-windows))))
+        (t  (gr/make-frame)
+            (find-file (concat user-emacs-directory "init.el")))))
+            ;;(set-frame-position (selected-frame) 845 20)
+            ;;(delete-other-windows))))
 
 (global-set-key (kbd "C-c i") 'gr/open-init-file)
 
@@ -153,13 +153,6 @@ Symbols and Diacritics
 ;;   (set-frame-position (selected-frame) 200 100)
 ;;   (delete-other-windows))
 
-(defun gr/new-frame ()
-  "Open new frame, centered, on current monitor/"
-  (interactive)
-  (make-frame-on-current-monitor)
-  (unless (eq 'maximised (frame-parameter nil 'fullscreen))
-    (modify-frame-parameters
-     (selected-frame) '((user-position . t) (top . 0.5) (left . 0.5)))))
 
 (defun gr/insert-line (p)
   (interactive "P")

@@ -181,6 +181,8 @@
   (scroll-bar-mode -1)
   (setq scroll-bar-mode nil)
 
+  (setq confirm-kill-emacs 'y-or-n-p)
+
   (setq use-dialog-box nil)
 
   (setq recenter-positions '(middle top bottom))
@@ -274,6 +276,13 @@
 
   ;; (global-set-key [remap eval-last-sexp] 'pp-eval-last-sexp)
 
+  (defun gr/make-frame ()
+    "Make frame, centered, on current monitor."
+    (interactive)
+    (make-frame-on-current-monitor)
+    (unless (eq 'maximised (frame-parameter nil 'fullscreen))
+      (modify-frame-parameters
+       (selected-frame) '((user-position . t) (top . 0.5) (left . 0.5)))))
 
   ;; time and mode-line
 
@@ -315,7 +324,17 @@
   :bind
   ("s-{" . tab-bar-switch-to-prev-tab)
   ("s-}" . tab-bar-switch-to-next-tab)
+  ("M-s-n" . gr/tab-to-frame)
   :config
+  (defun gr/tab-to-frame ()
+    "Open current tab in new frame."
+    (interactive)
+    (let* ((buffer (current-buffer)))
+      (when (< 1 (length (tab-bar-tabs (window-frame))))
+        (tab-close))
+      (gr/make-frame)
+      (switch-to-buffer buffer)))
+
   (defun gr/tab-bar-face-setup ()
     (set-face-attribute
      'tab-bar nil
@@ -388,6 +407,13 @@ color."
 
 ;;;; MacOS Keybindings
 
+(defun gr/delete-frame-or-tab ()
+  "Delete frame or tab."
+  (interactive)
+  (if  (< 1 (length (tab-bar-tabs (window-frame))))
+      (tab-close)
+    (delete-frame)))
+
 ;; MacOS Keyboard Shortcuts
 (bind-keys*
  ("s-v" . yank)
@@ -398,8 +424,9 @@ color."
  ("s-Z" . redo)
  ("s-q" . save-buffers-kill-emacs)
  ("s-f" . consult-line)
- ("s-w" . delete-frame)
- ("s-n" . gr/new-frame))
+ ("s-w" . gr/delete-frame-or-tab)
+ ("s-N" . gr/make-frame)
+ ("s-n" . tab-new))
 
 (setq ns-alternate-modifier 'meta)
 (setq ns-command-modifier 'super)
@@ -2288,7 +2315,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 ;;;; markdown mode
 
-;; (use-package markdown-mode)
+(use-package markdown-mode
+  :disabled)
 
 
 ;;;; org-mind-map
@@ -2623,7 +2651,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
       (link-hint-open-link-at-point)
       (setq new-buffer (current-buffer))
       (switch-to-buffer buffer)
-      (switch-to-buffer-other-frame new-buffer))
+      (gr/make-frame)
+      (switch-to-buffer new-buffer))
     (link-hint-open-link-at-point))
 
   (define-key isearch-mode-map (kbd "C-'") 'avy-isearch)
@@ -2873,7 +2902,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom-face
   (aw-leading-char-face ((t (:family "Menlo" :foreground "red" :height 4.0))))
   :custom
-  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?l))
   (aw-scope 'visible)
   (aw-dispatch-always t)
   :config
@@ -2885,6 +2914,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           (?m aw-copy-window "Move Current to Target")
           (?2 aw-split-window-vert "Split Vert Window")
           (?3 aw-split-window-horz "Split Horz Window")
+          (?k aw-delete-window "Delete Window")
           (?0 aw-delete-window "Delete Window")
 
           ;;(?F aw-split-window-fair "Split Fair Window")
