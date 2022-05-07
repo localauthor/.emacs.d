@@ -22,11 +22,7 @@
   (let ((export-format (or export-format
                            (downcase (symbol-name (intern-soft bibtex-dialect))))))
       (shell-command-to-string
-       (format "curl -s -d '%s' -H 'Content-Type: text/plain'
-       '%s/%s' | curl -s -d @- -H 'Content-Type:
-       application/json' '%s/export?format=%s'" item
-       ebib-zotero-translation-server server
-       ebib-zotero-translation-server export-format))))
+       (format "curl -s -d '%s' -H 'Content-Type: text/plain' '%s/%s' | curl -s -d @- -H 'Content-Type: application/json' '%s/export?format=%s'" item ebib-zotero-translation-server server ebib-zotero-translation-server export-format))))
 
 ;;;###autoload
 (defun ebib-zotero-import-url (URL)
