@@ -302,11 +302,11 @@
                   ;;mode-line-client
                   ;;mode-line-modified
                   ;;mode-line-remote
-                  " "
+                  "  "
                   display-time-string ;; left align
-                  " "
                   mode-line-frame-identification
                   mode-line-buffer-identification
+                  "  "
                   mode-line-position
                   "  "
                   mode-line-modes
@@ -1864,9 +1864,12 @@ following the key as group 3."
 
 (use-package zk-extras
   :straight nil
-  :defer 1)
+  :defer 1
+  :config
+  (setq zk-core-notes-count (length (zk-non-luhmann-list)))
+  (setq zk-luhmann-notes-count (length (zk-luhmann-files))))
 
-(use-package zk-link-hint
+  (use-package zk-link-hint
   :straight nil
   :defer 1)
 
@@ -1916,8 +1919,8 @@ following the key as group 3."
   (defhydra hydra-zk (:hint nil
                             :color blue)
     "
-  _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: dir ripgrep
-  _h s_: Strct Nts  _c_: Insert Cite   _R_: Rename Note    _r_: zk grep
+  _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: to desktop
+  _h s_: Strct Nts  _c_: Insert Cite   _r_: Rename Note    _z_: zk grep
   _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib-open
                   _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz
    [Luhmann: %`zk-luhmann-notes-count | Notes: %`zk-core-notes-count]"
@@ -1980,7 +1983,8 @@ following the key as group 3."
     ("c" zk-core-index "core")
     ("n" zk-non-luhmann-index "non-Luhmann")
     ("L" zk-lit-notes-index "lit")
-    ("e" zk-ed-index "ed")))
+    ("e" zk-ed-index "ed")
+    ("q" nil)))
 
 (defun zk-org-try-to-follow-link (fn &optional arg)
   "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.

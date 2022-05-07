@@ -5,6 +5,7 @@
 ;;; Code:
 (require 'zk)
 (require 'zk-index)
+(require 'zk-luhmann)
 ;;(require 'dickinson)
 ;;(require 'vertico)
 
@@ -118,14 +119,22 @@ Optionally takes list of FILES."
                          all-notes))))
     (zk-word-count notes)))
 
+(defvar zk-core-notes-count nil)
+(defvar zk-luhmann-notes-count nil)
+(defvar gr/dickinson-ref-regexp "\\(Fr[0-9]\\{1,4\\}\\)")
+
 ;;;###autoload
-(defun zk-stats ()
-  "Report number of notes, various categories."
+(defun zk-stats (&optional arg)
+  "Report number of notes, various categories.
+Optional ARG to inhibit message, for resetting counts."
   (interactive)
-  (message (format "Notes: %s | Luhmann: %s | Lit: %s"
-                   (length (zk-non-luhmann-list))
-                   (length (zk-luhmann-files))
-                   (length (zk-lit-notes-list)))))
+  (setq zk-core-notes-count (length (zk-non-luhmann-list)))
+  (setq zk-luhmann-notes-count (length (zk-luhmann-files)))
+  (unless arg
+    (message (format "Notes: %s | Luhmann: %s | Lit: %s"
+                     zk-core-notes-count
+                     zk-luhmann-notes-count
+                     (length (zk-lit-notes-list))))))
 
 ;;;###autoload
 (defun zk-non-luhmann-list ()

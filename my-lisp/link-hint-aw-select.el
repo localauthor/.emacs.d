@@ -18,10 +18,8 @@
 (defun link-hint-aw-select ()
   "Use avy to open a link in a window selected with ace-window."
   (interactive)
-  (unless
-      (avy-with link-hint-aw-select
-        (link-hint--one :aw-select))
-    (message "No visible links")))
+  (avy-with link-hint-aw-select
+    (link-hint--one :aw-select)))
 
 ;;; File-link support
 
@@ -117,3 +115,5 @@
 
 
 (provide 'link-hint-aw-select)
+
+;;; link-hint-aw-select.el ends here
