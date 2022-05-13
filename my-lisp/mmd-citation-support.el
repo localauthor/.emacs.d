@@ -216,7 +216,6 @@ Collects mmd-citation keys from current buffer."
           (org-find-olp '("Bibliography") 'this-buffer)))
     (error "No citations")))
 
-
 ;;; convert mmd-citations to pandoc or org-mode
 
 (defun gr/convert-citations-mmd-to-pandoc (&optional file)
@@ -280,10 +279,29 @@ Collects mmd-citation keys from current buffer."
           (kill-buffer))
       ))
 
-(provide 'mmd-citation-support)
-
-
 ;; ;;; mmd completion-at-point
+
+(defun gr/mmd-citation-completion-at-point ()
+  "Complete mmd-citations at point."
+  (save-excursion
+    (let ((origin (point)))
+      (when (and (or (eq ?# (char-before))
+                     (re-search-backward "\\[\\#"
+                                         (line-beginning-position)
+                                         t))
+                 (save-excursion
+                   (not (search-forward "]" origin t))))
+        (let* ((candidates (citar--get-candidates))
+               (begin (match-end 0))
+               (end origin))
+          (list begin end candidates
+                :exit-function
+                (lambda (str _status)
+                  ;; take completion str and replace with key
+                  (delete-char (- (length str)))
+                  (insert (cadr (assoc str candidates)) "]"))))))))
+
+;; (add-to-list 'completion-at-point-functions 'gr/mmd-citation-completion-at-point)
 
 ;; (defun citation-key-completion-at-point ()
 ;;   "Completion-at-point function for citation-keys."
@@ -300,4 +318,4 @@ Collects mmd-citation keys from current buffer."
 ;;               candidates
 ;;               :exclusive 'no)))))
 
-;; (add-to-list 'completion-at-point-functions 'citation-key-completion-at-point)
+(provide 'mmd-citation-support)
