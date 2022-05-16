@@ -40,7 +40,7 @@
 ;; However, the variable will be out of sync unless we refresh it, like so:
 
 (defun gr/refresh-cite-keys (&rest _)
-  "Refresh 'gr/all-cite-keys'.")
+  "Refresh 'gr/all-cite-keys'."
   (interactive)
   (setq gr/all-cite-keys (mapcar (lambda (x) (nth 1 x)) (citar--get-candidates))))
 
