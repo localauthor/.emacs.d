@@ -18,18 +18,34 @@ Symbols and Diacritics
   ("E" (insert "€"))
 )
 
-(defun gr/daily-notes (p)
+;;;###autoload
+(defun gr/daily-notes ()
   "Pop up dailynotes.org."
-  (interactive "P")
+  (interactive)
   (let ((buffer (find-file-noselect
-                 (concat org-directory "/dailynotes.org"))))
-  (cond ((equal p '(4))
-         (select-frame (make-frame-command))
-            (find-file (concat org-directory "/dailynotes.org"))
-            (set-frame-position (selected-frame) 845 20)
-            (delete-other-windows))
-        (t (pop-to-buffer buffer
-                          '(display-buffer-at-bottom))))))
+                 (concat org-directory "/dailynotes.org")))
+        (date (list (format-time-string "%Y-%m-%d %A"))))
+    (cond ((equal current-prefix-arg '(4))
+           (select-frame (make-frame-command))
+           (find-file (concat org-directory "/dailynotes.org"))
+           (set-frame-position (selected-frame) 845 20)
+           (delete-other-windows))
+          (t (pop-to-buffer buffer
+                            '(display-buffer-at-bottom))))))
+
+(defun gr/daily-notes-new-headline ()
+  (interactive)
+  (let ((date (list (format-time-string "%Y-%m-%d %A"))))
+    (if-let ((headline
+              (ignore-errors
+                (org-find-olp date
+                              (concat org-directory
+                                      "/dailynote.org")))))
+        (goto-char headline)
+      (goto-char (point-min))
+      (insert "* " (car date) "\n- |\n\n")
+      (search-backward "|")
+      (delete-char 1))))
 
 (defun gr/calfw-open-org-calendar ()
   (interactive)
@@ -203,6 +219,25 @@ Symbols and Diacritics
 
 ;;;; capitalize, upcase, downcase dwim
 
+(defun title-case-region ()
+  "Render string in region in title case."
+  (interactive)
+  (let* ((input (buffer-substring (region-beginning)
+                                  (region-end)))
+         (words (split-string input))
+         (first (pop words))
+         (last (car(last words)))
+         (do-not-capitalize '("a" "an" "and" "as" "at" "but" "by" "en" "for" "if" "in" "of" "on" "or" "the" "to" "via"))
+         (output (concat (capitalize first)
+                         " "
+                         (mapconcat (lambda (w)
+                                      (if (not(member (downcase w) do-not-capitalize))
+                                          (capitalize w)(downcase w)))
+                                    (butlast words) " ")
+                         " " (capitalize last))))
+    (replace-string input output nil (region-beginning)(region-end))))
+
+
 (defun ct/word-boundary-at-point-or-region (&optional callback)
   "Return the boundary (beginning and end) of the word at point, or region, if any.
 Forwards the points to CALLBACK as (CALLBACK p1 p2), if present.
@@ -229,6 +264,7 @@ URL: https://christiantietze.de/posts/2021/03/change-case-of-word-at-point/"
 (defun ct/downcase-word-at-point ()
   (interactive)
   (ct/word-boundary-at-point-or-region #'downcase-region))
+
 (defun ct/upcase-word-at-point ()
   (interactive)
   (ct/word-boundary-at-point-or-region #'upcase-region))
@@ -236,6 +272,7 @@ URL: https://christiantietze.de/posts/2021/03/change-case-of-word-at-point/"
 (defun ct/capitalize-region (p1 p2)
   (downcase-region p1 p2)
   (upcase-initials-region p1 p2))
+
 (defun ct/capitalize-word-at-point ()
   (interactive)
   (ct/word-boundary-at-point-or-region #'ct/capitalize-region))
@@ -244,6 +281,7 @@ URL: https://christiantietze.de/posts/2021/03/change-case-of-word-at-point/"
 (global-set-key (kbd "M-c") #'ct/capitalize-word-at-point)
 (global-set-key (kbd "M-u") #'ct/upcase-word-at-point)
 (global-set-key (kbd "M-l") #'ct/downcase-word-at-point)
+(global-set-key (kbd "M-U") #'title-case-region)
 
 
 
