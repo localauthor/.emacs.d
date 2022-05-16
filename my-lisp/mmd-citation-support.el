@@ -297,21 +297,22 @@ Optional FILE."
   "Complete mmd-citations at point."
   (save-excursion
     (let ((origin (point)))
-      (when (and (or (eq ?# (char-before))
-                     (re-search-backward "\\[\\#"
-                                         (line-beginning-position)
-                                         t))
+      (when (and (re-search-backward "\\[\\#"
+                                     (line-beginning-position)
+                                     t)
                  (save-excursion
                    (not (search-forward "]" origin t))))
-        (let* ((candidates (citar--get-candidates))
-               (begin (match-end 0))
-               (end origin))
-          (list begin end candidates
+        (let ((begin (match-end 0))
+              (end origin))
+          (list begin end
+                (completion-table-dynamic
+                 (lambda (_)
+                   (citar--get-candidates)))
                 :exit-function
                 (lambda (str _status)
                   ;; take completion str and replace with key
                   (delete-char (- (length str)))
-                  (insert (cadr (assoc str candidates)) "]"))))))))
+                  (insert (car (last (split-string str))) "]"))))))))
 
 ;; (add-to-list 'completion-at-point-functions 'gr/mmd-citation-completion-at-point)
 
