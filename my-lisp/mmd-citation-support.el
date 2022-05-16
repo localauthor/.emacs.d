@@ -1,6 +1,7 @@
 ;;; mmd-citation-support.el --- Add support for multi-markdown style citations    -*- lexical-binding: t; -*-
 
-;; NOTES:
+;;; Commentary:
+
 ;;
 ;; Adds support for multi-markdown citations to citar, link-hint, and embark
 ;;
@@ -8,6 +9,8 @@
 
 ;; (require 'devonthink-dir)
 ;; (require 'ebib-extras)
+
+;;; Code:
 
 (require 'citar)
 ;; (require 'citar-file)
@@ -37,6 +40,7 @@
 ;; However, the variable will be out of sync unless we refresh it, like so:
 
 (defun gr/refresh-cite-keys (&rest _)
+  "Refresh 'gr/all-cite-keys'.")
   (interactive)
   (setq gr/all-cite-keys (mapcar (lambda (x) (nth 1 x)) (citar--get-candidates))))
 
@@ -44,6 +48,7 @@
 
 ;;;###autoload
 (defun gr/mmd-citation-activate (limit)
+  "Activate font-lock on mmd-citations up to LIMIT."
   (when (re-search-forward gr/full-mmd-citation-regexp limit t)
     (while (eq 'mmd-tooltip (get-text-property (match-beginning 4) 'help-echo))
       (goto-char (match-end 4))
@@ -87,24 +92,26 @@
 
 ;;;###autoload
 (defun mmd-tooltip (_win _obj pos)
-    (save-excursion
-      (goto-char pos)
-      (let* ((citar-templates
-              '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
-                (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords keywords:*}")
-                (preview . "${author editor} (${year issued date})\n${title}\n${journal publisher}")
-                (note . "Notes on ${author editor}, ${title}")))
-             (mmd-citation (progn
-                             (when (thing-at-point-looking-at "[#|\\[]")
-                               (forward-char 2))
-                             (list (thing-at-point 'symbol t))))
-             (entry (citar--ensure-entries mmd-citation)))
-        (if entry
-            (citar-format-reference entry)
-          (message "No record")))))
+  "Generate tooltip for mmd-citation at POS."
+  (save-excursion
+    (goto-char pos)
+    (let* ((citar-templates
+            '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
+              (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords keywords:*}")
+              (preview . "${author editor} (${year issued date})\n${title}\n${journal publisher}")
+              (note . "Notes on ${author editor}, ${title}")))
+           (mmd-citation (progn
+                           (when (thing-at-point-looking-at "[#|\\[]")
+                             (forward-char 2))
+                           (list (thing-at-point 'symbol t))))
+           (entry (citar--ensure-entries mmd-citation)))
+      (if entry
+          (citar-format-reference entry)
+        (message "No record")))))
 
 ;;;###autoload
 (defun mmd-tooltip-toggle ()
+  "Toggle 'mmd-tooltip'."
   (interactive)
   (if (bound-and-true-p mmd-tooltip-enable)
       (progn
@@ -129,12 +136,15 @@
 ;;; link-hint integration
 
 (defun link-hint--mmd-citation-at-point-p ()
+  "Return t if mmd-citation at point."
   (thing-at-point-looking-at gr/mmd-citation-regexp))
 
 (defun link-hint--next-mmd-citation (bound)
+  "Find next mmd-citation in buffer, up to BOUND."
   (link-hint--next-regexp gr/mmd-citation-regexp bound))
 
 (defun link-hint--open-mmd-citation ()
+  "Call 'citar-open' on mmd-citation key at point."
   (let* ((cite (when (thing-at-point-looking-at "[#|\\[]")
                 (progn
                   (forward-char 2)
@@ -184,7 +194,7 @@
 ;;; append-bibliography
 
 (defun gr/list-buffer-mmd-citations ()
-  "Returns a list of all keys from mmd-citations in buffer."
+  "Return a list of all keys from mmd-citations in buffer."
   (interactive)
   (save-match-data
     (let ((pos 0)
@@ -219,7 +229,8 @@ Collects mmd-citation keys from current buffer."
 ;;; convert mmd-citations to pandoc or org-mode
 
 (defun gr/convert-citations-mmd-to-pandoc (&optional file)
-  "Convert citations in buffer from mmd to pandoc style."
+  "Convert citations in buffer from mmd to pandoc style.
+Optional FILE."
   (interactive)
   (when file
     (find-file file))
@@ -250,7 +261,8 @@ Collects mmd-citation keys from current buffer."
 
 
 (defun gr/convert-citations-mmd-to-org-cite (&optional file)
-  "Convert citations in buffer from mmd to pandoc style."
+  "Convert citations in buffer from mmd to pandoc style.
+Optional FILE."
   (interactive)
   (when file
     (find-file file))
@@ -319,3 +331,4 @@ Collects mmd-citation keys from current buffer."
 ;;               :exclusive 'no)))))
 
 (provide 'mmd-citation-support)
+;;; mmd-citation-support.el ends here
