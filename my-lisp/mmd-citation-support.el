@@ -26,7 +26,7 @@
 ;;; variables
 
 (defvar gr/mmd-citation-regexp "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]")
-(defvar gr/full-mmd-citation-regexp "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#\\(?4:.[[:alpha:]-']+[[:digit:]]\\{4\\}.?\\)]\\)")
+(defvar gr/full-mmd-citation-regexp "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#\\(?4:[[:alpha:]-']*?[[:digit:]]\\{4\\}.?\\)]\\)")
 
 ;;; add highlighting and tooltips to mmd-citekeys
 
