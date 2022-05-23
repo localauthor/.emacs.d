@@ -50,17 +50,18 @@
 (defun gr/mmd-citation-activate (limit)
   "Activate font-lock on mmd-citations up to LIMIT."
   (when (re-search-forward gr/full-mmd-citation-regexp limit t)
-    (while (eq 'mmd-tooltip (get-text-property (match-beginning 4) 'help-echo))
-      (goto-char (match-end 4))
-      (re-search-forward gr/full-mmd-citation-regexp limit))
     (if (member (match-string 4) gr/all-cite-keys)
-        (add-text-properties (- (match-beginning 4) 1) ;; -1 to match the #
+        (progn
+          (add-text-properties (- (match-beginning 4) 1) ;; -1 to match the #
+                               (match-end 4)
+                               '(font-lock-face font-lock-keyword-face
+                                                help-echo mmd-tooltip))
+          t)
+      (progn
+        (add-text-properties (- (match-beginning 4) 1)
                              (match-end 4)
-                             '(font-lock-face font-lock-keyword-face
-                                              help-echo mmd-tooltip))
-      (add-text-properties (- (match-beginning 4) 1)
-                           (match-end 4)
-                           '(font-lock-face font-lock-warning-face)))))
+                             '(font-lock-face font-lock-warning-face))
+        t))))
 
 (font-lock-add-keywords 'org-mode
                         '((gr/mmd-citation-activate)))
