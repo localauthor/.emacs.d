@@ -37,6 +37,8 @@
 
 ;; Pop-up frame opens in 'view-mode', which see for mode-specific keybindings.
 
+;; Pressing 'q' closes the pop-up frame and returns point to previous window.
+
 
 ;;; Code:
 
@@ -54,7 +56,6 @@
   '((width . 80)
     (height . 30)
     (undecorated . t)
-    (dedicated . nil)
     (left-fringe . 0)
     (right-fringe . 0)
     (tool-bar-lines . 0)
@@ -63,8 +64,7 @@
     (inhibit-double-buffering . t)
     (tool-bar-lines . 0)
     (vertical-scroll-bars . nil)
-    (menu-bar-lines . 0)
-    (fullscreen . nil))
+    (menu-bar-lines . 0))
   "Parameters for pop-up frame called by 'link-hint-preview'."
   :type 'list)
 
@@ -121,7 +121,8 @@ Set pop-up frame parameters in 'link-hint-preview-frame-parameters'."
       (setq link-hint-preview--kill-last t))
     (display-buffer-pop-up-frame
      buffer
-     `((pop-up-frame-parameters . ,link-hint-preview-frame-parameters)))
+     `((pop-up-frame-parameters . ,link-hint-preview-frame-parameters)
+       (dedicated . t)))
     (with-current-buffer buffer
       (setq-local link-hint-preview--last-frame frame)
       (link-hint-preview-mode))))
@@ -136,11 +137,37 @@ Set pop-up frame parameters in 'link-hint-preview-frame-parameters'."
   "Popup a frame containing file at LINK.
 Set popup frame parameters in 'link-hint-preview-frame-parameters'."
   (interactive)
-  (let* ((buffer (get-file-buffer link)))
+  (let* ((buffer (get-file-buffer link))
+         (frame (selected-frame)))
     (setq link-hint-preview--last-frame (selected-frame))
     (if (get-file-buffer link)
         (setq link-hint-preview--kill-last nil)
       (setq buffer (find-file-noselect link))
+      (setq link-hint-preview--kill-last t))
+    (display-buffer-pop-up-frame
+     buffer
+     `((pop-up-frame-parameters . ,link-hint-preview-frame-parameters)))
+    (with-current-buffer buffer
+      (setq-local link-hint-preview--last-frame frame)
+      (link-hint-preview-mode))))
+
+
+;;; org-link support
+
+(link-hint-define-type 'org-link
+:preview #'link-hint-preview-org-link)
+
+(defun link-hint-preview-org-link ()
+  "Popup a frame containing file of org-link.
+Set popup frame parameters in 'link-hint-preview-frame-parameters'."
+  (interactive)
+  (let* ((file (org-element-property :path (org-element-context)))
+         (buffer (get-file-buffer file))
+         (frame (selected-frame)))
+    (setq link-hint-preview--last-frame (selected-frame))
+    (if (get-file-buffer file)
+        (setq link-hint-preview--kill-last nil)
+      (setq buffer (find-file-noselect file))
       (setq link-hint-preview--kill-last t))
     (display-buffer-pop-up-frame
      buffer
