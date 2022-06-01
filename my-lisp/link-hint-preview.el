@@ -1,13 +1,75 @@
-;;; link-hint-preview.el --- Add popup preview function to link-hint -*- lexical-binding: t; -*-
+;;; link-hint-preview.el --- Preview link contents in a pop-up frame with link-hint -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2022  Grant Rosson
+
+;; Author: Grant Rosson <https://github.com/localauthor>
+;; Created: May 31, 2022
+;; License: GPL-3.0-or-later
+;; Version: 0.1
+;; Homepage: https://github.com/localauthor/link-hint-preview
+;; Package-Requires: ((emacs "24.3") (link-hint "0.1"))
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 
 ;;; Commentary:
 
-;; Incorporates pop-up preview function into 'link-hint'.
+;; Preview link contents in a pop-up frame with link-hint.
+
+;; Set frame parameters in the alist 'link-hint-preview-frame-parameters'.
+
+;; Set additional configurations by adding to 'link-hint-preview-mode-hook'.
+;; For example, to remove mode-line and tab-bar from the pop-up frame, evaluate:
+
+;; (add-hook 'link-hint-preview-mode-hook '(lambda () (setq mode-line-format nil)))
+;; (add-hook 'link-hint-preview-mode-hook 'toggle-frame-tab-bar)
+
 
 ;;; Code:
 
 (require 'link-hint)
 (require 'zk-link-hint)
+
+;;; Variables
+
+(defgroup link-hint-preview nil
+  "Preview link contents in pop-up frame with link-hint."
+  :group 'convenience
+  :prefix "link-hint-preview-")
+
+(defcustom link-hint-preview-frame-parameters
+  '((width . 80)
+    (height . 30)
+    (undecorated . t)
+    (dedicated . nil)
+    (left-fringe . 0)
+    (right-fringe . 0)
+    (tool-bar-lines . 0)
+    (line-spacing . 0)
+    (no-special-glyphs . t)
+    (inhibit-double-buffering . t)
+    (tool-bar-lines . 0)
+    (vertical-scroll-bars . nil)
+    (menu-bar-lines . 0)
+    (fullscreen . nil)
+    (minibuffer . nil))
+  "Parameters for pop-up frame called by 'link-hint-preview'."
+  :type 'list)
+
+(defvar link-hint-preview--kill-last nil)
+(defvar-local link-hint-preview--last-frame nil)
+
 
 ;;; Minor Mode
 
@@ -15,10 +77,10 @@
   "Minor mode to simulate buffer local keybindings."
   :init-value nil
   :keymap '(((kbd "q") . link-hint-preview-close-frame))
-  (read-only-mode)
-  (tab-bar-mode -1))
+  (read-only-mode))
 
 (defun link-hint-preview-close-frame ()
+  "Close frame opened with 'link-hint-preview'."
   (interactive)
   (let ((frame link-hint-preview--last-frame))
     (link-hint-preview-mode -1)
