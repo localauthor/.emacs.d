@@ -22,7 +22,7 @@
         ("b" . (lambda () (interactive) (call-interactively 'gr/elfeed-search-show-entry) (gr/elfeed-show-xwwp))))
   :config
   (setq elfeed-db-directory "~/Dropbox/.elfeeddb")
-  (setq elfeed-search-filter "@6-months-ago +unread -journal -filtered")
+  (setq elfeed-search-filter "@6-months-ago +unread +AmLit")
   (setq elfeed-search-remain-on-entry t)
   (setq elfeed-show-entry-switch 'display-buffer)
 
@@ -114,7 +114,7 @@
   :after elfeed
   :bind
   (:map elfeed-show-mode-map
-        ("o" . elfeed-goodies/show-ace-link))
+        ("o" . elfeed-goodies/show-link-hint))
   :init
   (elfeed-goodies/setup)
   :custom
