@@ -45,23 +45,26 @@
   (setq gr/all-cite-keys (mapcar (lambda (x) (nth 1 x)) (citar--get-candidates))))
 
 (advice-add #'citar-refresh :after #'gr/refresh-cite-keys)
+;; (advice-remove #'citar-refresh #'gr/refresh-cite-keys)
 
-;;;###autoload
+
 (defun gr/mmd-citation-activate (limit)
   "Activate font-lock on mmd-citations up to LIMIT."
   (when (re-search-forward gr/full-mmd-citation-regexp limit t)
-    (if (member (match-string 4) gr/all-cite-keys)
-        (progn
-          (add-text-properties (- (match-beginning 4) 1) ;; -1 to match the #
-                               (match-end 4)
-                               '(font-lock-face font-lock-keyword-face
-                                                help-echo mmd-tooltip))
-          t)
-      (progn
-        (add-text-properties (- (match-beginning 4) 1)
-                             (match-end 4)
-                             '(font-lock-face font-lock-warning-face))
-        t))))
+    (let ((beg (- (match-beginning 4) 1)) ;; -1 to match the #
+          (end (match-end 4))
+          (key (match-string 4)))
+      (funcall 'gr/mmd-citation-fontify key beg end)
+      t)))
+
+(defun gr/mmd-citation-fontify (key beg end)
+  (if (member key gr/all-cite-keys)
+      (add-text-properties beg end
+                           '(font-lock-face font-lock-keyword-face
+                                            help-echo mmd-tooltip))
+    (add-text-properties beg end
+                         '(font-lock-face font-lock-warning-face))))
+
 
 (font-lock-add-keywords 'org-mode
                         '((gr/mmd-citation-activate)))
@@ -79,7 +82,6 @@
 ;; or: (mapcar (lambda (x) (nth 1 x)) citar--candidates-cache) ;; faaast, but need cache first
 ;; or: (mapcar (lambda (x) (elt x 1)) citar--candidates-cache)
 ;; or: (mapcar (lambda (x) (nth 1 x)) (citar--get-candidates)) ;; (require 'citar); and slow to run each tme
-
 
 (defvar mmd-tooltip-enable t)
 
@@ -124,15 +126,21 @@
 
 ;;; citar integration
 
+(defvar gr/last-mmd-citation nil)
+
 ;;;###autoload
-(defun gr/citar-mmd-insert-citation (key-entry)
+(defun gr/citar-mmd-insert-citation ()
   "Insert BibTeX KEY-ENTRY in mmd format, with option to include PAGES."
-  (interactive (list (citar-select-ref)))
-  (let* ((pages (read-from-minibuffer "Pages: "))
-         (mmd (format "[#%s]" (car key-entry))))
-    (if (string= "" pages) (insert mmd)
-      (insert (format "[%s]" pages) mmd))
-    (kill-new mmd)))
+  (interactive)
+  (if current-prefix-arg
+      (insert gr/last-mmd-citation)
+    (let* ((key-entry (citar-select-ref))
+           (pages (read-from-minibuffer "Pages: "))
+           (mmd (format "[#%s]" (car key-entry))))
+      (if (string= "" pages) (insert mmd)
+        (insert (format "[%s]" pages) mmd))
+      (setq gr/last-mmd-citation mmd)
+      (kill-new mmd))))
 
 ;;; link-hint integration
 
