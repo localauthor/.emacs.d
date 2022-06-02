@@ -1502,7 +1502,7 @@ parses its input."
   (citar-library-paths (list-dirs-recursively devonthink-dir))
   (citar-notes-paths '("~/Dropbox/ZK/Zettels"))
   (citar-additional-fields '("doi" "url" "crossref"))
-  (citar-file-extensions '("pdf" "epub"))
+  (citar-library-file-extensions '("pdf" "epub"))
   (citar-file-note-extensions '("org" "md"))
   (citar-file-open-function 'citar-file-open-external)
   (citar-file-additional-files-separator " ")
@@ -1565,6 +1565,11 @@ parses its input."
            (string (read-string "Search string: ")))
       (pdf-occur-search files string t)))
 
+  ;; crossref finding only works one way
+  ;; ie, if Wolosky2004 is in collection (lists crossref) Bercovitch2004
+  ;; then citar-open Wolosky2004 will show results Bercovitch2004
+  ;; but citar-open Bercovitch2004 will not show Wolosky2004 or Packer2004
+
   (defun gr/citar-file--make-filename-regexp (keys extensions &optional additional-sep)
   "Regexp matching file names starting with KEYS and ending with EXTENSIONS.
 When ADDITIONAL-SEP is non-nil, it should be a regular expression
@@ -1574,20 +1579,35 @@ as group 1, the extension as group 2, and any additional text
 following the key as group 3."
   (let* ((entry (when keys
                   (citar--get-entry (car keys))))
-         (xref (citar-get-value "crossref" entry)))
+         (xref (citar--get-value "crossref" entry)))
     (unless (or (null xref) (string-empty-p xref))
       (push xref keys))
     (when (and (null keys) (string-empty-p additional-sep))
       (setq additional-sep nil))
     (concat
      "\\`"
-     (if keys (regexp-opt keys "[0-9]\\{12\\}?.*\\(?1:") ".*?\\(?1:[a-z]+[0-9]\\{4\\}[a-z]?\\)")
+     (if keys (regexp-opt keys "[0-9]\\{12\\}?.*\\(?1:") ".*?\\(?1:[a-z]+[0-9]\\{4\\}[a-z]?\\).?")
      (when additional-sep (concat "\\(?3:" additional-sep "[^z-a]*\\)?"))
      "\\."
      (if extensions (regexp-opt extensions "\\(?2:") "\\(?2:[^.]*\\)")
      "\\'")))
 
-(advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp))
+  (advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp)
+
+  (defun citar-xref-notes ()
+    (let* ((hasnote (citar-file--has-file citar-notes-paths
+                                          citar-file-note-extensions))
+           (candidates (citar-file--has-file-notes-hash))
+           (note-keys))
+      (maphash
+       (lambda (citekey entry)
+         (when (funcall hasnote citekey entry)
+           (push citekey note-keys)))
+       candidates)
+      note-keys))
+
+  (setq citar-keys-with-notes-functions '(citar-file--keys-with-file-notes citar-xref-notes))
+  )
 
 ;;;; org-cite
 
