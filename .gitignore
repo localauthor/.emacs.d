@@ -17,6 +17,7 @@ bookmarks
 /webkit/
 /history
 /priv-lisp/*
+/priv-lisp
 /projects
 /recentf
 *.elc
@@ -34,3 +35,4 @@ custom.el
 /eww-bookmarks
 /my-lisp/zk-luhmann/
 /.emacs.desktop*
+/oauth2-auto.plist
