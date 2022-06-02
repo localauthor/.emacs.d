@@ -739,6 +739,16 @@ color."
   (with-eval-after-load "org"
     (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)))
 
+(use-package link-hint-preview
+  :straight nil
+  :defer 1
+  :hook
+  (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
+  (link-hint-preview-mode-hook . toggle-frame-tab-bar)
+  :bind
+  (:map gr-map
+        ("p" . link-hint-preview)))
+
 ;;;; recentf
 
 (use-package recentf
