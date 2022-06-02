@@ -15,18 +15,14 @@
 
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
 
-;; added to run native comp
-(setq comp-speed 2)
-(setq comp-deferred-compilation t)
-
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
+      (bootstrap-version 6))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
         (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
          'silent 'inhibit-cookies)
       (goto-char (point-max))
       (eval-print-last-sexp)))
@@ -36,13 +32,14 @@
 (setq straight-host-usernames '((github . "localauthor")))
 
 ;; Replace use-package with straight-use-package
-;; https://github.com/raxod502/straight.el/blob/develop/README.md#integration-with-use-package
+;; https://github.com/radian-software/straight.el/blob/develop/README.md#integration-with-use-package
 
 (straight-use-package 'use-package)
 
 (setq straight-use-package-by-default t)
 
 (setq use-package-hook-name-suffix nil)
+
 
 ;; (require 'package)
 ;; (add-to-list 'package-archives
@@ -57,7 +54,7 @@
 (setq initial-major-mode 'emacs-lisp-mode)
 (setq initial-scratch-message nil)
 
-(setq warning-suppress-types '(comp))
+(setq warning-suppress-types '((comp)))
 
 (defun efs/display-startup-time ()
   (message "Emacs loaded in %s with %d garbage collections."
@@ -74,7 +71,8 @@
 (setq mu4e-mu-binary "/usr/local/bin/mu")
 
 (setq safe-local-variable-values
-      '((eval setq-local zk-directory default-directory)
+      '((eval gr/daily-notes-new-headline)
+        (eval setq-local zk-directory default-directory)
         (eval face-remap-add-relative 'org-level-8 :family "Monospace")
         (eval face-remap-add-relative 'org-level-7 :family "Monospace")
         (eval face-remap-add-relative 'org-level-6 :family "Monospace")
@@ -158,7 +156,7 @@
   (:map help-mode-map
         ("o" . link-hint-open-link))
   :config
-  ;; (pixel-scroll-precision-mode)
+  (pixel-scroll-precision-mode)
   (setq set-mark-command-repeat-pop nil)
   (prefer-coding-system 'utf-8)
   (setq-default buffer-file-coding-system 'utf-8
@@ -171,7 +169,7 @@
   (set-keyboard-coding-system 'utf-8)
   (set-default-coding-systems 'utf-8)
 
-  (setq make-backup-files nil) ;; stop creating backup~ files
+
   (setq auto-save-default nil) ;; stop creating #autosave# files
   (setq create-lockfiles nil)  ;; stop creating .# files
 
@@ -205,7 +203,8 @@
 
   (setq minibuffer-follows-selected-frame nil)
 
-  (setq tab-always-indent 't)
+  (setq find-library-include-other-files nil)nil
+
   (setq-default indent-tabs-mode nil)   ;; use spaces for tabs
   (setq sentence-end-double-space nil)
 
@@ -264,6 +263,7 @@
 
   ;; yes-or-no function
 
+  (setq y-or-n-p-use-read-key t) ;; needed for embark
   (setq use-short-answers t) ;; new in emacs 28, replaces (fset 'yes-or-no-p 'y-or-n-p)
 
   (defun y-or-n-p-with-return (orig-func &rest args)
@@ -398,8 +398,16 @@
 ;;(load-theme 'gr-dark t)
 
 ;; (progn (load-theme 'modus-operandi t) (set-face-attribute
-;;    'show-paren-match nil :underline nil :foreground "#ffffff" :background
-;;    "systemGreenColor"))
+;;'show-paren-match nil :underline nil :foreground "#ffffff" :background
+;;"systemGreenColor"))
+
+;; (use-package modus-themes
+;;   :straight nil
+;;   :custom
+;;   (modus-themes-headings
+;;    (quote ((1 . (underline (height 1)))
+;;            (2 . ((foreground "navy blue"))))))
+;;   )
 
 ;; set region highlighting, per
 ;; https://github.com/DarwinAwardWinner/dotemacs#dont-use-ns_selection_fg_color-and-ns_selection_bg_color
@@ -451,12 +459,12 @@ color."
  ("s-c" . kill-ring-save)
  ("s-s" . save-buffer)
  ("s-z" . undo)
- ("s-Z" . redo)
+ ;;("s-Z" . redo)
  ("s-q" . save-buffers-kill-emacs)
  ("s-f" . consult-line)
  ("s-w" . gr/delete-frame-or-tab)
- ("s-N" . gr/make-frame)
- ("s-n" . tab-new))
+ ("s-t" . tab-new)
+ ("s-n" . gr/make-frame))
 
 (setq ns-alternate-modifier 'meta)
 (setq ns-command-modifier 'super)
@@ -583,7 +591,7 @@ color."
          (window-height . 0.6)
          (side . bottom))
 
-        ("\\*Luhmann-Index"
+        ("\\*ZK-Luhmann"
          (display-buffer-at-bottom)
          (window-height . 0.4)
          (side . bottom))
@@ -613,18 +621,15 @@ color."
 (defun my-switch-to-buffer-list (buffer alist)
   (select-window  (display-buffer-use-some-window buffer alist)))
 
-
 (defun +select-buffer-in-side-window (buffer alist)
   "Display buffer in a side window and select it"
   (let ((window (display-buffer-in-side-window buffer alist)))
-    (select-window window)
-    ))
+    (select-window window)))
 
 (defun +select-buffer-at-bottom (buffer alist)
   "Display buffer in a side window and select it"
   (let ((window (display-buffer-at-bottom buffer alist)))
-    (select-window window)
-    ))
+    (select-window window)))
 
 (defun +select-buffer-in-direction (buffer alist)
   "Display buffer in direction specified by ALIST and select it."
@@ -719,6 +724,14 @@ color."
            ;;("C-c" . 'flyspell-auto-correct-previous-word)
            )
 
+;;;; init-lock
+
+(use-package init-lock
+  :straight nil
+  ;; :config
+  ;; (init-lock-enable)
+  :custom
+  (init-lock-files '("~/.dotfiles/.emacs.d/init.el")))
 
 ;;;; link-hint
 
@@ -851,7 +864,6 @@ color."
   (with-eval-after-load "org"
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist '("n" . "notes")))
-
   ;; :hook
   ;; (org-mode-hook . variable-pitch-mode)
   :config
@@ -861,6 +873,8 @@ color."
   :custom-face
   (org-drawer ((t (:foreground "gray60" :height .8))))
   (org-special-keyword ((t (:foreground "gray50" :height .8))))
+  (org-level-1 ((t (:inherit outline-1))))
+  (org-level-2 ((t (:inherit outline-2))))
   :custom
   (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
   (default-major-mode 'org-mode)
@@ -868,6 +882,7 @@ color."
   (org-use-speed-commands t)
   (org-speed-commands-user '(("k" . ignore) ("=" . ignore) ("o" . ignore)))
   (org-startup-indented t)
+  (org-table-use-standard-references 'from)
   (org-catch-invisible-edits 'smart)
   (org-tags-column -77)
   (org-tag-alist '(("noexport") ("noheadline")))
@@ -902,6 +917,16 @@ color."
   (org-edit-src-content-indentation 0)
   (org-src-presrve-indentation nil)
   (org-log-states-order-reversed nil)
+
+  (org-fold-core-style 'overlays)
+
+  ;; default 'text-properties doesn't redisplay 5/9/22
+  ;; default works 5/16/22
+  ;; actually, overview isn't properly font-locked
+  ;; Org mode version 9.5.3 (release_9.5.3-502-g513ab7)
+  ;; GNU Emacs 29.0.50 (build 1, x86_64-apple-darwin19.6.0, NS appkit-1894.60
+  ;; Version 10.15.7 (Build 19H1824)) of 2022-05-14
+
   )
 
 (use-package org-agenda-setup
@@ -928,7 +953,7 @@ color."
   :straight nil
   :defer 1)
 
-;;;; org-journal
+;;;;  org-journal
 
 (use-package org-journal
   :defer t
@@ -946,7 +971,7 @@ color."
   (org-journal-find-file 'find-file))
 
 
-;;;; org-contrib
+;;;;  org-contrib
 
 (use-package org-contrib
   :straight (org-contrib :files ("lisp/org-contrib.el" "lisp/ox-extra.el")))
@@ -1004,6 +1029,8 @@ parent."
   (vertico-cycle t)
   (vertico-count 7))
 
+(setq crm-separator "&")
+
 ;; Add prompt indicator to `completing-read-multiple'.
 (defun crm-indicator (args)
   (cons (concat "[CRM] " (car args)) (cdr args)))
@@ -1049,6 +1076,7 @@ parent."
         ("p" . gr/embark-save-absolute-path)
         ("P" . gr/embark-insert-absolute-path))
   (:map embark-region-map
+        ("t" . title-case-region)
         ("G w" . eww-wiki)
         ("G g" . eww-duckduckgo)
         ("z" . zk-search))
@@ -1161,7 +1189,7 @@ there, otherwise you are prompted for a message buffer."
 
 (use-package embark-org
   :straight nil
-  :defer t)
+  :defer 1)
 
 (use-package embark-consult
   :after (embark consult)
@@ -1410,16 +1438,19 @@ parses its input."
   (company-minimum-prefix-length 1)
   (company-selection-wrap-around t)
   (company-tooltip-limit 12)
-  (company-idle-delay 1)
+  (company-idle-delay 0.3)
   (company-echo-delay 0)
   (company-dabbrev-downcase nil)
   (company-dabbrev-ignore-case 'keep-prefix)
   (company-sort-prefer-same-case-prefix t)
   (company-format-margin-function nil)
   (company-dabbrev-other-buffers t)
-  ;; sort Luhmann and zk ids in order:
+  ;; interfers with Luhmann, zk sort order
   (company-transformers '(company-sort-by-occurrence))
   :config
+  ;; use TAB for completion-at-point
+  (setq tab-always-indent nil)
+  (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
   (setq company-backends '(company-capf
                            company-bbdb
                            company-files
@@ -1442,7 +1473,7 @@ parses its input."
   :init
   (company-posframe-mode 1)
   :custom
-  (company-posframe-show-indicator t)
+  (company-posframe-show-indicator nil)
   (company-posframe-show-metadata nil)
   (company-posframe-quickhelp-delay nil)
   )
@@ -1462,8 +1493,10 @@ parses its input."
   (prescient-aggressive-file-save t))
 
 (use-package company-prescient
+  :disabled
+  ;; interfers with Luhmann, zk sort order
   :config
-  (company-prescient-mode 1))
+  (company-prescient-mode -1))
 
 
 ;;; Citation / Bibliography
@@ -1661,6 +1694,7 @@ following the key as group 3."
                  (embark-bindings-in-keymap ebib-entry-mode-map)))
         ("h" . hydra-ebib/body)
         ("d" . nil)
+        ("j" . ebib-jump-to-entry)
         ("e" . ebib-edit-current-field)
         ("O" . ebib-filters-apply-filter)
         ("s-s" . ebib-save-curent-database)
@@ -1669,7 +1703,7 @@ following the key as group 3."
   :custom
   (ebib-preload-bib-files gr/bibliography)
   (ebib-autogenerate-keys t)
-  (ebib-create-backups nil)
+  (ebib-create-backups t)
   (ebib-uniquify-keys nil)
   ;; (ebib-index-default-sort '("timestamp" . descend))
   (ebib-use-timestamp t)
@@ -1738,7 +1772,7 @@ following the key as group 3."
   (scihub-download-directory (expand-file-name "~/Downloads")))
 
 (use-package biblio
-  :defer t
+  :defer 1
   :after (ebib)
   :custom
   (biblio-crossref-user-email-address vu-email)
@@ -1812,7 +1846,9 @@ following the key as group 3."
 
 (use-package mmd-citation-support
   :straight nil
-  :defer 1)
+  :defer 1
+  :hook
+  (completion-at-point-functions . gr/mmd-citation-completion-at-point))
 
 ;;; Writing
 
@@ -1826,13 +1862,13 @@ following the key as group 3."
   ;; (require 'zk-extras)
   :bind
   (:map zk-id-map
+        ("p" . zk-preview)
         ("s" . zk-search)
         ("r" . zk-consult-grep)
         ("o" . link-hint--aw-select-zk-link))
   :hook
   (completion-at-point-functions . zk-completion-at-point)
-  ;; runs after every completion
-  ;;(company-completion-finished-hook . zk-make-button-before-point)
+  (completion-at-point-functions . gr/mmd-citation-completion-at-point)
   :custom
   (zk-directory "~/Dropbox/ZK/Zettels")
   (zk-file-extension "md")
@@ -1840,6 +1876,7 @@ following the key as group 3."
   (zk-link-and-title 'ask)
   (zk-new-note-link-insert 'ask)
   (zk-link-and-title-format "%t [[%i]]")
+  (zk-completion-at-point-format "%t [[%i]]")
   (zk-tag-grep-function #'zk-grep) ;; #'zk-consult-grep-tag-search)
   (zk-grep-function #'zk-grep) ;; #'zk-consult-grep
   (zk-current-notes-function nil)
@@ -1849,7 +1886,8 @@ following the key as group 3."
      zk-unlinked-notes))
   :config
   (zk-setup-auto-link-buttons)
-  (zk-setup-embark)
+  (with-eval-after-load 'embark-org
+    (zk-setup-embark))
   ;;(add-to-list 'auto-mode-alist '("\\.md\\'" . outline-mode))
   (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
   (add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
@@ -1862,15 +1900,16 @@ following the key as group 3."
   :straight (zk-index :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
                       :files ("zk-index.el"))
   :bind (:map zk-index-map
-              ("g" . consult-line)
+              ("o" . zk-index-aw-select)
+              ("j" . consult-line) ;; "jump"
               ("?" . hydra-zk-index/body))
   :config
   (zk-index-setup-embark)
   :custom
+  (zk-index-prefix nil)
   (zk-index-desktop-directory zk-directory))
 
 (setq zk-index-desktop-directory (bound-and-true-p zk-directory))
-
 
 (use-package zk-luhmann
   :after zk-index
@@ -1891,6 +1930,7 @@ following the key as group 3."
   :custom
   (zk-luhmann-id-prefix "{")
   (zk-luhmann-id-postfix " }")
+  (zk-luhmann-indent-index t)
   :config
   (setq zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
                                     "\\([0-9a-zA-Z,]*\\)"
@@ -2015,13 +2055,20 @@ following the key as group 3."
     ("q" nil)))
 
 (eval-and-compile
-  (defhydra hydra-zk-index ()
-    ("a" zk-index-refresh "all")
-    ("l" zk-luhmann-index "luhmann")
-    ("c" zk-core-index "core")
-    ("n" zk-non-luhmann-index "non-Luhmann")
-    ("L" zk-lit-notes-index "lit")
-    ("e" zk-ed-index "ed")
+  (defhydra hydra-zk-index (:hint nil)
+    "
+_S_: Size          List:
+_M_: Modified      _l_: Luhmann  _L_: lit
+_C_: Created       _a_: all      _c_: core "
+    ("a" zk-index-refresh)
+    ("l" zk-luhmann-index)
+    ("c" zk-core-index)
+    ("n" zk-non-luhmann-index)
+    ("L" zk-lit-notes-index)
+    ("e" zk-ed-index)
+    ("M" zk-index-sort-modified)
+    ("C" zk-index-sort-created)
+    ("S" zk-index-sort-size)
     ("q" nil)))
 
 (defun zk-org-try-to-follow-link (fn &optional arg)
@@ -2132,9 +2179,9 @@ don't want to fix with `SPC', and you can abort completely with
 ;;;; yasnippet
 
 (use-package yasnippet
-  :defer t
+  :defer 1
   :diminish (yas-minor-mode)
-  :init
+  :config
   (yas-global-mode 1)
   (yas-reload-all)
   )
@@ -2192,6 +2239,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :hook
   (pdf-annot-list-mode-hook . (lambda () (pdf-annot-list-follow-minor-mode)))
   (pdf-occur-buffer-mode-hook . next-error-follow-minor-mode)
+  (pdf-view-mode-hook . (lambda () (setq-local make-backup-files nil)))
   ;;(pdf-view-mode-hook . pdf-keynav-minor-mode)
   :custom
   (pdf-annot-activate-created-annotations t "automatically annotate highlights")
@@ -2402,7 +2450,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 (use-package text-to-speech
   :straight nil
-  :defer t)
+  :defer t
+  :commands (hydra-mac-speak/body))
 
 (use-package devonthink-dir
   :straight nil
@@ -2474,6 +2523,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (:map ctl-x-map
         ("C-b" . ibuffer))
   (:map ibuffer-mode-map
+        ("<backtab>". ibuffer-toggle-filter-group)
         ("TAB". ibuffer-toggle-filter-group))
   :hook
   (ibuffer-hook . gr/truncate-lines)
@@ -2481,36 +2531,18 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :custom
   (ibuffer-expert t)
   (ibuffer-show-empty-filter-groups nil)
-  (ibuffer-auto-mode t))
+  (ibuffer-auto-mode t)
 
-;; remaps C-x b to
-;;(defalias 'list-buffers 'ibuffer)
-
-(defun gr/ibuffer-set-filter-group ()
-  (ibuffer-switch-to-saved-filter-groups "default")
-  (setq ibuffer-hidden-filter-groups (list "***" "ORG" "ZK" "el"))
-  (ibuffer-update nil t)
-  )
-
-(use-package ibuffer-vc
-  :defer 1
   :config
 
-  (defun gr/ibuffer-vc-run ()
-    "Set up `ibuffer-vc."
-    (ibuffer-vc-set-filter-groups-by-vc-root)
-    (unless (eq ibuffer-sorting-mode 'recency)
-      (ibuffer-do-sort-by-recency)))
+  (defun gr/ibuffer-set-filter-group ()
+    (ibuffer-switch-to-saved-filter-groups "default")
+    (setq ibuffer-hidden-filter-groups (list "***" "ORG" "ZK" "el"))
+    (ibuffer-update nil t))
 
-  ;; Use human readable Size column instead of original one
-  (define-ibuffer-column size-h
-    (:name "Size" :inline t)
-    (cond
-     ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
-     ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
-     ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
-
-     (t (format "%8d" (buffer-size)))))
+  (setq ibuffer-formats
+        '((mark modified read-only locked " "
+                (name 18 -1 :left))))
 
   (setq ibuffer-saved-filter-groups
         (list
@@ -2553,6 +2585,16 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                   )))))
   )
 
+;; (use-package ibuffer-vc
+;;   :defer 1
+;;   :config
+
+;;   (defun gr/ibuffer-vc-run ()
+;;     "Set up `ibuffer-vc."
+;;     (ibuffer-vc-set-filter-groups-by-vc-root)
+;;     (unless (eq ibuffer-sorting-mode 'recency)
+;;       (ibuffer-do-sort-by-recency))))
+
 (defun gr/truncate-lines (&rest _)
   (interactive)
   (let ((inhibit-message t))
@@ -2578,6 +2620,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :hook
   (dired-mode-hook . dired-omit-mode)
   (dired-mode-hook . dired-hide-details-mode)
+  (dired-omit-mode-hook . (lambda ()
+                            (delete "~" dired-omit-extensions))) ;; show backup files
   :custom
   (dired-listing-switches "-algho --group-directories-first")
   (delete-by-moving-to-trash t)
@@ -2585,6 +2629,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :config
   (setq dired-omit-files "\\.DS_Store\\|\\.dropbox\\|Icon\\\015")
   (setq dired-kill-when-opening-new-dired-buffer t)
+
   )
 
 ;; to allow --group-directories-first to work on osx
@@ -2744,6 +2789,12 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (undo-tree-auto-save-history nil))
 
+;;;; vundo
+
+(use-package vundo
+  :custom
+  ;;(vundo-glyph-alist vundo-unicode-symbols)
+  (vundo-roll-back-on-quit nil))
 
 ;;;; python
 
@@ -2823,17 +2874,29 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         ("R" . prot-eww-readable)
         ("Q" . prot-eww-quit)))
 
-(defun eww-wiki (text)
+(defun eww-wiki ()
   "Function used to search Wikipedia for the given text."
-  (interactive (list (read-string "Wiki for: ")))
-  (eww (format "https://en.m.wikipedia.org/wiki/Special:Search?search=%s"
-               (url-encode-url text))))
+  (interactive)
+  (let* ((word (if (use-region-p)
+                   (buffer-substring
+                    (region-beginning)
+                    (region-end))
+                 (thing-at-point 'word)))
+         (text (read-string "Wiki for: " word)))
+    (eww (format "https://en.m.wikipedia.org/wiki/Special:Search?search=%s"
+                 (url-encode-url text)))))
 
-(defun eww-duckduckgo (text)
+(defun eww-duckduckgo ()
   "Function used to search DuckDuckGo for the given text."
-  (interactive (list (read-string "Search for: ")))
-  (eww (format "https://duckduckgo.com/?q=%s"
-               (url-encode-url text))))
+  (interactive)
+  (let* ((word (if (use-region-p)
+                   (buffer-substring
+                    (region-beginning)
+                    (region-end))
+                 (thing-at-point 'word)))
+         (text (read-string "DDG for: " word)))
+    (eww (format "https://duckduckgo.com/?q=%s"
+                 (url-encode-url text)))))
 
 (defun gr/switch-browser (choice)
   (interactive (list (completing-read "Choose: " '(safari eww xwidget) nil t)))
@@ -3001,7 +3064,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*Backtrace\\*"
           "^\\*ZK-Index\\*"
           "^\\*ZK-Desktop"
-          "^\\*Luhmann-Index\\*"
+          "^\\*ZK-Luhmann\\*"
           "^\\*Apropos\\*"
           "^\\*eshell\\*"
           "^\\*PDF-Occur\\*"
@@ -3091,7 +3154,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; golden-ratio-scroll-screen
 
 (use-package golden-ratio-scroll-screen
-  :defer t
+  :defer 1
   :config
   (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
   (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
@@ -3102,7 +3165,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;  :disabled
   :defer t
   :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
-  :diminish)
+  :diminish
+  :config
+  (explain-pause-mode))
 
 ;;;; outshine-mode
 
@@ -3124,6 +3189,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :defer 1
   :diminish
   :hook
+  (nxml-mode-hook . outshine-mode)
   (emacs-lisp-mode-hook . outshine-mode)
   (outline-minor-mode-hook . outshine-mode))
 
@@ -3164,6 +3230,18 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :diminish
   :config
   (hyperbole-mode 0))
+
+
+;;;; nxml-mode
+
+(use-package nxml-mode
+  :straight nil
+  :bind
+  (:map nxml-mode-map
+        ("C-<return>" . completion-at-point))
+  :config
+  (add-to-list 'rng-schema-locating-files "~/Dropbox/TEI/nxml-schemas/schemas.xml"))
+
 
 ;;; variable resets
 
