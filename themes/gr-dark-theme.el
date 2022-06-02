@@ -7,7 +7,8 @@
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces
    'gr-dark
-   `(default ((,class (:family "Menlo" :height 120 :background "#212121" :foreground "grey80"))))
+   `(default ((,class (:family "JetBrains Mono" ;;"IBM Plex Mono" "Menlo"
+                               :height 120 :background "#212121" :foreground "grey90"))))
    `(fixed-pitch ((,class (:family "Monospace" :height 130 :background "#212121" :foreground "#f6f3e8"))))
    `(variable-pitch ((,class (:family "Times New Roman" :height 1.2 :background "#212121" :foreground "#f6f3e8"))))
    `(cursor ((,class (:background "#656565"))))
@@ -86,41 +87,68 @@
    `(org-ellipsis ((,class (:inherit fixed-pitch :foreground "grey50" :underline nil :height 1.1))))
    `(org-todo ((,class (:family "Menlo" :weight bold :height 1 :foreground "#e5786d"))))
    `(org-done ((,class (:family "Menlo" :weight bold :height 1 :foreground "#95e454"))))
-  
-   `(org-level-1 ((,class (:inherit outline-1
-                         :foreground "#95e454"
-                         :weight bold
-                         :family "Helvetica"
-                         :underline t
-                         :height 150))))
-   `(org-level-2 ((,class (:inherit outline-2
-                           ;; :family "Monospace" :height 130
-                           :family "Franklin Gothic Medium" :height 150
-                           :foreground "#95e454"))))
-   `(org-level-3 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
-                           :height 1.1
-                           :foreground "#f6f3e8"))))
-   `(org-level-4 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
-                           :height 1.1
-                           :foreground "#f6f3e8"))))
-   `(org-level-5 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
-                           :height 1.1
-                           :foreground "#f6f3e8"))))
-   `(org-level-6 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
-                           :height 1.1
-                           :foreground "#f6f3e8"))))
-   `(org-level-7 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
-                           :height 1.1
-                           :foreground "#f6f3e8"))))   
-   `(org-level-8 ((,class (:inherit fixed-pitch
-                           :family "Times New Roman"         
-                           :height 1.1
-                           :foreground "#f6f3e8"))))
+
+   `(outline-1 ((,class (:height 1 :foreground "grey90"))))
+   `(outline-2 ((,class (:weight bold :underline t :foreground "grey90"))))
+   `(outline-3 ((,class (:height 1 :foreground "grey90"))))
+   `(outline-4 ((,class (:height 1 :foreground "grey90"))))
+   `(outline-5 ((,class (:height 1 :foreground "grey90"))))
+   `(outline-6 ((,class (:height 1 :foreground "grey90"))))
+   `(outline-7 ((,class (:height 1 :foreground "grey90"))))
+   `(outline-8 ((,class (:height 1 :foreground "grey90"))))
+
+   `(outshine-level-1 ((,class (:height 1 :foreground "grey90"))))
+   `(outshine-level-2 ((,class (:weight bold :underline t :foreground "grey90"))))
+   `(outshine-level-3 ((,class (:height 1 :foreground "grey90"))))
+   `(outshine-level-4 ((,class (:height 1 :foreground "grey90"))))
+   `(outshine-level-5 ((,class (:height 1 :foreground "grey90"))))
+   `(outshine-level-6 ((,class (:height 1 :foreground "grey90"))))
+   `(outshine-level-7 ((,class (:height 1 :foreground "grey90"))))
+   `(outshine-level-8 ((,class (:height 1 :foreground "grey90"))))
+
+   `(org-level-1 ((,class (:inherit outline-1 :height 1 :foreground "grey90"))))
+   `(org-level-2 ((,class (:inherit outline-2 :weight bold :underline t :foreground "grey90"))))
+   `(org-level-3 ((,class (:inherit outline-3))))
+   `(org-level-4 ((,class (:inherit outline-4))))
+   `(org-level-5 ((,class (:inherit outline-5))))
+   `(org-level-6 ((,class (:inherit outline-6))))
+   `(org-level-7 ((,class (:inherit outline-7))))
+   `(org-level-8 ((,class (:inherit outline-9))))
+
+   ;; `(org-level-1 ((,class (:inherit outline-1
+   ;;                       :foreground "#95e454"
+   ;;                       :weight bold
+   ;;                       :family "Helvetica"
+   ;;                       :underline t
+   ;;                       :height 150))))
+   ;; `(org-level-2 ((,class (:inherit outline-2
+   ;;                         ;; :family "Monospace" :height 130
+   ;;                         :family "Franklin Gothic Medium" :height 150
+   ;;                         :foreground "#95e454"))))
+   ;; `(org-level-3 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "#f6f3e8"))))
+   ;; `(org-level-4 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "#f6f3e8"))))
+   ;; `(org-level-5 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "#f6f3e8"))))
+   ;; `(org-level-6 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "#f6f3e8"))))
+   ;; `(org-level-7 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "#f6f3e8"))))
+   ;; `(org-level-8 ((,class (:inherit fixed-pitch
+   ;;                         :family "Times New Roman"
+   ;;                         :height 1.1
+   ;;                         :foreground "#f6f3e8"))))
   ))
 
 

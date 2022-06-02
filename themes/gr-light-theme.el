@@ -36,8 +36,8 @@
 
 (custom-theme-set-faces
  'gr-light
- '(default ((t (:family "Menlo"
-                        :foundry "nil"
+ '(default ((t (:family "JetBrains Mono" ;;"IBM Plex Mono"
+                        ;;:foundry "IBM"
                         :width normal
                         :height 1
                         :weight normal
@@ -134,8 +134,8 @@
    `(org-todo ((,class (:family "Menlo" :weight bold :height 1 :foreground "Red1"))))
    `(org-done ((,class (:family "Menlo" :weight bold :height 1 :foreground "ForestGreen"))))
 
-   `(org-level-1 ((,class (:inherit outline-1))))
-   `(org-level-2 ((,class (:inherit outline-2))))
+   `(org-level-1 ((,class (:inherit outline-1 :height 1))))
+   `(org-level-2 ((,class (:inherit outline-2 :weight bold :underline t))))
    `(org-level-3 ((,class (:inherit outline-3))))
    `(org-level-4 ((,class (:inherit outline-4))))
    `(org-level-5 ((,class (:inherit outline-5))))
