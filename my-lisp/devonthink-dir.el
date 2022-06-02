@@ -12,13 +12,18 @@
 
 (setq devonthink-dir "~/Databases/Academic Work.dtBase2/Files.noindex/")
 
-(defun devonthink-dir-find-file (key-entry &optional initial)
+;; (defun devonthink-dir-find-file (key-entry &optional initial)
+;;   "Search devonthink archive for file, using `consult-find'."
+;;   (interactive (list (citar-select-ref)))
+;;   (let ((key (car key-entry)))
+;;     (if key
+;;         (consult-find devonthink-dir (format "%s" key))
+;;       (consult-find devonthink-dir initial))))
+
+(defun devonthink-dir-find-file (&optional initial)
   "Search devonthink archive for file, using `consult-find'."
-  (interactive (list (citar-select-ref)))
-  (let ((key (car key-entry)))
-    (if key
-        (consult-find devonthink-dir (format "%s" key))
-      (consult-find devonthink-dir initial))))
+  (interactive)
+  (consult-find devonthink-dir initial))
 
 ;; DevonThink Links
 ;; obsolete, use org-link-set-parameters instead
