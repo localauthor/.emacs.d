@@ -85,10 +85,10 @@
   (interactive)
   (let ((frame link-hint-preview--last-frame))
     (link-hint-preview-mode -1)
-    (view-mode -1)
-    (when link-hint-preview--kill-last
-      (kill-buffer))
-    (delete-frame)
+    (read-only-mode -1)
+    (if link-hint-preview--kill-last
+        (kill-buffer)
+      (delete-frame))
     (select-frame-set-input-focus frame)))
 
 
