@@ -32,7 +32,7 @@
 ;; Set additional configurations by adding to 'link-hint-preview-mode-hook'.
 ;; For example, to remove mode-line and tab-bar from the pop-up frame, evaluate:
 
-;; (add-hook 'link-hint-preview-mode-hook '(lambda () (setq mode-line-format nil)))
+;; (add-hook 'link-hint-preview-mode-hook 'link-hint-preview-toggle-frame-mode-line)
 ;; (add-hook 'link-hint-preview-mode-hook 'toggle-frame-tab-bar)
 
 ;; Pop-up frame opens in 'view-mode', which see for mode-specific keybindings.
