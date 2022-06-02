@@ -11,12 +11,55 @@
 
 ;;; General Utilities
 
+;; (defvar zk-preview-frame-parameters
+;;   '((width . 80)
+;;     (height . 35)
+;;     (undecorated . t)
+;;     (dedicated . nil)
+;;     (left-fringe . 0)
+;;     (right-fringe . 0)
+;;     (tool-bar-lines . 0)
+;;     (line-spacing . 0)
+;;     (no-special-glyphs . t)
+;;     (inhibit-double-buffering . t)
+;;     (tool-bar-lines . 0)
+;;     (vertical-scroll-bars . nil)
+;;     (menu-bar-lines . 0)
+;;     (fullscreen . nil)
+;;     (minibuffer . nil)
+;;     )
+;;   "Parameters for popup frame called by 'zk-preview'")
+
+;; (defun zk-preview (&optional id)
+;;   "Popup a frame containing zk-file for ID at point.
+;; Set popup frame parameters in 'zk-preview-frame-parameters'."
+;;   (interactive)
+;;   (let* ((id (or id
+;;                  (zk--id-at-point)))
+;;          (file (zk--parse-id 'file-path id))
+;;          (buffer (find-file-noselect file))
+;;          (parent (selected-frame))
+;;          )
+;;     (special-display-popup-frame buffer zk-preview-frame-parameters)
+;;     (switch-to-buffer buffer)
+;;     ;;(local-set-key (kbd "q") 'kill-buffer-and-window)
+;;     (tab-bar-mode -1)
+;;     (read-only-mode)))
+
+(defalias 'zk-preview 'link-hint-preview-zk-link)
+
+;;;###autoload
+(defun zk-index-aw-select ()
+  (interactive)
+  (let ((id (zk-index--button-at-point-p)))
+    (link-hint--aw-select-zk-link id)))
+
 ;;;###autoload
 (defun zk-luhmann-insert-link (id &optional title)
   (interactive (list (zk--parse-file 'id (funcall zk-select-file-function "Insert link: "))))
   (let* ((pref-arg current-prefix-arg)
-         (title (if title title
-                  (zk--parse-id 'title id)))
+         (title (or title
+                    (zk--parse-id 'title id)))
          (luhmann-id (ignore-errors
                        (string-match zk-luhmann-id-regexp title)
                        (match-string 0 title))))
@@ -55,8 +98,8 @@
   "Report word count of all files in 'zk-directory'.
 Optionally takes list of FILES."
   (interactive)
-  (let* ((files (if files files
-                  (zk--directory-files t)))
+  (let* ((files (or files
+                    (zk--directory-files t)))
          (wc 0))
     (mapc
      (lambda (x)
@@ -87,9 +130,9 @@ Optionally takes list of FILES."
 
 ;;;###autoload
 (defun zk-lit-notes-index ()
-  "List lit notes in ZK-Index"
+  "List lit notes in ZK-Index, by size."
   (interactive)
-  (zk-index (zk-lit-notes-list)))
+  (zk-index (zk-lit-notes-list) nil 'gr/size-sort-function))
 
 ;;;###autoload
 (defun zk-luhmann-word-count ()
@@ -234,6 +277,14 @@ Also excludes, journal, poem, Dickinson, and literature notes."
     (if-let (notes (zk--parse-id 'file-path ids))
         (find-file (zk--select-file "Unlinked notes: " notes))
       (user-error "No unlinked notes found"))))
+
+
+(defun gr/size-sort-function (list)
+  "Sort LIST for by size."
+  (sort list
+        (lambda (a b)
+          (> (file-attribute-size (file-attributes a))
+             (file-attribute-size (file-attributes b))))))
 
 
 (provide 'zk-extras)

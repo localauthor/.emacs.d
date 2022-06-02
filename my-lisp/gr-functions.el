@@ -23,15 +23,15 @@ Symbols and Diacritics
   "Pop up dailynotes.org."
   (interactive)
   (let ((buffer (find-file-noselect
-                 (concat org-directory "/dailynotes.org")))
-        (date (list (format-time-string "%Y-%m-%d %A"))))
+                 (concat org-directory "/dailynotes.org"))))
     (cond ((equal current-prefix-arg '(4))
            (select-frame (make-frame-command))
            (find-file (concat org-directory "/dailynotes.org"))
            (set-frame-position (selected-frame) 845 20)
            (delete-other-windows))
           (t (pop-to-buffer buffer
-                            '(display-buffer-at-bottom))))))
+                            '(display-buffer-at-bottom))))
+    (gr/daily-notes-new-headline)))
 
 (defun gr/daily-notes-new-headline ()
   (interactive)
@@ -52,7 +52,7 @@ Symbols and Diacritics
   (select-frame (make-frame-command))
   (set-frame-position (selected-frame) 150 20)
   (set-frame-size (selected-frame) 160 60)
-  (delete-other-windows)
+  ;;(delete-other-windows)
   (calfw-open-org-calendar))
 
 (defun gr/word-count-subtree ()
@@ -86,10 +86,12 @@ Symbols and Diacritics
   (interactive)
   (select-frame (make-frame))
   (set-frame-size (selected-frame) 125 45)
-  (mu4e)
-  ;; (switch-to-buffer " *mu4e-main*")
-  (pop-to-buffer-same-window " *mu4e-main*")
-  (delete-other-windows))
+  (mu4e))
+;;   (display-buffer-full-frame " *mu4e-main*" '(nil)))
+;;   ;; (switch-to-buffer " *mu4e-main*")
+;;   (pop-to-buffer-same-window " *mu4e-main*")
+;;   (delete-other-windows))
+;; ;; use display-buffer-full-frame ?
 
 (defun gr/open-fragments-file ()
   (interactive)
@@ -97,8 +99,8 @@ Symbols and Diacritics
 
 (defun gr/open-fragments-file-other-frame ()
   (interactive)
-  (find-file-other-frame "~/Dropbox/org/fragments.org")
-  (delete-other-windows))
+  (find-file-other-frame "~/Dropbox/org/fragments.org"))
+  ;;(delete-other-windows))
 
 (defun switch-to-minibuffer-window ()
   "Switch to minibuffer window (if active)."
