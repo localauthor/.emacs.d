@@ -1261,29 +1261,6 @@ there, otherwise you are prompted for a message buffer."
 
   (advice-add 'consult-outline :around #'with-embark-consult-outline-map)
 
-  ;; map TAB to select for consult-completing-read-multiple
-
-  ;; (defun consult-vertico--crm-select ()
-  ;;   "Select/deselect candidate."
-  ;;   (interactive)
-  ;;   (when (let ((cand (vertico--candidate)))
-  ;;           (and (vertico--match-p cand) (not (equal cand ""))))
-  ;;     (vertico-exit)))
-
-  ;; (defun consult-vertico--crm-exit ()
-  ;;   "Select/deselect candidate and exit."
-  ;;   (interactive)
-  ;;   (when (let ((cand (vertico--candidate)))
-  ;;           (and (vertico--match-p cand) (not (equal cand ""))))
-  ;;     (run-at-time 0 nil #'exit-minibuffer))
-  ;;   (vertico-exit))
-
-  ;; (define-key consult-crm-map [remap vertico-insert]
-  ;;             #'consult-vertico--crm-select)
-
-  ;; (define-key consult-crm-map [remap exit-minibuffer]
-  ;;             #'consult-vertico--crm-exit)
-
   (defun gr/consult-ripgrep-select-dir ()
     (interactive)
     (let ((current-prefix-arg '(4)))
