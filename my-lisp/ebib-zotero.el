@@ -54,8 +54,9 @@ can be DOI, ISBN, PMID, or arXiv ID."
   (interactive "MDOI or ISBN: ")
   (let (entry-type key)
     (kill-new identifier)
-    (unless (get-buffer "*Ebib-entry*") ;; check that ebib is running
-      (ebib-open))
+    (ebib--execute-when
+      (no-database ;; check that database is loaded
+       (ebib-open)))
     (with-temp-buffer
       (insert (ebib-zotero-translate identifier "search"))
       (goto-char (point-min))
