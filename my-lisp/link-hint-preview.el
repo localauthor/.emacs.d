@@ -96,10 +96,25 @@
 
 ;;;###autoload
 (defun link-hint-preview ()
-  "Use avy to view link contents in a pop-up frame."
+  "Use avy to view link contents in a pop-up frame.
+Set frame parameters in 'link-hint-preview-frame-parameters'."
   (interactive)
   (avy-with link-hint-preview
     (link-hint--one :preview)))
+
+
+;;; Helper Functions
+
+(defun link-hint-preview-toggle-frame-mode-line ()
+  "Remove mode-line from buffers during preview.
+Intended to be added to 'link-hint-preview-mode-hook'."
+  (if link-hint-preview-mode
+      (setq mode-line-format nil)
+    (setq mode-line-format (default-value 'mode-line-format))))
+
+(defun link-hint-preview--params (param value)
+  "Generate 'pop-up-frame-parameters' dynamically."
+  (cons `(,param . ,value) link-hint-preview-frame-parameters))
 
 
 ;;; zk-link support
@@ -121,7 +136,7 @@ Set pop-up frame parameters in 'link-hint-preview-frame-parameters'."
       (setq link-hint-preview--kill-last t))
     (display-buffer-pop-up-frame
      buffer
-     `((pop-up-frame-parameters . ,link-hint-preview-frame-parameters)
+     `((pop-up-frame-parameters . ,(link-hint-preview--params 'delete-before frame))
        (dedicated . t)))
     (with-current-buffer buffer
       (setq-local link-hint-preview--last-frame frame)
@@ -146,7 +161,8 @@ Set popup frame parameters in 'link-hint-preview-frame-parameters'."
       (setq link-hint-preview--kill-last t))
     (display-buffer-pop-up-frame
      buffer
-     `((pop-up-frame-parameters . ,link-hint-preview-frame-parameters)))
+     `((pop-up-frame-parameters . ,(link-hint-preview--params 'delete-before frame))
+       (dedicated . t)))
     (with-current-buffer buffer
       (setq-local link-hint-preview--last-frame frame)
       (link-hint-preview-mode))))
@@ -171,7 +187,8 @@ Set popup frame parameters in 'link-hint-preview-frame-parameters'."
       (setq link-hint-preview--kill-last t))
     (display-buffer-pop-up-frame
      buffer
-     `((pop-up-frame-parameters . ,link-hint-preview-frame-parameters)))
+     `((pop-up-frame-parameters . ,(link-hint-preview--params 'delete-before frame))
+       (dedicated . t)))
     (with-current-buffer buffer
       (setq-local link-hint-preview--last-frame frame)
       (link-hint-preview-mode))))
