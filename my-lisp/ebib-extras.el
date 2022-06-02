@@ -18,7 +18,7 @@ Accepts optional KEY to go to entry."
     (progn
       (make-frame-on-current-monitor)
       (ebib nil key)
-      (set-frame-size (selected-frame) 150 46))))
+      (set-frame-size (selected-frame) 110 46))))
 
 (defun ebib-smart-quit ()
   "Cancel filter or quit."
