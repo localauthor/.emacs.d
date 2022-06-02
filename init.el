@@ -1513,8 +1513,9 @@ parses its input."
   (citar-citeproc-csl-style
    "chicago-fullnote-bibliography-short-title-subsequent.csl")
   (citar-display-transform-functions '((t . citar-clean-string)))
-  (citar-open-note-function 'gr/citar-zk-open-note)
-  (citar-select-multiple nil)
+  (citar-open-note-functions '(gr/citar-zk-open-note)) ;; added
+  (citar-open-note-function 'gr/citar-zk-open-note) ;; obsoleted
+  (citar-select-multiple t)
   ;; (citar-templates
   ;;  '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
   ;;    (suffix . "          ${=key= id:15}    ${=type=:12}    ${crossref tags keywords keywords:*}")
@@ -1544,15 +1545,15 @@ parses its input."
                          citar-notes-paths)))
       (if results-key
           (funcall 'find-file (car results-key))
-        (if (y-or-n-p "No note associated - create one?")
-            (let* ((template (citar-get-template 'note))
-                   (title
-                    (when template
-                      (subst-char-in-string ?: ?-
-                                            (citar--format-entry-no-widths
-                                             entry
-                                             template)))))
-              (zk-new-note title))))))
+        (when (y-or-n-p "No note associated - create one?")
+          (let* ((template "${=key=} - ${author}, ${title} (${year})")
+                 (title
+                  (when template
+                    (subst-char-in-string ?: ?-
+                                          (citar--format-entry-no-widths
+                                           entry
+                                           template)))))
+            (zk-new-note title))))))
 
   (defun ex/citar-search-pdf-contents ()
     ;; from localauthor
