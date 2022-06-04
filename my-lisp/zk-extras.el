@@ -11,43 +11,6 @@
 
 ;;; General Utilities
 
-;; (defvar zk-preview-frame-parameters
-;;   '((width . 80)
-;;     (height . 35)
-;;     (undecorated . t)
-;;     (dedicated . nil)
-;;     (left-fringe . 0)
-;;     (right-fringe . 0)
-;;     (tool-bar-lines . 0)
-;;     (line-spacing . 0)
-;;     (no-special-glyphs . t)
-;;     (inhibit-double-buffering . t)
-;;     (tool-bar-lines . 0)
-;;     (vertical-scroll-bars . nil)
-;;     (menu-bar-lines . 0)
-;;     (fullscreen . nil)
-;;     (minibuffer . nil)
-;;     )
-;;   "Parameters for popup frame called by 'zk-preview'")
-
-;; (defun zk-preview (&optional id)
-;;   "Popup a frame containing zk-file for ID at point.
-;; Set popup frame parameters in 'zk-preview-frame-parameters'."
-;;   (interactive)
-;;   (let* ((id (or id
-;;                  (zk--id-at-point)))
-;;          (file (zk--parse-id 'file-path id))
-;;          (buffer (find-file-noselect file))
-;;          (parent (selected-frame))
-;;          )
-;;     (special-display-popup-frame buffer zk-preview-frame-parameters)
-;;     (switch-to-buffer buffer)
-;;     ;;(local-set-key (kbd "q") 'kill-buffer-and-window)
-;;     (tab-bar-mode -1)
-;;     (read-only-mode)))
-
-(defalias 'zk-preview 'link-hint-preview-zk-link)
-
 ;;;###autoload
 (defun zk-index-aw-select ()
   (interactive)

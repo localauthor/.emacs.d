@@ -1970,40 +1970,6 @@ following the key as group 3."
   :straight nil
   :defer 1)
 
-(with-eval-after-load 'link-hint-aw-select
-  (link-hint-define-type 'zk-link
-    :aw-select #'link-hint--aw-select-zk-link)
-  (defun link-hint--aw-select-zk-link (id)
-    (with-demoted-errors "%s"
-      (if (> (length (aw-window-list)) 1)
-          (let ((window (aw-select nil))
-                (buffer (current-buffer))
-                (new-buffer))
-            (zk-follow-link-at-point id)
-            (setq new-buffer
-                  (current-buffer))
-            (switch-to-buffer buffer)
-            (aw-switch-to-window window)
-            (switch-to-buffer new-buffer))
-        (link-hint-open-link-at-point))))
-
-  ;; add exception for zk-index buttons
-  (defun link-hint--aw-select-button (_link)
-    (with-demoted-errors "%s"
-      (if (> (length (aw-window-list)) 1)
-          (let ((window (aw-select nil))
-                (buffer (current-buffer))
-                (new-buffer))
-            (if (re-search-forward zk-id-regexp (line-end-position))
-                (zk-follow-link-at-point (match-string-no-properties 0))
-              (push-button))
-            (setq new-buffer
-                  (current-buffer))
-            (switch-to-buffer buffer)
-            (aw-switch-to-window window)
-            (switch-to-buffer new-buffer))
-        (link-hint-open-link-at-point)))))
-
 (with-eval-after-load "embark"
   (embark-define-keymap embark-become-zk-file-map
     "Keymap for Embark zk-file actions."
@@ -2198,7 +2164,7 @@ don't want to fix with `SPC', and you can abort completely with
 ;;;; yasnippet
 
 (use-package yasnippet
-  :defer 1
+  :defer 3
   :diminish (yas-minor-mode)
   :config
   (yas-global-mode 1)
