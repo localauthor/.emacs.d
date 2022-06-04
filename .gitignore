@@ -37,4 +37,5 @@ custom.el
 /.emacs.desktop*
 /oauth2-auto.plist
 /my-lisp/link-hint-preview/
+/my-lisp/link-hint-aw-select/
 /init.el.~1~
