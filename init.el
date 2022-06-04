@@ -1627,6 +1627,7 @@ following the key as group 3."
 
   (advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp)
 
+  ;; will this not work anymore??
   (defun citar-xref-notes ()
     (let* ((hasnote (citar-file--has-file citar-notes-paths
                                           citar-file-note-extensions))
@@ -1639,6 +1640,11 @@ following the key as group 3."
        candidates)
       note-keys))
 
+  ;; new
+  (setq citar-has-note-functions '(citar-file-has-notes
+                                   citar-xref-notes))
+
+  ;; old
   (setq citar-keys-with-notes-functions '(citar-file--keys-with-file-notes citar-xref-notes))
   )
 
@@ -1762,6 +1768,19 @@ following the key as group 3."
    :bind
    (:map ebib-index-mode-map
          ("I" . ebib-zotero-import-identifier)))
+
+
+(use-package pdf-drop-mode
+  :straight (:host github :repo "rougier/pdf-drop-mode")
+  :custom
+  (pdf-drop-search-methods '(title user-title metadata content))
+  :config
+  (pdf-drop-mode)
+  (setq pdf-drop-search-hook #'my/pdf-process)
+  (defun my/pdf-process (file doi)
+    (ebib-zotero-import-identifier doi file))
+  )
+
 
 ;;;; biblio / sci-hub
 
