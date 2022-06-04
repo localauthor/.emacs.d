@@ -78,7 +78,7 @@
   "Minor mode to simulate buffer local keybindings."
   :init-value nil
   :keymap '(((kbd "q") . link-hint-preview-close-frame))
-  (view-mode))
+  (read-only-mode))
 
 (defun link-hint-preview-close-frame ()
   "Close frame opened with 'link-hint-preview'."
