@@ -47,18 +47,22 @@ The entry is stored in the current database."
     (citar-refresh)))
 
 ;;;###autoload
-(defun ebib-zotero-import-identifier (identifier)
+(defun ebib-zotero-import-identifier (identifier &optional file)
   "Fetch a entry from zotero translation server via an IDENTIFIER.
 The entry is stored in the current database, and the identifier
 can be DOI, ISBN, PMID, or arXiv ID."
   (interactive "MDOI or ISBN: ")
-  (let (entry-type key)
+  (let ((entry (ebib-zotero-translate identifier "search"))
+        (entry-type)
+        (key))
     (kill-new identifier)
+    (unless entry
+      (error "Identifier not found: %s" identifier))
     (ebib--execute-when
       (no-database ;; check that database is loaded
        (ebib-open)))
     (with-temp-buffer
-      (insert (ebib-zotero-translate identifier "search"))
+      (insert entry)
       (goto-char (point-min))
       (setq entry-type (ebib--bib-find-next-bibtex-item))
       (setq key (cdr (assoc-string "=key=" (parsebib-read-entry entry-type))))
@@ -67,8 +71,14 @@ can be DOI, ISBN, PMID, or arXiv ID."
     ;; (ebib--goto-entry-in-index key)
     (ebib-generate-autokey)
     (ebib--update-entry-buffer)
-    (ebib-save-all-databases)
-    (citar-refresh)))
+    (when (y-or-n-p "Correct entry? ")
+      (ebib-save-all-databases)
+      (ebib-zotero-rename-file (ebib--db-get-current-entry-key ebib--cur-db) file)
+      (citar-refresh))))
+
+(defun ebib-zotero-rename-file (key file)
+  (let ((ext (file-name-extension file t)))
+  (rename-file file (concat "~/DT3 Inbox/" key ext))))
 
 ;;;###autoload
 (defalias 'ebib-auto-import 'ebib-zotero-import-identifier)
