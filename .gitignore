@@ -36,3 +36,5 @@ custom.el
 /my-lisp/zk-luhmann/
 /.emacs.desktop*
 /oauth2-auto.plist
+/my-lisp/link-hint-preview/
+/init.el.~1~
