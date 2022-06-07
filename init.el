@@ -368,7 +368,7 @@
   (defun gr/tab-bar-face-setup ()
     (set-face-attribute
      'tab-bar nil
-     :font "Menlo" :height .75)
+     :font "Menlo" :height .8)
     (set-face-attribute
      'tab-bar-tab nil
      :background "grey75"
@@ -677,6 +677,7 @@ color."
            ("n" . gr/daily-notes)
 
            ("o" . link-hint-aw-select)
+           ("O" . link-hint-other-tab)
 
            ("i" . gr/open-init-file)
 
@@ -741,7 +742,7 @@ color."
   (link-hint-message nil))
 
 (use-package link-hint-aw-select
-  :straight nil
+  :straight (link-hint-aw-select :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-aw-select")
   :defer 1
   :bind
   (:map gr-map
@@ -753,7 +754,7 @@ color."
     (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)))
 
 (use-package link-hint-preview
-  :straight nil
+  :straight (link-hint-preview :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-preview")
   :defer 1
   :hook
   (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
@@ -1189,7 +1190,10 @@ there, otherwise you are prompted for a message buffer."
 
 (use-package embark-org
   :straight nil
-  :defer 1)
+  :defer 1
+  :bind
+  (:map embark-org-link-map
+        ("x" . consult-file-externally)))
 
 (use-package embark-consult
   :after (embark consult)
@@ -1879,6 +1883,7 @@ following the key as group 3."
   ;; :init
   ;; (require 'zk-consult)
   ;; (require 'zk-extras)
+  :defer 1
   :bind
   (:map zk-id-map
         ("p" . zk-preview)
@@ -1908,8 +1913,10 @@ following the key as group 3."
   (with-eval-after-load 'embark-org
     (zk-setup-embark))
   ;;(add-to-list 'auto-mode-alist '("\\.md\\'" . outline-mode))
-  (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
-  (add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
+  (with-eval-after-load 'embark
+    (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map))
+  (with-eval-after-load 'consult
+    (add-to-list 'consult-buffer-sources 'zk-consult-source 'append))
   (consult-customize
    zk-find-file zk-find-file-by-full-text-search zk-network zk-backlinks zk-links-in-note
       :preview-key (list (kbd "C-{"))))
@@ -1967,7 +1974,7 @@ following the key as group 3."
   (setq zk-luhmann-notes-count (length (zk-luhmann-files))))
 
   (use-package zk-link-hint
-  :straight nil
+  :straight (zk-link-hint :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk")
   :defer 1)
 
 (with-eval-after-load "embark"
