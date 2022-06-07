@@ -11,6 +11,26 @@
 
 ;;; General Utilities
 
+
+(defun link-hint-other-tab ()
+  "Use avy to open a link in other-tab."
+  (interactive)
+  (avy-with link-hint-other-tab
+    (link-hint--one :other-tab)))
+
+(link-hint-define-type 'zk-link
+  :other-tab #'zk-follow-link-other-tab)
+
+(defun zk-follow-link-other-tab (&optional id)
+  "Open note that corresponds with the zk ID at point."
+  (interactive)
+  (let ((id (or (zk--id-at-point)
+                id)))
+    (if id
+        (find-file-other-tab (zk--parse-id 'file-path id))
+      (error "No zk-link at point"))))
+
+
 ;;;###autoload
 (defun zk-index-aw-select ()
   (interactive)
