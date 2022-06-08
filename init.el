@@ -1629,7 +1629,8 @@ following the key as group 3."
       (setq additional-sep nil))
     (concat
      "\\`"
-     (if keys (regexp-opt keys "[0-9]\\{12\\}?.*\\(?1:") ".*?\\(?1:[a-z]+[0-9]\\{4\\}[a-z]?\\).?")
+     (if keys (regexp-opt keys "[0-9]\\{12\\}?.*\\(?1:") ".*?\\(?1:[a-z]+[0-9]\\{4\\}[a-z]?\\)")
+     ".?"
      (when additional-sep (concat "\\(?3:" additional-sep "[^z-a]*\\)?"))
      "\\."
      (if extensions (regexp-opt extensions "\\(?2:") "\\(?2:[^.]*\\)")
@@ -1651,11 +1652,10 @@ following the key as group 3."
       note-keys))
 
   ;; new
-  (setq citar-has-note-functions '(citar-file-has-notes
-                                   citar-xref-notes))
+  (setq citar-has-note-functions '(citar-file-has-notes))
 
   ;; old
-  (setq citar-keys-with-notes-functions '(citar-file--keys-with-file-notes citar-xref-notes))
+  ;; (setq citar-keys-with-notes-functions '(citar-file--keys-with-file-notes citar-xref-notes))
   )
 
 ;;;; org-cite
