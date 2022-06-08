@@ -1884,7 +1884,8 @@ following the key as group 3."
 ;;;; zk
 
 (use-package zk
-  :straight (zk :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
+  :straight (zk :type nil
+                :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
                 :files (:defaults "zk-consult.el"))
   ;; :init
   ;; (require 'zk-consult)
@@ -1930,6 +1931,7 @@ following the key as group 3."
 (use-package zk-index
   :after zk
   :straight (zk-index :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
+                      :type nil
                       :files ("zk-index.el"))
   :bind (:map zk-index-map
               ("o" . zk-index-aw-select)
