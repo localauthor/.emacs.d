@@ -360,6 +360,8 @@
   :bind
   ("s-{" . tab-bar-switch-to-prev-tab)
   ("s-}" . tab-bar-switch-to-next-tab)
+  ("C-{" . tab-bar-switch-to-prev-tab)
+  ("C-}" . tab-bar-switch-to-next-tab)
   ("M-s-n" . gr/tab-to-frame)
   :config
   (defun gr/tab-to-frame ()
