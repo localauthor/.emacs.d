@@ -123,6 +123,12 @@
 ;;     (setq mml-attach-file-at-the-end t)))
 
 
+;;;; f
+;; added because f-shortdoc.el wasn't being found
+(use-package f
+  :straight (f :files (:defaults "f-shortdoc.el")))
+
+
 ;;; Basics
 ;;;; Emacs
 
