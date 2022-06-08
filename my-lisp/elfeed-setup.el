@@ -174,4 +174,24 @@
     (toggle-truncate-lines))
   (elfeed-update)))
 
+
+(use-package elfeed-summary
+  :after (elfeed)
+  :config
+  (setq elfeed-summary-settings
+        '((group (:title . "journals")
+                 (:elements
+                  (group . ((:title . "AmLit Journals")
+                            (:elements
+                             (query . (and journal AmLit top)))))
+                  (group . ((:title . "Top Journals")
+                            (:elements
+                             (query . (and journal top (not AmLit))))))
+                  (group . ((:title . "Other Journals")
+                            (:elements
+                             (query . (and journal (not top AmLit))))))))
+          (group (:title . "emacs")
+                 (:elements
+                  (query . (emacs)))))))
+
 (provide 'elfeed-setup)
