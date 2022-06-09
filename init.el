@@ -963,6 +963,20 @@ color."
   :straight nil
   :defer 1)
 
+;;;; org-superstar
+
+(use-package org-superstar
+  :defer t
+  :after org
+  :init
+  :hook (org-mode-hook . org-superstar-mode)
+  :config
+  (setq org-superstar-headline-bullets-list  '("◉" "○" "▪" "◦" "•" "▫" "•" "▫"))
+  (setq org-superstar-item-bullet-alist
+        '((?+ . ?◦)
+          (?* . ?➤)
+          (?- . ?–))))
+
 ;;;;  org-journal
 
 (use-package org-journal
