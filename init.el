@@ -776,7 +776,7 @@ color."
 
 (use-package recentf
   :defer 1
-  :init
+  :config
   (recentf-mode))
 
 ;;;; diminish
@@ -1432,9 +1432,8 @@ parses its input."
 
 (use-package savehist
   :defer 1
-  :init
-  (savehist-mode 1)
   :config
+  (savehist-mode 1)
   (setq savehist-additional-variables
         '(citar-history search-ring regexp-search-ring))
   )
@@ -2192,15 +2191,14 @@ don't want to fix with `SPC', and you can abort completely with
 ;;;; yasnippet
 
 (use-package yasnippet
-  :defer 3
+  :defer 2
   :diminish (yas-minor-mode)
   :config
   (yas-global-mode 1)
-  (yas-reload-all)
-  )
+  (yas-reload-all))
 
 (use-package yasnippet-multiple-key
-  :defer t
+  :defer 1
   :straight (yasnippet-multiple-key :host github :repo "ShuguangSun/yasnippet-multiple-key"))
 
 
