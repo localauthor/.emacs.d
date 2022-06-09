@@ -686,12 +686,18 @@
 (use-package link-hint-preview
   :straight (link-hint-preview :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-preview")
   :defer 1
+  :bind
+  (:map link-hint-preview-mode-map
+        ("n" . zk-index-preview-next)
+        ("p" . zk-index-preview-previous))
+  (:map zk-index-map
+        ("v" . link-hint--preview-button)
+        ("P" . link-hint--preview-button))
+  (:map gr-map
+        ("p" . link-hint-preview))
   :hook
   (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
-  (link-hint-preview-mode-hook . toggle-frame-tab-bar)
-  :bind
-  (:map gr-map
-        ("p" . link-hint-preview)))
+  (link-hint-preview-mode-hook . toggle-frame-tab-bar))
 
 ;;;; recentf
 
@@ -849,14 +855,20 @@
   (org-src-presrve-indentation nil)
   (org-log-states-order-reversed nil)
 
-  (org-fold-core-style 'overlays)
+  (org-fold-core-style 'text-properties)
 
   ;; default 'text-properties doesn't redisplay 5/9/22
+
   ;; default works 5/16/22
+
   ;; actually, overview isn't properly font-locked
   ;; Org mode version 9.5.3 (release_9.5.3-502-g513ab7)
   ;; GNU Emacs 29.0.50 (build 1, x86_64-apple-darwin19.6.0, NS appkit-1894.60
   ;; Version 10.15.7 (Build 19H1824)) of 2022-05-14
+
+  ;;default seems to work now 6/9/22
+  ;; Org mode version 9.5.4 (release_9.5.4-523-gc02c0d @ /Users/grantrosson/.dotfiles/.emacs.d/straight/build/org/)
+  ;; GNU Emacs 29.0.50 (build 1, x86_64-apple-darwin19.6.0, NS appkit-1894.70 Version 10.15.7 (Build 19H1922)) of 2022-06-08
 
   )
 
@@ -1574,7 +1586,7 @@ following the key as group 3."
 
   (advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp)
 
-  ;; will this not work anymore??
+  ;; maybe not necessary anymore?
   (defun citar-xref-notes ()
     (let* ((hasnote (citar-file--has-file citar-notes-paths
                                           citar-file-note-extensions))
@@ -1590,7 +1602,7 @@ following the key as group 3."
   ;; new
   (setq citar-has-note-functions '(citar-file-has-notes))
 
-  ;; old
+  ;; old new
   ;; (setq citar-keys-with-notes-functions '(citar-file--keys-with-file-notes citar-xref-notes))
   )
 
@@ -1720,7 +1732,7 @@ following the key as group 3."
   :straight (:host github :repo "rougier/pdf-drop-mode")
   :defer 1
   :custom
-  (pdf-drop-search-methods '(title user-title metadata content))
+  (pdf-drop-search-methods '(metadata title user-title content))
   :config
   (pdf-drop-mode)
   (setq pdf-drop-search-hook #'my/pdf-process)
@@ -1874,6 +1886,8 @@ following the key as group 3."
               ("o" . zk-index-aw-select)
               ("j" . consult-line) ;; "jump"
               ("?" . hydra-zk-index/body))
+  :hook
+  (zk-index-mode-hook . hl-line-mode)
   :config
   (zk-index-setup-embark)
   :custom
