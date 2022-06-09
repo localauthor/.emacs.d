@@ -243,30 +243,30 @@ Optional FILE."
   (interactive)
   (when file
     (find-file file))
-    (goto-char (point-min))
-    (save-match-data
-      (while (re-search-forward gr/full-mmd-citation-regexp nil t)
-        (let ((pos)
-              (prefix (match-string-no-properties 1))
-              (new-cite (string-replace "#" "@" (match-string-no-properties 2)))
-              (internals (match-string-no-properties 3)))
-          (setq pos (match-end 2))
-          (if prefix
-              (delete-region (match-beginning 1) (match-end 2))
-            (delete-region (match-beginning 2) (match-end 2)))
-          (insert new-cite)
-          (backward-char 1)
-          (cond
-           ((not internals))
-           ((string-match "^[0-9]" internals)
-            (insert (concat ", p. " internals)))
-           ((and internals)
-            (insert (concat ", " internals))))
-          (goto-char pos)))
-      (save-buffer)
-      (if file
-          (kill-buffer))
-      ))
+  (goto-char (point-min))
+  (save-match-data
+    (while (re-search-forward gr/full-mmd-citation-regexp nil t)
+      (let ((pos)
+            (prefix (match-string-no-properties 1))
+            (new-cite (string-replace "#" "@" (match-string-no-properties 2)))
+            (internals (match-string-no-properties 3)))
+        (setq pos (match-end 2))
+        (if prefix
+            (delete-region (match-beginning 1) (match-end 2))
+          (delete-region (match-beginning 2) (match-end 2)))
+        (insert new-cite)
+        (backward-char 1)
+        (cond
+         ((not internals))
+         ((string-match "^[0-9]" internals)
+          (insert (concat ", p. " internals)))
+         ((and internals)
+          (insert (concat ", " internals))))
+        (goto-char pos)))
+    (save-buffer)
+    (if file
+        (kill-buffer))
+    ))
 
 
 (defun gr/convert-citations-mmd-to-org-cite (&optional file)
@@ -275,30 +275,30 @@ Optional FILE."
   (interactive)
   (when file
     (find-file file))
-    (goto-char (point-min))
-    (save-match-data
-      (while (re-search-forward gr/full-mmd-citation-regexp nil t)
-        (let ((pos)
-              (prefix (match-string-no-properties 1))
-              (new-cite (string-replace "#" "cite:@" (match-string-no-properties 2)))
-              (internals (match-string-no-properties 3)))
-          (setq pos (match-end 2))
-          (if prefix
-              (delete-region (match-beginning 1) (match-end 2))
-            (delete-region (match-beginning 2) (match-end 2)))
-          (insert new-cite)
-          (backward-char 1)
-          (cond
-           ((not internals))
-           ((string-match "^[0-9]" internals)
-            (insert (concat " p. " internals)))
-           ((and internals)
-            (insert (concat " " internals))))
-          (goto-char pos)))
-      (save-buffer)
-      (if file
-          (kill-buffer))
-      ))
+  (goto-char (point-min))
+  (save-match-data
+    (while (re-search-forward gr/full-mmd-citation-regexp nil t)
+      (let ((pos)
+            (prefix (match-string-no-properties 1))
+            (new-cite (string-replace "#" "cite:@" (match-string-no-properties 2)))
+            (internals (match-string-no-properties 3)))
+        (setq pos (match-end 2))
+        (if prefix
+            (delete-region (match-beginning 1) (match-end 2))
+          (delete-region (match-beginning 2) (match-end 2)))
+        (insert new-cite)
+        (backward-char 1)
+        (cond
+         ((not internals))
+         ((string-match "^[0-9]" internals)
+          (insert (concat " p. " internals)))
+         ((and internals)
+          (insert (concat " " internals))))
+        (goto-char pos)))
+    (save-buffer)
+    (if file
+        (kill-buffer))
+    ))
 
 ;; ;;; mmd completion-at-point
 
