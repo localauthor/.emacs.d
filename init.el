@@ -2517,16 +2517,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                   )))))
   )
 
-;; (use-package ibuffer-vc
-;;   :defer 1
-;;   :config
-
-;;   (defun gr/ibuffer-vc-run ()
-;;     "Set up `ibuffer-vc."
-;;     (ibuffer-vc-set-filter-groups-by-vc-root)
-;;     (unless (eq ibuffer-sorting-mode 'recency)
-;;       (ibuffer-do-sort-by-recency))))
-
 (defun gr/truncate-lines (&rest _)
   (interactive)
   (let ((inhibit-message t))
