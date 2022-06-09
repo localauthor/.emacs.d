@@ -1980,12 +1980,8 @@ following the key as group 3."
   :hook (completion-at-point-functions . zk-luhmann-completion-at-point)
   :custom
   (zk-luhmann-id-prefix "{")
-  (zk-luhmann-id-postfix " }")
-  (zk-luhmann-indent-index t)
-  :config
-  (setq zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
-                                    "\\([0-9a-zA-Z,]*\\)"
-                                    zk-luhmann-id-postfix)))
+  (zk-luhmann-id-postfix "}")
+  (zk-luhmann-indent-index t))
 
 (use-package zk-consult
   :straight nil
