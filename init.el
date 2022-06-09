@@ -126,7 +126,8 @@
 ;;;; f
 ;; added because f-shortdoc.el wasn't being found
 (use-package f
-  :straight (f :files (:defaults "f-shortdoc.el")))
+  :straight (f :files (:defaults "f-shortdoc.el"))
+  :defer 1)
 
 
 ;;; Basics
@@ -1429,8 +1430,6 @@ parses its input."
 (use-package company
   :defer 1
   :diminish
-  :init
-  (global-company-mode 1)
   :bind
   (:map company-active-map
         ("<return>" . nil)
@@ -1460,6 +1459,7 @@ parses its input."
   ;; interfers with Luhmann, zk sort order
   (company-transformers '(company-sort-by-occurrence))
   :config
+  (global-company-mode 1)
   ;; use TAB for completion-at-point
   (setq tab-always-indent nil)
   (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
@@ -1482,7 +1482,7 @@ parses its input."
   (:map company-posframe-active-map
         ([mouse-1] . company-abort)
         ([?\e] . company-abort))
-  :init
+  :config
   (company-posframe-mode 1)
   :custom
   (company-posframe-show-indicator nil)
@@ -1784,6 +1784,7 @@ following the key as group 3."
 
 (use-package pdf-drop-mode
   :straight (:host github :repo "rougier/pdf-drop-mode")
+  :defer 1
   :custom
   (pdf-drop-search-methods '(title user-title metadata content))
   :config
