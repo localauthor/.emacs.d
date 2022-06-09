@@ -9,60 +9,6 @@
 ;;(require 'dickinson)
 ;;(require 'vertico)
 
-;;; use link-hint-preview for auto-scroll
-
-  (defvar zk-index--preview-frame nil)
-
-  (defun zk-index-next-line ()
-    "Move to next line.
-If 'zk-index-auto-scroll' is non-nil, show note in other window."
-    (interactive)
-    (let ((buffer (current-buffer))
-          (preview-frame zk-index--preview-frame))
-      (if zk-index-auto-scroll
-          (progn
-            (when (frame-live-p preview-frame)
-              (select-frame-set-input-focus preview-frame)
-              (link-hint-preview-close-frame))
-            (forward-button 1)
-            (link-hint--preview-button)
-            (setq zk-index--preview-frame (selected-frame))
-            (select-window (get-buffer-window buffer t)))
-        (forward-button 1))))
-
-  (defun zk-index-previous-line ()
-    "Move to previous line.
-If 'zk-index-auto-scroll' is non-nil, show note in other window."
-    (interactive)
-    (let ((buffer (current-buffer))
-          (preview-frame zk-index--preview-frame))
-      (if zk-index-auto-scroll
-          (progn
-            (when (frame-live-p preview-frame)
-              (select-frame-set-input-focus preview-frame)
-              (link-hint-preview-close-frame))
-            (forward-button -1)
-            (link-hint--preview-button)
-            (setq zk-index--preview-frame (selected-frame))
-            (select-window (get-buffer-window buffer t)))
-        (forward-button -1))))
-
-  (defun zk-index-preview-next ()
-    (interactive)
-    (when (eq (selected-frame)
-              zk-index--preview-frame)
-      (progn
-        (link-hint-preview-close-frame)
-        (zk-index-next-line))))
-
-  (defun zk-index-preview-previous ()
-    (interactive)
-    (when (eq (selected-frame)
-              zk-index--preview-frame)
-      (progn
-        (link-hint-preview-close-frame)
-        (zk-index-previous-line))))
-
 ;;; General Utilities
 
 (defun link-hint-other-tab ()
