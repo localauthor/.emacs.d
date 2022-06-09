@@ -40,11 +40,6 @@
 
 (setq use-package-hook-name-suffix nil)
 
-
-;; (require 'package)
-;; (add-to-list 'package-archives
-;;              '("melpa" . "https://melpa.org/packages/"))
-
 ;; Debug if there's an error during setup. Set to nil at end of init.el
 (setq debug-on-error t)
 
@@ -299,20 +294,6 @@
                      nil ;; Name of output buffer
                      "*Trash Error Buffer*")))
 
-  ;; after splitting, switch to new window
-
-  ;; (global-set-key "\C-x2" (lambda ()
-  ;;                           (interactive)
-  ;;                           (split-window-vertically)
-  ;;                           (other-window 1)))
-
-  ;; (global-set-key "\C-x3" (lambda ()
-  ;;                           (interactive)
-  ;;                           (split-window-horizontally)
-  ;;                           (other-window 1)))
-
-  ;; (global-set-key [remap eval-last-sexp] 'pp-eval-last-sexp)
-
   (defun gr/make-frame ()
     "Make frame, centered, on current monitor."
     (interactive)
@@ -417,39 +398,6 @@
 ;;    (quote ((1 . (underline (height 1)))
 ;;            (2 . ((foreground "navy blue"))))))
 ;;   )
-
-;; set region highlighting, per
-;; https://github.com/DarwinAwardWinner/dotemacs#dont-use-ns_selection_fg_color-and-ns_selection_bg_color
-
-(require 'frame)
-
-(defun fix-mac-region-colors (&optional frame)
-  "Set region face to a fixed color regardless of Mac Dark Mode.
-On Mac OS, Dark Mode messes with the color of the region in weird
-ways that makes it visually unusable. Instead, we set the region
-color to a static color that matches the non-dark-mode region
-color."
-  (interactive)
-  (with-selected-frame (or frame (selected-frame))
-    (when (and (equal (face-attribute 'region :distant-foreground)
-                      "ns_selection_fg_color")
-               (equal (face-attribute 'region :background)
-                      "ns_selection_bg_color"))
-      (set-face-attribute
-       'region nil
-       :distant-foreground 'unspecified
-       :background "#a9a9b8"))))
-
-;; Fix for future frames
-(add-hook 'after-make-frame-functions #'fix-mac-region-colors)
-
-;; Fix for current frames
-(mapc #'fix-mac-region-colors (frame-list))
-
-;; I set this here so that the down-arrow remains the right color and size
-;; even if I change themes
-;; (set-face-attribute 'org-ellipsis nil :inherit 'fixed-pitch :foreground
-;; "grey50" :underline nil :height 1.1)
 
 
 ;;;; MacOS Keybindings
