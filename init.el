@@ -1,9 +1,5 @@
 ;;; init.el                    -*- lexical-binding: t; -*-
 
-;; Make startup faster by reducing the frequency of garbage
-;; collection.  The default is 800 kilobytes.  Measured in bytes.
-;;(setq gc-cons-threshold (* 100 1000 1000))
-
 (setq user-emacs-directory "~/.dotfiles/.emacs.d/")
 
 (setq use-package-always-defer nil)
@@ -1886,8 +1882,6 @@ following the key as group 3."
               ("o" . zk-index-aw-select)
               ("j" . consult-line) ;; "jump"
               ("?" . hydra-zk-index/body))
-  :hook
-  (zk-index-mode-hook . hl-line-mode)
   :config
   (zk-index-setup-embark)
   :custom
@@ -3180,7 +3174,5 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 
 ;;; variable resets
-
-;;(setq gc-cons-threshold (* 2 1000 1000))
 
 (setq debug-on-error nil)
