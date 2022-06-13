@@ -848,24 +848,8 @@
   (org-startup-with-latex-preview nil)
   (org-use-fast-todo-selection 'expert)
   (org-edit-src-content-indentation 0)
-  (org-src-presrve-indentation nil)
+  (org-src-preserve-indentation nil)
   (org-log-states-order-reversed nil)
-
-  (org-fold-core-style 'text-properties)
-
-  ;; default 'text-properties doesn't redisplay 5/9/22
-
-  ;; default works 5/16/22
-
-  ;; actually, overview isn't properly font-locked
-  ;; Org mode version 9.5.3 (release_9.5.3-502-g513ab7)
-  ;; GNU Emacs 29.0.50 (build 1, x86_64-apple-darwin19.6.0, NS appkit-1894.60
-  ;; Version 10.15.7 (Build 19H1824)) of 2022-05-14
-
-  ;;default seems to work now 6/9/22
-  ;; Org mode version 9.5.4 (release_9.5.4-523-gc02c0d @ ~/.dotfiles/.emacs.d/straight/build/org/)
-  ;; GNU Emacs 29.0.50 (build 1, x86_64-apple-darwin19.6.0, NS appkit-1894.70 Version 10.15.7 (Build 19H1922)) of 2022-06-08
-
   )
 
 (use-package org-agenda-setup
