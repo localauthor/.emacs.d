@@ -686,7 +686,7 @@
   (:map link-hint-preview-mode-map
         ("n" . zk-index-preview-next)
         ("p" . zk-index-preview-previous))
-  (:map zk-index-map
+  (:map zk-index-mode-map
         ("v" . link-hint--preview-button)
         ("P" . link-hint--preview-button))
   (:map gr-map
@@ -797,8 +797,8 @@
   (with-eval-after-load "org"
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist '("n" . "notes")))
-  ;; :hook
-  ;; (org-mode-hook . variable-pitch-mode)
+  :hook
+  (org-mode-hook . variable-pitch-mode)
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
@@ -863,7 +863,7 @@
   ;; Version 10.15.7 (Build 19H1824)) of 2022-05-14
 
   ;;default seems to work now 6/9/22
-  ;; Org mode version 9.5.4 (release_9.5.4-523-gc02c0d @ /Users/grantrosson/.dotfiles/.emacs.d/straight/build/org/)
+  ;; Org mode version 9.5.4 (release_9.5.4-523-gc02c0d @ ~/.dotfiles/.emacs.d/straight/build/org/)
   ;; GNU Emacs 29.0.50 (build 1, x86_64-apple-darwin19.6.0, NS appkit-1894.70 Version 10.15.7 (Build 19H1922)) of 2022-06-08
 
   )
@@ -1878,7 +1878,7 @@ following the key as group 3."
   :straight (zk-index :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
                       :type nil
                       :files ("zk-index.el"))
-  :bind (:map zk-index-map
+  :bind (:map zk-index-mode-map
               ("o" . zk-index-aw-select)
               ("j" . consult-line) ;; "jump"
               ("?" . hydra-zk-index/body))
@@ -1893,18 +1893,13 @@ following the key as group 3."
 (use-package zk-luhmann
   :after zk-index
   :straight (zk-luhmann :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk-luhmann")
-  :bind (:map zk-index-map
+  :bind (:map zk-index-mode-map
               ("L" . zk-luhmann-index-sort)
               ("l" . zk-luhmann-index)
               ("C-f" . zk-luhmann-index-forward)
               ("C-b" . zk-luhmann-index-back)
               ("C-t" . zk-luhmann-index-unfold)
-              ("t" . zk-luhmann-index-top)
-              ("1" . zk-luhmann-index-level)
-              ("2" . zk-luhmann-index-level)
-              ("3" . zk-luhmann-index-level)
-              ("4" . zk-luhmann-index-level)
-              ("5" . zk-luhmann-index-level))
+              ("t" . zk-luhmann-index-top))
   :hook (completion-at-point-functions . zk-luhmann-completion-at-point)
   :custom
   (zk-luhmann-id-prefix "{")
@@ -2126,10 +2121,9 @@ don't want to fix with `SPC', and you can abort completely with
   (yas-global-mode 1)
   (yas-reload-all))
 
-(use-package yasnippet-multiple-key
-  :defer 1
-  :straight (yasnippet-multiple-key :host github :repo "ShuguangSun/yasnippet-multiple-key"))
-
+;; (use-package yasnippet-multiple-key
+;;   :defer 1
+;;   :straight (yasnippet-multiple-key :host github :repo "ShuguangSun/yasnippet-multiple-key"))
 
 ;;;; org-reveal
 
