@@ -158,7 +158,7 @@
 ;;;###autoload
 (defun gr/elfeed-open-new-window ()
   (interactive)
-  (select-frame (make-frame-command))
+  (make-frame-on-current-monitor)
   (gr/elfeed-open))
 
 ;;;###autoload
@@ -167,7 +167,6 @@
 (let ((inhibit-message t))
   (elfeed)
   (set-frame-size (selected-frame) 150 46)
-  (set-frame-position (selected-frame) 150 80)
   (delete-other-windows)
   (if (bound-and-true-p truncate-lines)
       (elfeed-update)
