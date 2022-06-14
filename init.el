@@ -113,6 +113,52 @@
 ;;     (pixel-scroll-precision-mode)
 ;;     (setq mml-attach-file-at-the-end t)))
 
+(defun straight-fetch-report (&rest _)
+  "Show fetched commit summary."
+  (interactive)
+  (with-current-buffer (get-buffer-create "*straight-fetch-report*")
+    (read-only-mode -1)
+    (erase-buffer)
+    (let ((updates nil))
+      (straight--map-repos
+       (lambda (recipe)
+         (straight--with-plist recipe (package local-repo)
+           (let* ((default-directory (straight--repos-dir local-repo))
+                  (commits (straight--process-output "git" "log" "..@{u}" "--oneline")))
+             (unless (string-empty-p commits)
+               (push (cons package (split-string commits "\n")) updates))))))
+      (insert (propertize "Recent Commits" 'face 'outline-1)
+              "\n\n")
+      (mapc (lambda (update)
+              (let* ((commits (cdr update))
+                     (package (car update))
+                     (dir (straight--repos-dir package)))
+                (insert
+                 (propertize
+                  (format "%s [%s commit%s]\n"
+                          package
+                          (number-to-string (length commits))
+                          (if (cdr commits) "s" ""))
+                  'face 'font-lock-constant-face))
+                (mapc (lambda (commit)
+                        (let ((rev (string-limit commit 7)))
+                          (insert "  ")
+                          (insert-text-button
+                           commit
+                           'follow-link t
+                           'face 'default
+                           'action (lambda (_)
+                                     (let ((default-directory dir))
+                                       (magit-show-commit (magit-commit-p rev)))))
+                          (newline)))
+                      (cdr update)))
+              (newline))
+            (cl-sort updates #'string< :key #'car))
+      (special-mode)
+      (pop-to-buffer (current-buffer))
+      (goto-char (point-min)))))
+
+(advice-add #'straight-fetch-all :after #'straight-fetch-report)
 
 ;;;; f
 ;; added because f-shortdoc.el wasn't being found
@@ -855,13 +901,7 @@
 (use-package org-agenda-setup
   :straight nil
   :defer 1
-  :after org
-  :hook
-  (org-agenda-mode-hook . (lambda ()
-                            (define-key
-                              org-agenda-mode-map
-                              (kbd "C-c $")
-                              'gr/org-agenda-mark-done-and-archive))))
+  :after org)
 
 (use-package org-capture-setup
   :straight nil
@@ -966,7 +1006,7 @@ parent."
   (vertico-cycle t)
   (vertico-count 7))
 
-(setq crm-separator "&")
+(setq crm-separator ",")
 
 ;; Add prompt indicator to `completing-read-multiple'.
 (defun crm-indicator (args)
@@ -1174,7 +1214,7 @@ there, otherwise you are prompted for a message buffer."
   (consult-customize
    consult-git-grep consult-grep consult-global-mark consult-ripgrep
    consult-bookmark consult--source-buffer consult-recent-file consult-xref
-   consult--source-bookmark
+   consult--source-bookmark consult-buffer
    :preview-key (list (kbd "C-{")
                       :debounce 1.5 'any))
 
@@ -1870,6 +1910,8 @@ following the key as group 3."
   (zk-index-setup-embark)
   :custom
   (zk-index-prefix nil)
+  (zk-index-desktp-prefix "- ")
+  (zk-index-desktop-major-mode 'outline-mode)
   (zk-index-desktop-directory zk-directory))
 
 (setq zk-index-desktop-directory (bound-and-true-p zk-directory))
