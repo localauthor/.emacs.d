@@ -562,16 +562,19 @@
   :defer 1
   :bind
   (:map link-hint-preview-mode-map
-        ("n" . zk-index-preview-next)
-        ("p" . zk-index-preview-previous))
+        ("RET" . link-hint-preview-open))
   (:map zk-index-mode-map
-        ("v" . link-hint--preview-button)
-        ("P" . link-hint--preview-button))
+        ("v" . link-hint-preview-button)
+        ("P" . link-hint-preview-button))
   (:map gr-map
         ("p" . link-hint-preview))
   :hook
-  (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
-  (link-hint-preview-mode-hook . toggle-frame-tab-bar))
+  (link-hint-preview-mode-hook . tab-bar-disable-in-frame)
+  (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line))
+
+(defun tab-bar-disable-in-frame ()
+  (when tab-bar-mode
+    (toggle-frame-tab-bar)))
 
 ;;;; recentf
 
@@ -594,7 +597,7 @@
   (diminish 'outline-minor-mode)
   (diminish 'abbrev-mode))
 
-(add-hook 'buffer-face-mode-hook #'(lambda () (diminish 'buffer-face-mode)))
+(add-hook 'buffer-face-mode-hook (lambda () (diminish 'buffer-face-mode)))
 
 ;;; Org
 ;;;; org straight.el setup
@@ -634,8 +637,8 @@
 ;;;; org-mode
 
 ;; t causes errors
-(setq org-element-use-cache nil)
-;;(setq org-element-use-cache t)
+;;(setq org-element-use-cache nil)
+(setq org-element-use-cache t)
 
 (use-package org
   :bind
@@ -668,9 +671,7 @@
         ("M-<return>" . org-insert-heading-respect-content)
         ("C-c $" . gr/org-mark-done-and-archive-datetree)
         ("" . org-cycle-agenda-files))
-  :mode (("\\.org$" . org-mode)
-         ("\\.md$" . org-mode)
-         )
+  :mode (("\\.org$" . org-mode))
   :init
   (with-eval-after-load "org"
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
@@ -680,12 +681,13 @@
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
-
+  (add-to-list 'org-file-apps '("\\.docx\\'" . default) 'append)
   :custom-face
   (org-drawer ((t (:foreground "gray60" :height .8))))
   (org-special-keyword ((t (:foreground "gray50" :height .8))))
-  (org-level-1 ((t (:inherit outline-1))))
-  (org-level-2 ((t (:inherit outline-2))))
+  ;; (org-level-1 ((t (:inherit outline-1 :height 130))))
+  ;; (org-level-2 ((t (:inherit outline-2))))
+  ;; (org-level-3 ((t (:inherit outline-3 :underline t))))
   :custom
   (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
   (default-major-mode 'org-mode)
@@ -728,7 +730,12 @@
   (org-edit-src-content-indentation 0)
   (org-src-preserve-indentation nil)
   (org-log-states-order-reversed nil)
-  )
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (shell . t)))
+  (defun org-babel-execute:yaml (body params) body))
 
 (use-package org-agenda-setup
   :straight nil
@@ -1700,6 +1707,7 @@ following the key as group 3."
         ("s" . zk-search)
         ("r" . zk-consult-grep)
         ("o" . link-hint--aw-select-zk-link))
+  :mode ("\\.md\\'" . org-mode)
   :hook
   (completion-at-point-functions . zk-completion-at-point)
   (completion-at-point-functions . gr/mmd-citation-completion-at-point)
@@ -1709,10 +1717,11 @@ following the key as group 3."
   (zk-default-backlink "201801190001")
   (zk-link-and-title 'ask)
   (zk-new-note-link-insert 'ask)
+  (zk-link-format "[[%i]]")
   (zk-link-and-title-format "%t [[%i]]")
   (zk-completion-at-point-format "%t [[%i]]")
-  (zk-tag-grep-function #'zk-grep) ;; #'zk-consult-grep-tag-search)
-  (zk-grep-function #'zk-grep) ;; #'zk-consult-grep
+  (zk-tag-grep-function #'zk-consult-grep-tag-search) ;; #'zk-grep)
+  (zk-grep-function #'zk-consult-grep) ;;#'zk-grep)
   (zk-current-notes-function nil)
   (zk-select-file-function 'zk-consult-select-file)
   (zk-consult-preview-functions
@@ -1722,7 +1731,7 @@ following the key as group 3."
   (zk-setup-auto-link-buttons)
   (with-eval-after-load 'embark-org
     (zk-setup-embark))
-  ;;(add-to-list 'auto-mode-alist '("\\.md\\'" . outline-mode))
+  ;;(add-to-list 'auto-mode-alist '("\\.md$" . org-mode))
   (with-eval-after-load 'embark
     (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map))
   (with-eval-after-load 'consult
@@ -2290,6 +2299,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; git-gutter
 
 (use-package git-gutter
+  :disabled
   :init
   :diminish (git-gutter-mode)
   :hook
@@ -2369,10 +2379,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                              (mode . pdf-annot-list-mode)
                              (name . "^\\*Contents")
                              (name . "^\\*Edit Annotation ")))
-                  ("magit" (name . "magit"))
-                  ;;("dired" (or (name . ":~/")
-                  ;;             (mode . dired-mode)))
-                  ;;("helpful" (name . "^\\*helpful"))
+                  ("magit" (and (name . "magit")
+                                (not (mode . helpful-mode))))
                   ("el" (and (mode . emacs-lisp-mode)
                              (not (name . "^\\*scratch"))
                              (not (name . "init.el"))))
@@ -2413,6 +2421,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :hook
   (dired-mode-hook . dired-omit-mode)
   (dired-mode-hook . dired-hide-details-mode)
+  (dired-omit-mode-hook . force-truncate-lines)
   (dired-omit-mode-hook . (lambda ()
                             (delete "~" dired-omit-extensions))) ;; show backup files
   :custom
@@ -2430,10 +2439,10 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 
 (use-package all-the-icons-dired
+  :disabled
   :defer t
   :hook (dired-mode-hook . all-the-icons-dired-mode)
   :diminish)
-
 
 ;;;; avy
 
@@ -2585,6 +2594,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; vundo
 
 (use-package vundo
+  :defer 1
   :custom
   ;;(vundo-glyph-alist vundo-unicode-symbols)
   (vundo-roll-back-on-quit nil))
@@ -2600,7 +2610,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((python . t)
-     (dot .t)))
+     (dot . t)))
   )
 
 (with-eval-after-load "python"
@@ -2856,11 +2866,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*sdcv\\*"
           "^\\*Backtrace\\*"
           "^\\*ZK-Index\\*"
-          "^\\*ZK-Desktop"
           "^\\*ZK-Luhmann\\*"
           "^\\*Apropos\\*"
           "^\\*eshell\\*"
-          "^\\*PDF-Occur\\*"
           "^\\*Org Agenda"
           "^\\*compilation"
           "^\\*elfeed-entry\\*"
@@ -2972,9 +2980,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-S-<left>" . outline-promote)
   ("C-<right>" . outline-demote)
   ("C-<left>" . outline-promote)
-  :custom-face
-  (outline-1 ((t (:foreground "black" :weight bold :underline t))))
-  (outline-2 ((t (:foreground "blue3" :underline nil))))
+  ;; :custom-face
+  ;; (outline-1 ((t (:foreground "blue3" :weight bold :underline t))))
+  ;; (outline-2 ((t (:foreground "black" :weight bold :underline t))))
   :hook
   (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode))))
 
@@ -3023,7 +3031,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :diminish
   :config
   (hyperbole-mode 0))
-
 
 ;;;; nxml-mode
 

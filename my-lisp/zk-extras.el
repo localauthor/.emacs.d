@@ -156,9 +156,9 @@ Optional ARG to inhibit message, for resetting counts."
   (setq zk-core-notes-count (length (zk-non-luhmann-list)))
   (setq zk-luhmann-notes-count (length (zk-luhmann-files)))
   (unless arg
-    (message (format "Notes: %s | Luhmann: %s | Lit: %s"
-                     zk-core-notes-count
+    (message (format "Luhmann: %s | Notes: %s | Lit: %s"
                      zk-luhmann-notes-count
+                     zk-core-notes-count
                      (length (zk-lit-notes-list))))))
 
 ;;;###autoload
