@@ -1280,8 +1280,10 @@ parses its input."
   (:map company-posframe-active-map
         ([mouse-1] . company-abort)
         ([?\e] . company-abort))
-  :config
-  (company-posframe-mode 1)
+  ;; :config
+  ;; (company-posframe-mode 1)
+  :hook
+  (buffer-face-mode-hook . company-posframe-mode)
   :custom
   (company-posframe-show-indicator nil)
   (company-posframe-show-metadata nil)
