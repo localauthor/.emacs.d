@@ -398,14 +398,11 @@
          (window-height . 0.6)
          (side . bottom))
 
-        ("\\*ZK-Luhmann"
-         (display-buffer-at-bottom)
-         (window-height . 0.4)
-         (side . bottom))
-
         ("\\*ZK-Index"
-         (display-buffer-at-bottom)
-         (window-height . 0.4)
+         (lambda (buffer _)
+           (select-window
+            (display-buffer-at-bottom buffer _)))
+         (window-height . 0.5)
          (side . bottom))
 
         (,(concat
