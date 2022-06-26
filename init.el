@@ -24,94 +24,13 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-(setq straight-repository-branch "develop")
 (setq straight-host-usernames '((github . "localauthor")))
-
-;; Replace use-package with straight-use-package
-;; https://github.com/radian-software/straight.el/blob/develop/README.md#integration-with-use-package
 
 (straight-use-package 'use-package)
 
 (setq straight-use-package-by-default t)
 
 (setq use-package-hook-name-suffix nil)
-
-;; Debug if there's an error during setup. Set to nil at end of init.el
-(setq debug-on-error t)
-
-(setq load-prefer-newer t)
-
-;; set mode for *scratch* buffer
-(setq initial-major-mode 'emacs-lisp-mode)
-(setq initial-scratch-message nil)
-
-(setq warning-suppress-types '((comp)))
-
-(defun efs/display-startup-time ()
-  (message "Emacs loaded in %s with %d garbage collections."
-           (format "%.2f seconds"
-                   (float-time
-                     (time-subtract after-init-time before-init-time)))
-           gcs-done))
-
-(add-hook 'emacs-startup-hook #'efs/display-startup-time)
-
-;; put here to allow initial-buffer-choice to work in daemon mode
-(setq auto-save-default nil) ; stop creating #autosave# files
-
-(setq mu4e-mu-binary "/usr/local/bin/mu")
-
-(setq safe-local-variable-values
-      '((eval gr/daily-notes-new-headline)
-        (eval setq-local zk-directory default-directory)
-        (eval face-remap-add-relative 'org-level-8 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-7 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-6 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-5 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-4 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-3 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-2 :height 140)
-        (eval face-remap-add-relative 'org-level-1 :height 150)
-        (checkdoc-package-keywords-flag)
-        (dired-omit-size-limit)
-        (org-confirm-babel-evaluate)
-        (eval progn
-              (pp-buffer)
-              (indent-buffer))
-        (eval ignore-errors
-              (when
-                  (zk-file-p)
-                (face-remap-add-relative 'default :family "Monospace" :height 130)))
-        (eval face-remap-add-relative 'default :family "Monospace" :height 130)
-        (eval remove-from-invisibility-spec '(org-link))))
-
-;;(straight-use-package '(org-plus-contrib :includes org))
-
-;; the following sets the recipe used for org
-;; anything in the use-package in myinit.org is subsequent to this
-;; I specify ":files" to ensure oc-csl works properly
-
-;; the recipe in straight gives an error, SSL certificate expired
-;; couldn't figure out what that meant
-;; setting the repo as below works
-
-(straight-use-package '(org :repo "git://git.sv.gnu.org/emacs/org-mode.git"
-                             :files (:defaults "lisp/*.el" ("etc/styles" "etc/styles/*") ("etc/csl/" "etc/csl/*"))))
-
-;;(require 'org)
-
-;; org-element wasn't being loaded on time, for some reason
-;;(require 'org-element)
-
-;; (if (version< emacs-version "28")
-;;     (org-babel-load-file (expand-file-name (concat user-emacs-directory "lisp/myinitOSX13.org"))
-;;   (org-babel-load-file (expand-file-name "~/Dropbox/org/myinit.org")))
-
-;; (when (version< "28" emacs-version)
-;;   (progn
-;;     (defvar read-symbol-positions-list nil)
-;;     (pixel-scroll-precision-mode)
-;;     (setq mml-attach-file-at-the-end t)))
 
 (defun straight-fetch-report (&rest _)
   "Show fetched commit summary."
@@ -182,7 +101,74 @@
 
 (advice-add #'straight-fetch-all :after #'straight-fetch-report)
 
-;;;; f
+
+;;; Misc Startups
+
+;; Debug if there's an error during setup. Set to nil at end of init.el
+(setq debug-on-error t)
+
+(setq load-prefer-newer t)
+
+;; set mode for *scratch* buffer
+(setq initial-major-mode 'emacs-lisp-mode)
+(setq initial-scratch-message nil)
+
+(setq warning-suppress-types '((comp)))
+
+(defun efs/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections."
+           (format "%.2f seconds"
+                   (float-time
+                     (time-subtract after-init-time before-init-time)))
+           gcs-done))
+
+(add-hook 'emacs-startup-hook #'efs/display-startup-time)
+
+;; put here to allow initial-buffer-choice to work in daemon mode
+(setq auto-save-default nil) ; stop creating #autosave# files
+
+(setq mu4e-mu-binary "/usr/local/bin/mu")
+
+(setq safe-local-variable-values
+      '((eval . (ignore-errors (when (derived-mode-p 'dired-mode)
+                                          (setq-local truncate-lines t)
+                                          (variable-pitch-mode 0))))
+        (eval gr/daily-notes-new-headline)
+        (eval setq-local zk-directory default-directory)
+        (eval face-remap-add-relative 'org-level-8 :family "Monospace")
+        (eval face-remap-add-relative 'org-level-7 :family "Monospace")
+        (eval face-remap-add-relative 'org-level-6 :family "Monospace")
+        (eval face-remap-add-relative 'org-level-5 :family "Monospace")
+        (eval face-remap-add-relative 'org-level-4 :family "Monospace")
+        (eval face-remap-add-relative 'org-level-3 :family "Monospace")
+        (eval face-remap-add-relative 'org-level-2 :height 140)
+        (eval face-remap-add-relative 'org-level-1 :height 150)
+        (checkdoc-package-keywords-flag)
+        (dired-omit-size-limit)
+        (org-confirm-babel-evaluate)
+        (eval progn
+              (pp-buffer)
+              (indent-buffer))
+        (eval ignore-errors
+              (when
+                  (zk-file-p)
+                (face-remap-add-relative 'default :family "Monospace" :height 130)))
+        (eval face-remap-add-relative 'default :family "Monospace" :height 130)
+        (eval remove-from-invisibility-spec '(org-link))))
+
+;; the following sets the recipe used for org
+;; anything in the use-package in myinit.org is subsequent to this
+;; I specify ":files" to ensure oc-csl works properly
+
+;; the recipe in straight gives an error, SSL certificate expired
+;; couldn't figure out what that meant
+;; setting the repo as below works
+
+(straight-use-package '(org :repo "git://git.sv.gnu.org/emacs/org-mode.git"
+                            :files (:defaults "lisp/*.el"
+                                              ("etc/styles" "etc/styles/*")
+                                              ("etc/csl/" "etc/csl/*"))))
+
 ;; added because f-shortdoc.el wasn't being found
 (use-package f
   :straight (f :files (:defaults "f-shortdoc.el"))
@@ -221,188 +207,14 @@
         ("o" . link-hint-open-link))
   (:map help-mode-map
         ("o" . link-hint-open-link))
-  :config
-  (pixel-scroll-precision-mode)
-  (setq set-mark-command-repeat-pop nil)
-  (prefer-coding-system 'utf-8)
-  (setq-default buffer-file-coding-system 'utf-8
-                default-buffer-file-coding-system 'utf-8
-                coding-system-for-read 'utf-8
-                coding-system-for-write 'utf-8
-                locale-coding-system 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-language-environment 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (set-default-coding-systems 'utf-8)
-
-
-  (setq auto-save-default nil) ;; stop creating #autosave# files
-  (setq create-lockfiles nil)  ;; stop creating .# files
-
-  (setq inhibit-splash-screen t)
-  (desktop-save-mode -1)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
-  (setq scroll-bar-mode nil)
-
-  (setq confirm-kill-emacs 'y-or-n-p)
-
-  (setq use-dialog-box nil)
-
-  (setq recenter-positions '(middle top bottom))
-
-  (add-hook 'after-make-frame-functions
-            #'(lambda (frame)
-                (modify-frame-parameters frame
-                                         '((vertical-scroll-bars . nil)
-                                           (horizontal-scroll-bars . nil)))))
-
-  (global-auto-revert-mode t)
-
-  (delete-selection-mode 1)
-  (global-visual-line-mode 1)
-  (global-hl-line-mode 0)
-
-  (winner-mode 1)
-
-  (transient-mark-mode 1)
-
-  (setq minibuffer-follows-selected-frame nil)
-
-  (setq find-library-include-other-files nil)nil
-
-  (setq-default indent-tabs-mode nil)   ;; use spaces for tabs
-  (setq sentence-end-double-space nil)
-
-  (setq-default fill-column 77)
-
-  (setq search-default-mode nil) ;; use literal strings in isearch, not regexps
-
-  (setq ad-redefinition-action 'accept)
-  (setq warning-suppress-types '((emacs) (comp) (:warning) comp))
-  (setq ring-bell-function 'ignore)
-
-  (setq vc-follow-symlinks t)
-  (setq show-trailing-whitespace t)
-
-  (add-to-list 'completion-ignored-extensions ".DS_Store")
-
-  (setq custom-file (concat user-emacs-directory "custom.el"))
-
-  ;; backups
-  (setq make-backup-files t)
-  (setq vc-make-backup-files t)
-  (setq version-control t ;; Use version numbers for backups.
-        kept-new-versions 10 ;; Number of newest versions to keep.
-        kept-old-versions 0 ;; Number of oldest versions to keep.
-        delete-old-versions t ;; Don't ask to delete excess backup versions.
-        backup-by-copying t) ;; Copy all files, don't rename them.
-
-  (with-eval-after-load 'zk
-    (setq backup-directory-alist
-          `((,zk-id-regexp . ,(concat user-emacs-directory "backups/per-save/ZK-backups"))
-            ("." . ,(concat user-emacs-directory "backups/per-save"))))
-
-    (defun force-backup-of-buffer ()
-      ;; Make a special "per session" backup at the first save of each
-      ;; emacs session.
-      (when (not buffer-backed-up)
-        ;; Override the default parameters for per-session backups.
-        (let ((backup-directory-alist `((,zk-id-regexp . ,(concat user-emacs-directory "backups/per-session/ZK-backups"))
-                                        ("." . ,(concat user-emacs-directory "backups/per-session"))))
-              (kept-new-versions 3))
-          (backup-buffer)))
-      ;; Make a "per save" backup on each save.  The first save results in
-      ;; both a per-session and a per-save backup, to keep the numbering
-      ;; of per-save backups consistent.
-      (let ((buffer-backed-up nil))
-        (backup-buffer)))
-
-    (add-hook 'before-save-hook 'force-backup-of-buffer))
-
-  (setq epg-gpg-program "/usr/local/bin/gpg")
-  (setq xref-search-program 'ripgrep)
-
-  (setq erc-server "irc.libera.chat"
-        erc-nick "localauthor"
-        erc-autojoin-channels-alist '(("#emacs" "#org-mode" "#systemcrafters")))
-
-  ;; yes-or-no function
-
-  (setq y-or-n-p-use-read-key t) ;; needed for embark
-  (setq use-short-answers t) ;; new in emacs 28, replaces (fset 'yes-or-no-p 'y-or-n-p)
-
-  (defun y-or-n-p-with-return (orig-func &rest args)
-    "All RET as affirmative to y-or-n-p."
-    (let ((query-replace-map (copy-keymap query-replace-map)))
-      (define-key query-replace-map (kbd "RET") 'act)
-      (define-key query-replace-map (kbd "<return>") 'act)
-      (apply orig-func args)))
-
-  (advice-add 'y-or-n-p :around #'y-or-n-p-with-return)
-
-
-  ;; trash function
-
-  (setq delete-by-moving-to-trash t)
-  (setq trash-directory "~/.Trash")
-
-  (when (memq window-system '(mac ns))
-    (defun nsystem-move-file-to-trash (path)
-      "Moves file at PATH to  macOS Trash following `move-file-to-trash' convention.
-
-      Relies on the command-line utility 'trash' to be installed.
-      Get it from:  <http://hasseg.org/trash/>"
-      (shell-command (concat "trash -vF \"" path "\""
-                             "| sed -e 's/^/Trashed: /'")
-                     nil ;; Name of output buffer
-                     "*Trash Error Buffer*")))
-
-  (defun gr/make-frame ()
-    "Make frame, centered, on current monitor."
-    (interactive)
-    (make-frame-on-current-monitor)
-    (unless (eq 'maximised (frame-parameter nil 'fullscreen))
-      (modify-frame-parameters
-       (selected-frame) '((user-position . t) (top . 0.5) (left . 0.5)))))
-
-  ;; time and mode-line
-
-  (setq display-time-24hr-format t
-        display-time-day-and-date nil
-        display-time-default-load-average nil
-        display-time-format "[%H:%M]") ;; put time in brackets
-
-  (display-time-mode 1)
-
-  (setq global-mode-string '("")) ;; remove display-time-string from right
-
-  (setq-default mode-line-format
-                '(;;"%e"
-                  ;;mode-line-front-space
-                  ;;mode-line-mule-info
-                  ;;mode-line-client
-                  ;;mode-line-modified
-                  ;;mode-line-remote
-                  "  "
-                  display-time-string ;; left align
-                  mode-line-frame-identification
-                  mode-line-buffer-identification
-                  "  "
-                  mode-line-position
-                  "  "
-                  mode-line-modes
-                  "  "
-                  (vc-mode vc-mode)
-                  "  "
-                  mode-line-misc-info
-                  mode-line-end-spaces))
+  ;; config in early-init.el
   )
 
 (use-package tab-bar
-  :init
-  (tab-bar-mode 1)
-  (tab-bar-history-mode)
+  :defer 2
+  ;;:config
+  ;;(tab-bar-mode 1)
+  ;;(tab-bar-history-mode)
   :bind
   ("s-{" . tab-bar-switch-to-prev-tab)
   ("s-}" . tab-bar-switch-to-next-tab)
