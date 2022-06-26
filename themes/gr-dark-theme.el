@@ -88,8 +88,8 @@
    `(org-todo ((,class (:family "Menlo" :weight bold :height 1 :foreground "#e5786d"))))
    `(org-done ((,class (:family "Menlo" :weight bold :height 1 :foreground "#95e454"))))
 
-   `(outline-1 ((,class (:height 1 :foreground "grey90"))))
-   `(outline-2 ((,class (:weight bold :underline t :foreground "grey90"))))
+   `(outline-1 ((,class (:foreground "grey90"))))
+   `(outline-2 ((,class (:foreground "grey90"))))
    `(outline-3 ((,class (:height 1 :foreground "grey90"))))
    `(outline-4 ((,class (:height 1 :foreground "grey90"))))
    `(outline-5 ((,class (:height 1 :foreground "grey90"))))
