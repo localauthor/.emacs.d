@@ -10,6 +10,7 @@
 ;;; Straight setup
 
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
+(setq straight-repository-branch "develop")
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
