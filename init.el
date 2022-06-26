@@ -3035,6 +3035,46 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :config
   (add-to-list 'rng-schema-locating-files "~/Dropbox/TEI/nxml-schemas/schemas.xml"))
 
+;;;; melpazoid
+
+(use-package melpazoid
+  :straight (melpazoid :host github :repo "riscy/melpazoid"
+                       :files ("melpazoid/melpazoid.el"))
+  :defer 1)
+
+(defun gr/elisp-check-buffer ()
+  (interactive)
+  (if (or flycheck-mode
+          flymake-mode)
+      (progn
+          (flycheck-mode -1)
+          (flymake-mode -1)
+          (message "Elisp checks off"))
+    (progn
+      (flycheck-mode)
+      (flycheck-list-errors)
+      (flymake-mode)
+      (flymake-show-buffer-diagnostics)
+      (package-lint-current-buffer)
+      (melpazoid))))
+
+;;;; relint
+
+(use-package relint
+  :disabled)
+
+;;;; denote
+
+(use-package denote
+  :disabled
+  :straight (denote :host github :repo "protesilaos/denote")
+  :config
+  (setq denote-directory "~/tmp/denote/"
+        denote-infer-keywords t
+        denote-sort-keywords t
+        denote-file-type nil)
+  (require 'denote-retrieve)
+  (require 'denote-link))
 
 ;;; variable resets
 
