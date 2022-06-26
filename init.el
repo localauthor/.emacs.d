@@ -1736,19 +1736,28 @@ following the key as group 3."
   :straight (zk-index :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
                       :type nil
                       :files ("zk-index.el"))
-  :bind (:map zk-index-mode-map
-              ("o" . zk-index-aw-select)
-              ("j" . consult-line) ;; "jump"
-              ("?" . hydra-zk-index/body))
+  :bind
+  (:map zk-index-mode-map
+        ("o" . zk-index-aw-select)
+        ("j" . consult-line) ;; "jump"
+        ("?" . hydra-zk-index/body))
+  (:map zk-index-desktop-button-map
+        ("v" . link-hint-preview-button)
+        ("o" . zk-index-aw-select))
   :config
   (zk-index-setup-embark)
+  :hook
+  (zk-index-desktop-mode-hook . variable-pitch-mode)
+  (zk-index-desktop-mode-hook . cursor-face-highlight-mode)
+  (zk-index-desktop-mode-hook . (lambda () (setq-local cursor-face-highlight-nonselected-window t)))
   :custom
   (zk-index-prefix nil)
-  (zk-index-desktp-prefix "- ")
+  (zk-index-desktop-prefix "- ")
   (zk-index-desktop-major-mode 'outline-mode)
-  (zk-index-desktop-directory zk-directory))
-
-(setq zk-index-desktop-directory (bound-and-true-p zk-directory))
+  (zk-index-desktop-add-pos 'at-point)
+  (zk-index-desktop-directory "~/Dropbox/ZK/Desktops")
+  :custom-face
+  (zk-index-desktop-button ((t (:background "gray95" :height .9)))))
 
 (use-package zk-luhmann
   :after zk-index
