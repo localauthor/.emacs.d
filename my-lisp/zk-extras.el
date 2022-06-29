@@ -6,8 +6,18 @@
 (require 'zk)
 (require 'zk-index)
 (require 'zk-luhmann)
-;;(require 'dickinson)
-;;(require 'vertico)
+
+;;; xref
+
+(defun zk-xref (string)
+  "Use `xref' to search for STRING in all notes.
+Opens search results in an `xref' buffer."
+  (xref--show-xrefs
+   (xref-matches-in-files string (zk--directory-files t))
+   'display-buffer-at-bottom))
+
+;; (setq xref-show-xrefs-function 'consult-xref)
+
 
 ;;; General Utilities
 
