@@ -2884,6 +2884,31 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (require 'denote-retrieve)
   (require 'denote-link))
 
+
+;;;; hide-cursor-mode
+
+(defvar-local hide-cursor--original nil)
+
+(define-minor-mode hide-cursor-mode
+  "Hide or show the cursor.
+
+    When the cursor is hidden `scroll-lock-mode' is enabled, so that
+    the buffer works like a pager."
+  :global nil
+  (if hide-cursor-mode
+      (progn
+        (scroll-lock-mode 1)
+        (setq-local hide-cursor--original
+                    cursor-type)
+        (setq-local cursor-type nil))
+    (scroll-lock-mode -1)
+    (setq-local cursor-type (or hide-cursor--original
+                                t))))
+
+(define-key global-map (kbd "<f7>") 'hide-cursor-mode)
+
+(add-hook 'mu4e-view-mode-hook 'hide-cursor-mode)
+
 ;;; variable resets
 
 (setq debug-on-error nil)
