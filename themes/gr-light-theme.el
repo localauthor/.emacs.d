@@ -36,7 +36,7 @@
 
 (custom-theme-set-faces
  'gr-light
- '(default ((t (:family "JetBrains Mono" ;;"IBM Plex Mono"
+ '(default ((t (:family "JetBrains Mono" ;;"IBM Plex Mono" ;; 
                         ;;:foundry "IBM"
                         :width normal
                         :height 1
@@ -52,7 +52,8 @@
                         :stipple nil
                         :inherit nil))))
  '(fixed-pitch ((t (:family "Monospace" :height .9 :foreground "#212121" :background "#FAFAFA"))))
- '(variable-pitch ((t (:family "Times New Roman" :height 1.2 :foreground "#212121" :background "#FAFAFA"))))
+ '(variable-pitch ((t (:family "Times New Roman" ;;  "Cardo" ;; "Bembo Book MT std" ;; "ET Bembo" ;;
+                               :height 1.3 :foreground "#212121" :background "#FAFAFA"))))
 
  '(cursor ((((background light)) (:background "black")) (((background dark)) (:background "white"))))
  '(escape-glyph ((((background dark)) (:foreground "cyan")) (((type pc)) (:foreground "magenta")) (t (:foreground "brown"))))
