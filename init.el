@@ -70,7 +70,7 @@
                       (mapc (lambda (commit)
                               (let ((rev (string-limit commit 7)))
                                 (insert-text-button
-                                 (concat "  " 
+                                 (concat "  "
                                          commit)
                                  'follow-link t
                                  'face 'default
@@ -110,6 +110,8 @@
 
 (setq load-prefer-newer t)
 
+(setq set-mark-command-repeat-pop t)
+
 ;; set mode for *scratch* buffer
 (setq initial-major-mode 'emacs-lisp-mode)
 (setq initial-scratch-message nil)
@@ -134,6 +136,11 @@
       '((eval . (ignore-errors (when (derived-mode-p 'dired-mode)
                                           (setq-local truncate-lines t)
                                           (variable-pitch-mode 0))))
+        (eval . (lambda () (variable-pitch-mode 0)))
+        (eval . (ignore-errors (when (zk-file-p)
+                                 (face-remap-add-relative 'default
+                                                          :family "Consolas"
+                                                          :height 130))))
         (eval gr/daily-notes-new-headline)
         (eval setq-local zk-directory default-directory)
         (eval face-remap-add-relative 'org-level-8 :family "Monospace")
@@ -208,6 +215,8 @@
         ("o" . link-hint-open-link))
   (:map help-mode-map
         ("o" . link-hint-open-link))
+  ;;:custom-face (default ((t (:family "IBM Plex Mono" :height 120))))
+  :custom-face (default ((t (:family "JetBrains Mono"))))
   ;; config in early-init.el
   )
 
@@ -529,6 +538,27 @@
            ;;("C-c" . 'flyspell-auto-correct-previous-word)
            )
 
+;;;; define-repeat-map
+
+(use-package define-repeat-map
+  :straight (define-repeat-map
+             :host nil
+             :repo "https://tildegit.org/acdw/define-repeat-map.el")
+  :defer 1
+  :init
+
+  (define-repeat-map isearch
+    ("s" isearch-repeat-forward)
+    ("r" isearch-repeat-backward)
+    ("C-n" isearch-repeat-forward)
+    ("C-p" isearch-repeat-backward)
+    (:exit "RET" isearch-exit
+           "C-g" keyboard-quit))
+
+  :config
+  (setq repeat-echo-function #'ignore)
+  (repeat-mode))
+
 ;;;; init-lock
 
 (use-package init-lock
@@ -563,14 +593,13 @@
   :bind
   (:map link-hint-preview-mode-map
         ("RET" . link-hint-preview-open))
-  (:map zk-index-mode-map
-        ("v" . link-hint-preview-button)
-        ("P" . link-hint-preview-button))
   (:map gr-map
         ("p" . link-hint-preview))
   :hook
   (link-hint-preview-mode-hook . tab-bar-disable-in-frame)
-  (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line))
+  (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
+  (link-hint-preview-mode-hook . hide-cursor-mode)
+  )
 
 (defun tab-bar-disable-in-frame ()
   (when tab-bar-mode
@@ -595,6 +624,7 @@
   (diminish 'visual-line-mode)
   (diminish 'buffer-face-mode)
   (diminish 'outline-minor-mode)
+  (eval-after-load 'citar-embark '(diminish 'citar-embark-mode))
   (diminish 'abbrev-mode))
 
 (add-hook 'buffer-face-mode-hook (lambda () (diminish 'buffer-face-mode)))
@@ -637,8 +667,8 @@
 ;;;; org-mode
 
 ;; t causes errors
-;;(setq org-element-use-cache nil)
-(setq org-element-use-cache t)
+(setq org-element-use-cache nil)
+;;(setq org-element-use-cache t)
 
 (use-package org
   :bind
@@ -676,8 +706,8 @@
   (with-eval-after-load "org"
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist '("n" . "notes")))
-  :hook
-  (org-mode-hook . variable-pitch-mode)
+  ;; :hook
+  ;; (org-mode-hook . variable-pitch-mode)
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
@@ -708,8 +738,7 @@
   (org-support-shift-select 'always)
   (org-return-follows-link t)
   (org-export-backends '(ascii html latex md odt org))
-  ;; Adds "CLOSED: [timestamp]" when item turned from TODO to DONE
-  (org-log-done 'time)
+  (org-log-done nil)
   ;; Sets spacing between headings in org-mode
   (org-cycle-separator-lines -1)
   (org-blank-before-new-entry
@@ -736,6 +765,12 @@
    '((emacs-lisp . t)
      (shell . t)))
   (defun org-babel-execute:yaml (body params) body))
+
+;; (use-package org-appear
+;;   :defer 1
+;;   :after org
+;;   :hook
+;;   (org-mode-hook . org-appear-mode))
 
 (use-package org-agenda-setup
   :straight nil
@@ -787,7 +822,7 @@
   (org-journal-find-file 'find-file))
 
 
-;;;;  org-contrib
+;;;; org-contrib
 
 (use-package org-contrib
   :straight (org-contrib :files ("lisp/org-contrib.el" "lisp/ox-extra.el")))
@@ -1022,7 +1057,7 @@ there, otherwise you are prompted for a message buffer."
   :defer 1
   :after (embark)
   :bind
-  ("C-s" . consult-line)
+  ;;("C-s" . consult-line)
   ("C-x b" . consult-buffer)
   ("M-y" . consult-yank-from-kill-ring)
   ("M-s f" . consult-find)
@@ -1045,6 +1080,7 @@ there, otherwise you are prompted for a message buffer."
   (embark-collect-mode-hook . consult-preview-at-point-mode)
   :custom
   (consult-fontify-preserve nil)
+  (consult-project-function nil)
   (consult-async-split-style 'semicolon)
 
   :config
@@ -1233,6 +1269,7 @@ parses its input."
 ;;;; company
 
 (use-package company
+  :disabled
   :defer 1
   :diminish
   :bind
@@ -1254,13 +1291,14 @@ parses its input."
   (company-minimum-prefix-length 1)
   (company-selection-wrap-around t)
   (company-tooltip-limit 12)
-  (company-idle-delay 0.3)
+  (company-idle-delay 0.2)
   (company-echo-delay 0)
   (company-dabbrev-downcase nil)
   (company-dabbrev-ignore-case 'keep-prefix)
   (company-sort-prefer-same-case-prefix t)
   (company-format-margin-function nil)
   (company-dabbrev-other-buffers t)
+
   ;; interfers with Luhmann, zk sort order
   (company-transformers '(company-sort-by-occurrence))
   :config
@@ -1268,19 +1306,21 @@ parses its input."
   ;; use TAB for completion-at-point
   (setq tab-always-indent nil)
   (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
-  (setq company-backends '(company-capf
+  (setq company-backends '((company-capf
+                           ;;company-elisp
+                           company-dabbrev-code
+                           ;;company-gtags
+                           ;;company-etags
+                           ;;company-keywords
+                           )
                            company-bbdb
                            company-files
-                           (company-elisp
-                            company-dabbrev-code
-                            company-gtags
-                            company-etags
-                            company-keywords)
                            company-dabbrev
                            company-yasnippet))
   (setq company-files-exclusions '(".git/" ".DS_Store")))
 
 (use-package company-posframe
+  :disabled
   :defer 1
   :diminish
   :bind
@@ -1292,16 +1332,57 @@ parses its input."
   :hook
   (buffer-face-mode-hook . company-posframe-mode)
   :custom
-  (company-posframe-show-indicator nil)
+  (company-posframe-show-indicator t)
   (company-posframe-show-metadata nil)
   (company-posframe-quickhelp-delay nil)
   )
 
 ;; kills company buffer after completion, to prevent it from showing up when
 ;; new window is created, like elfeed or mu4e
-(add-hook 'company-after-completion-hook
-          (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
-(kill-buffer " *company-posframe-buffer*"))))
+;; (add-hook 'company-after-completion-hook
+;;           (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
+;; (kill-buffer " *company-posframe-buffer*"))))
+
+
+;;;; corfu / cape
+
+(use-package corfu
+  ;; annoyingly finds zk-link after completion
+  ;;:disabled
+  :init (global-corfu-mode 1)
+  :custom
+  (corfu-cycle t)
+  (corfu-auto t)
+  (corfu-auto-delay .3)
+  (corfu-auto-prefix 1)
+  (corfu-quit-no-match 'separator)
+  (corfu-quit-at-boundary 'separator)
+  (corfu-preview-current nil)
+  :config
+  (set-face-attribute 'corfu-default nil
+                      :background "cornsilk"
+                      :font "Menlo")
+  (set-face-attribute 'corfu-current nil
+                      :background "light blue"))
+
+(setq read-file-name-completion-ignore-case t
+      read-buffer-completion-ignore-case t
+      completion-ignore-case t)
+
+;; (setq tab-always-indent 'complete)
+
+(use-package cape
+  ;;:disabled
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  :bind (("C-c p p" . completion-at-point) ;; capf
+         ("C-c p t" . complete-tag)        ;; etags
+         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c p f" . cape-file)
+         ("C-c p s" . cape-symbol)
+         ("C-c p a" . cape-abbrev)
+         ("C-c p i" . cape-ispell)))
 
 ;;;; prescient / company-prescient
 
@@ -1324,7 +1405,7 @@ parses its input."
 (defvar gr/bibliography '("~/Dropbox/gr-bibliography.bib"))
 
 (use-package citar
- ;; :straight (:host github :repo "bdarcus/citar" :fork t)
+  ;; :straight (:host github :repo "bdarcus/citar" :fork t)
   :after (oc misc-file-handling devonthink-dir)
   :commands (citar-select-ref
              citar-select-refs
