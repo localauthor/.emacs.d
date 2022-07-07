@@ -12,9 +12,12 @@
 (defun zk-xref (string)
   "Use `xref' to search for STRING in all notes.
 Opens search results in an `xref' buffer."
-  (xref--show-xrefs
-   (xref-matches-in-files string (zk--directory-files t))
-   'display-buffer-at-bottom))
+  (interactive "szk-xref: ")
+  (if-let (matches (xref-matches-in-files
+                    string
+                    (zk--directory-files t)))
+      (xref--show-xrefs matches 'display-buffer-at-bottom)
+    (error "No matches")))
 
 ;; (setq xref-show-xrefs-function 'consult-xref)
 
@@ -118,13 +121,13 @@ Optionally takes list of FILES."
                (lambda (x)
                  (unless (member x ed-notes)
                    x))
-               (zk--directory-files t "[a-z]+[0-9]\\{4\\}")))))
+               (zk--directory-files t "[a-z]+[0-9]\\{4\\}[a-z]?")))))
 
 ;;;###autoload
 (defun zk-lit-notes-index ()
   "List lit notes in ZK-Index, by size."
   (interactive)
-  (zk-index (zk-lit-notes-list) nil 'gr/size-sort-function))
+  (zk-index (zk-lit-notes-list) nil #'zk-index--sort-size))
 
 ;;;###autoload
 (defun zk-luhmann-word-count ()
@@ -269,14 +272,6 @@ Also excludes, journal, poem, Dickinson, and literature notes."
     (if-let (notes (zk--parse-id 'file-path ids))
         (find-file (zk--select-file "Unlinked notes: " notes))
       (user-error "No unlinked notes found"))))
-
-
-(defun gr/size-sort-function (list)
-  "Sort LIST for by size."
-  (sort list
-        (lambda (a b)
-          (> (file-attribute-size (file-attributes a))
-             (file-attribute-size (file-attributes b))))))
 
 
 (provide 'zk-extras)
