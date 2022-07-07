@@ -30,21 +30,21 @@
 
 ;;; add highlighting and tooltips to mmd-citekeys
 
-(defvar gr/all-cite-keys (mapcar (lambda (x) (nth 1 x)) (citar--get-candidates)))
+(defvar gr/all-cite-keys (hash-table-keys (citar-get-entries)))
 
-;; Getting all-keys by putting (citar--get-candidates) in the activate
+;; Getting all-keys by putting (citar-get-candidates) in the activate
 ;; function 'gr/mmd-citation-activate' makes things realllly slow when typing
 ;; in the buffer, since font-lock calls that function repeatedly, so we
 ;; instead put all-keys in a variable 'gr/all-cite-keys', above.
 
 ;; However, the variable will be out of sync unless we refresh it, like so:
 
-(defun gr/refresh-cite-keys (&rest _)
-  "Refresh 'gr/all-cite-keys'."
-  (interactive)
-  (setq gr/all-cite-keys (mapcar (lambda (x) (nth 1 x)) (citar--get-candidates))))
+;; (defun gr/refresh-cite-keys (&rest _)
+;;   "Refresh 'gr/all-cite-keys'."
+;;   (interactive)
+;;   (setq gr/all-cite-keys (mapcar (lambda (x) (nth 1 x)) (citar-get-candidates))))
 
-(advice-add #'citar-refresh :after #'gr/refresh-cite-keys)
+;; (advice-add #'citar-refresh :after #'gr/refresh-cite-keys)
 ;; (advice-remove #'citar-refresh #'gr/refresh-cite-keys)
 
 
@@ -81,7 +81,9 @@
 ;; or: (org-cite-basic--all-keys) ;; (require 'oc)
 ;; or: (mapcar (lambda (x) (nth 1 x)) citar--candidates-cache) ;; faaast, but need cache first
 ;; or: (mapcar (lambda (x) (elt x 1)) citar--candidates-cache)
-;; or: (mapcar (lambda (x) (nth 1 x)) (citar--get-candidates)) ;; (require 'citar); and slow to run each tme
+;; or: (mapcar (lambda (x) (nth 1 x)) (citar-get-candidates)) ;; (require 'citar); and slow to run each tme
+
+;; (hash-table-keys (citar-get-entries)) faaast
 
 (defvar mmd-tooltip-enable t)
 
@@ -98,18 +100,17 @@
   "Generate tooltip for mmd-citation at POS."
   (save-excursion
     (goto-char pos)
-    (let* ((citar-templates
-            '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
-              (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords keywords:*}")
-              (preview . "${author editor} (${year issued date})\n${title}\n${journal publisher}")
-              (note . "Notes on ${author editor}, ${title}")))
-           (mmd-citation (progn
-                           (when (thing-at-point-looking-at "[#|\\[]")
-                             (forward-char 2))
-                           (list (thing-at-point 'symbol t))))
-           (entry (citar--ensure-entries mmd-citation)))
-      (if entry
-          (citar-format-reference entry)
+    (let* ((key (progn
+                  (when (thing-at-point-looking-at "[#|\\[]")
+                    (forward-char 2))
+                  (thing-at-point 'symbol t)))
+           (author (citar-get-value "author" key))
+           (title (or (citar-get-value "title" key)
+                      (citar-get-value "booktitle" key)))
+           (publisher (or (citar-get-value "publisher" key)
+                          (citar-get-value "journal" key))))
+      (if key
+          (format "%s\n%s\n%s" author title publisher)
         (message "No record")))))
 
 ;;;###autoload
@@ -134,9 +135,9 @@
   (interactive)
   (if current-prefix-arg
       (insert gr/last-mmd-citation)
-    (let* ((key-entry (citar-select-ref))
+    (let* ((key (citar-select-ref))
            (pages (read-from-minibuffer "Pages: "))
-           (mmd (format "[#%s]" (car key-entry))))
+           (mmd (format "[#%s]"  key)))
       (if (string= "" pages) (insert mmd)
         (insert (format "[%s]" pages) mmd))
       (setq gr/last-mmd-citation mmd)
@@ -154,11 +155,11 @@
 
 (defun link-hint--open-mmd-citation ()
   "Call 'citar-open' on mmd-citation key at point."
-  (let* ((cite (when (thing-at-point-looking-at "[#|\\[]")
+  (let* ((key (when (thing-at-point-looking-at "[#|\\[]")
                 (progn
                   (forward-char 2)
                   (substring-no-properties (thing-at-point 'symbol))))))
-    (citar-open (list (append (list cite) (citar--get-entry cite))))))
+    (citar-open (list key))))
 
 (link-hint-define-type 'mmd-citation
   :next #'link-hint--next-mmd-citation
@@ -190,14 +191,15 @@
     ("RET" citar-open)
     ("z" zk-search)
     ("f" devonthink-dir-find-file)
-    ("r" citar-copy-reference)
+    ("k" citar-copy-reference)
     ("e" citar-ebib-jump-to-entry)
-    ("F" citar-open-library-file)
+    ("F" citar-open-files)
     ("o" citar-open)
     ("n" citar-open-notes))
 
   (add-to-list 'embark-keymap-alist '(mmd-citation . embark-mmd-citation-map))
   (add-to-list 'embark-target-finders 'embark-target-mmd-citation-at-point)
+
   )
 
 ;;; append-bibliography
@@ -306,22 +308,24 @@ Optional FILE."
   "Complete mmd-citations at point."
   (save-excursion
     (let ((origin (point)))
-      (when (and (re-search-backward "\\[\\#"
-                                     (line-beginning-position)
-                                     t)
+      (when (and (re-search-backward
+                  "\\[\\#"
+                  (line-beginning-position)
+                  t)
                  (save-excursion
-                   (not (search-forward "]" origin t))))
+                   (not (search-forward
+                         "]" origin t))))
         (let ((begin (match-end 0))
               (end origin))
           (list begin end
                 (completion-table-dynamic
                  (lambda (_)
-                   (citar--get-candidates)))
+                   (citar--format-candidates)))
                 :exit-function
+                ;; take completion str and replace with key
                 (lambda (str _status)
-                  ;; take completion str and replace with key
                   (delete-char (- (length str)))
-                  (insert (car (last (split-string str))) "]"))))))))
+                  (insert (citar--extract-candidate-citekey str) "]"))))))))
 
 ;; (add-to-list 'completion-at-point-functions 'gr/mmd-citation-completion-at-point)
 

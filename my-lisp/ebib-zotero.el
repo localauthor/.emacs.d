@@ -10,7 +10,6 @@
 
 (require 'ebib)
 (require 'ebib-extras)
-(require 'citar)
 
 (defcustom ebib-zotero-translation-server "https://translate.manubot.org"
   "The address of Zotero translation server."
@@ -43,8 +42,7 @@ The entry is stored in the current database."
     ;; (ebib--goto-entry-in-index key)
     (ebib-generate-autokey)
     (ebib--update-entry-buffer)
-    (ebib-save-all-databases)
-    (citar-refresh)))
+    (ebib-save-all-databases)))
 
 ;;;###autoload
 (defun ebib-zotero-import-identifier (identifier &optional file)
@@ -73,8 +71,8 @@ can be DOI, ISBN, PMID, or arXiv ID."
     (ebib--update-entry-buffer)
     (when (y-or-n-p "Correct entry? ")
       (ebib-save-all-databases)
-      (ebib-zotero-rename-file (ebib--db-get-current-entry-key ebib--cur-db) file)
-      (citar-refresh))))
+      (when file
+        (ebib-zotero-rename-file (ebib--db-get-current-entry-key ebib--cur-db) file)))))
 
 (defun ebib-zotero-rename-file (key file)
   (let ((ext (file-name-extension file t)))

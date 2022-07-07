@@ -105,17 +105,16 @@ Includes duplicate handling."
 
 (advice-add 'bibtex-generate-autokey :override #'gr/bibtex-generate-autokey)
 
-
 ;;; ebib-citar
 
 (require 'citar)
 (require 'embark)
 
 ;;;###autoload
-(defun citar-ebib-jump-to-entry (key-entry)
+(defun citar-ebib-jump-to-entry (key)
   "Jump to selected KEY-ENTRY in Ebib."
   (interactive (list (citar-select-ref)))
-  (ebib-open (car key-entry)))
+  (ebib-open key))
 
 ;;;###autoload
 (defun ebib-citar-open-resource ()
@@ -123,7 +122,7 @@ Includes duplicate handling."
   (interactive)
   (if (or (derived-mode-p 'ebib-index-mode 'ebib-entry-mode))
     (let ((key (list (ebib--get-key-at-point))))
-      (citar-open (citar--ensure-entries key)))
+      (citar-open key))
     (user-error "Not in ebib")))
 
 (defun embark-target-ebib-citar-key-at-point ()

@@ -1445,48 +1445,21 @@ parses its input."
   (citar-format-reference-function 'citar-citeproc-format-reference)
   (citar-citeproc-csl-style
    "chicago-fullnote-bibliography-short-title-subsequent.csl")
-  (citar-display-transform-functions '((t . citar-clean-string)))
+  (citar-display-transform-functions '((t . citar--clean-string)))
   (citar-open-note-functions '(gr/citar-zk-open-note)) ;; added
   (citar-open-note-function 'gr/citar-zk-open-note) ;; obsoleted
-  (citar-select-multiple t)
-  ;; (citar-templates
-  ;;  '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
-  ;;    (suffix . "          ${=key= id:15}    ${=type=:12}    ${crossref tags keywords keywords:*}")
-  ;;    (preview . "${author editor} (${year issued date}) ${title}, ${journal publisher container-title collection-title}.\n")
-  ;;    (note . "${=key=} - ${title} (${year})")))
+  (citar-select-multiple nil)
 
   :config
   ;; are these requires necessary?
   (require 'citar-org)
   (require 'citar-file)
-  (require 'citar-filenotify)
+  ;;(require 'citar-filenotify)
   (require 'citar-citeproc)
 
-  (citar-filenotify-global-watches)
-  (setq citar-filenotify-callback 'refresh-cache)
+  (citar-embark-mode)
 
   (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
-
-  (defun gr/citar-zk-open-note (key entry)
-    "Custom function for citar-open-note-function."
-    (let* ((filematch (format "\\`[0-9]\\{12\\}.%s.*\\.\\(?:md\\)\\'"
-                              (regexp-quote key)))
-           (results-key (seq-mapcat
-                         (lambda (dir)
-                           (if-let ((file (directory-files dir t filematch)))
-                               file))
-                         citar-notes-paths)))
-      (if results-key
-          (funcall 'find-file (car results-key))
-        (when (y-or-n-p "No note associated - create one?")
-          (let* ((template "${=key=} - ${author}, ${title} (${year})")
-                 (title
-                  (when template
-                    (subst-char-in-string ?: ?-
-                                          (citar--format-entry-no-widths
-                                           entry
-                                           template)))))
-            (zk-new-note title))))))
 
   (defun ex/citar-search-pdf-contents ()
     ;; from localauthor
@@ -1498,54 +1471,6 @@ parses its input."
            (string (read-string "Search string: ")))
       (pdf-occur-search files string t)))
 
-  ;; crossref finding only works one way
-  ;; ie, if Wolosky2004 is in collection (lists crossref) Bercovitch2004
-  ;; then citar-open Wolosky2004 will show results Bercovitch2004
-  ;; but citar-open Bercovitch2004 will not show Wolosky2004 or Packer2004
-
-  (defun gr/citar-file--make-filename-regexp (keys extensions &optional additional-sep)
-  "Regexp matching file names starting with KEYS and ending with EXTENSIONS.
-When ADDITIONAL-SEP is non-nil, it should be a regular expression
-that separates the key from optional additional text that follows
-it in matched file names.  The returned regexp captures the key
-as group 1, the extension as group 2, and any additional text
-following the key as group 3."
-  (let* ((entry (when keys
-                  (citar--get-entry (car keys))))
-         (xref (citar--get-value "crossref" entry)))
-    (unless (or (null xref) (string-empty-p xref))
-      (push xref keys))
-    (when (and (null keys) (string-empty-p additional-sep))
-      (setq additional-sep nil))
-    (concat
-     "\\`"
-     (if keys (regexp-opt keys "[0-9]\\{12\\}?.*\\(?1:") ".*?\\(?1:[a-z]+[0-9]\\{4\\}[a-z]?\\)")
-     ".?"
-     (when additional-sep (concat "\\(?3:" additional-sep "[^z-a]*\\)?"))
-     "\\."
-     (if extensions (regexp-opt extensions "\\(?2:") "\\(?2:[^.]*\\)")
-     "\\'")))
-
-  (advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp)
-
-  ;; maybe not necessary anymore?
-  (defun citar-xref-notes ()
-    (let* ((hasnote (citar-file--has-file citar-notes-paths
-                                          citar-file-note-extensions))
-           (candidates (citar-file--has-file-notes-hash))
-           (note-keys))
-      (maphash
-       (lambda (citekey entry)
-         (when (funcall hasnote citekey entry)
-           (push citekey note-keys)))
-       candidates)
-      note-keys))
-
-  ;; new
-  (setq citar-has-note-functions '(citar-file-has-notes))
-
-  ;; old new
-  ;; (setq citar-keys-with-notes-functions '(citar-file--keys-with-file-notes citar-xref-notes))
   )
 
 ;;;; org-cite
@@ -2246,7 +2171,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                 '(
                   ("Article" (or (and (filename . "/Academic Writing/*")
                                       (not (name . "magit")))))
-                  ("Autumn 2021" (or (and (filename . "/Spring 2022/*")
+                  ("Autumn 2022" (or (and (filename . "/Autumn 2022/*")
                                           (not (name . "magit")))))
                   ("Writing" (or (and (filename . "/Writings/*")
                                       (not (name . "magit")))))
@@ -2254,7 +2179,9 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                             (and (filename . "/Zettels/")
                                  (not (name . "magit")))))
                   ("ORG" (or (and (filename . "/org/")
-                                  (name . "\\.org$"))
+                                  (name . "\\.org$")
+                                  (not (name . "gcal")))
+                             (name . "proofreading.org")
                              (name . "^\\*calfw-calendar")))
                   ("PDF" (or (mode . pdf-view-mode)
                              (mode . pdf-occur-buffer-mode)
@@ -2273,6 +2200,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                              (name . "^\\*Messages")
                              (name . "^\\*mu4e-")
                              (name . "org_archive")
+                             (name . "gcal")
                              (name . ".persp")
                              ))
                   )))))

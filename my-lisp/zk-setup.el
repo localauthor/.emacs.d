@@ -8,10 +8,13 @@
                 :files (:defaults "zk-consult.el"))
   :defer 1
   :bind
+  (:map zk-file-map
+        ("p" . zk-preview))
   (:map zk-id-map
-        ("p" . zk-preview)
+        ("p" . link-hint-preview-zk-link)
         ("s" . zk-search)
         ("r" . zk-consult-grep)
+        ("g" . zk-luhmann-index-goto)
         ("o" . link-hint--aw-select-zk-link))
   :hook
   (completion-at-point-functions . zk-completion-at-point)
@@ -68,7 +71,7 @@ Optional ARG."
   (:map zk-index-mode-map
         ("o" . zk-index-aw-select)
         ("v" . link-hint-preview-button)
-        ("P" . link-hint-preview-button))
+        ("P" . link-hint-preview-button)
         ("j" . consult-line) ;; "jump"
         ("?" . hydra-zk-index/body))
   (:map zk-index-desktop-button-map
@@ -79,7 +82,7 @@ Optional ARG."
   :config
   (zk-index-setup-embark)
   :hook
-  (zk-index-desktop-mode-hook . variable-pitch-mode)
+  (zk-index-desktop-mode-hook . (lambda () (variable-pitch-mode -1)))
   (zk-index-desktop-mode-hook . cursor-face-highlight-mode)
   (zk-index-desktop-mode-hook . (lambda () (setq-local cursor-face-highlight-nonselected-window t)))
   :custom
@@ -97,8 +100,7 @@ Optional ARG."
   :after zk-index
   :straight (zk-luhmann :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk-luhmann")
   :bind (:map zk-index-mode-map
-              ("L" . zk-luhmann-index-sort)
-              ("l" . zk-luhmann-index)
+              ("l" . zk-luhmann-index-top)
               ("C-f" . zk-luhmann-index-forward)
               ("C-b" . zk-luhmann-index-back)
               ("C-t" . zk-luhmann-index-unfold)
@@ -115,14 +117,22 @@ Optional ARG."
   :straight nil
   :defer 1)
 
+(use-package zk-citar
+  :straight (zk-citar :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk")
+  :defer 1
+  :config
+  (setq citar-notes-source 'zk))
+
 (use-package zk-extras
   :straight nil
   :defer 1
+  :bind (:map zk-index-mode-map
+              ("L" . zk-lit-notes-index))
   :config
   (setq zk-core-notes-count (length (zk-non-luhmann-list)))
   (setq zk-luhmann-notes-count (length (zk-luhmann-files))))
 
-  (use-package zk-link-hint
+(use-package zk-link-hint
   :straight (zk-link-hint :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk")
   :defer 1)
 
@@ -159,8 +169,8 @@ Optional ARG."
     ;;("B p" pullbib-pull)
     ("I" zk-index)
     ("l" zk-luhmann-index)
-    ("G" zk-luhmann-index-go-to-current)
-    ("L" zk-lit-notes)
+    ("G" zk-luhmann-index-goto)
+    ("L" zk-lit-notes-index)
     ("c" gr/citar-mmd-insert-citation)
     ("C" zk-current-notes)
     ("m" zk-make-link-buttons)
@@ -170,7 +180,8 @@ Optional ARG."
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)
     ("z" zk-consult-grep)
-    ("g" zk-consult-grep)
+    ("g" zk-grep)
+    ("x" zk-xref)
     ("s" zk-search)
     ("d" zk-index-send-to-desktop)
     ("D" zk-index-desktop)
@@ -201,14 +212,14 @@ Optional ARG."
   (defhydra hydra-zk-index (:hint nil)
     "
 _S_: Size          List:
-_M_: Modified      _l_: Luhmann  _L_: lit
-_C_: Created       _a_: all      _c_: core "
-    ("a" zk-index-refresh)
-    ("l" zk-luhmann-index)
-    ("c" zk-core-index)
-    ("n" zk-non-luhmann-index)
-    ("L" zk-lit-notes-index)
-    ("e" zk-ed-index)
+_M_: Modified      _l_: Luhmann  _L_: lit   _n_: non-L
+_C_: Created       _a_: all      _c_: core  _e_: ED"
+    ("a" zk-index-refresh :color blue)
+    ("l" zk-luhmann-index-top :color blue)
+    ("c" zk-core-index :color blue)
+    ("n" zk-non-luhmann-index :color blue)
+    ("L" zk-lit-notes-index :color blue)
+    ("e" zk-ed-index :color blue)
     ("M" zk-index-sort-modified)
     ("C" zk-index-sort-created)
     ("S" zk-index-sort-size)
