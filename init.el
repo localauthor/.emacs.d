@@ -552,7 +552,7 @@
              :host nil
              :repo "https://tildegit.org/acdw/define-repeat-map.el")
   :defer 1
-  :init
+  :config
 
   (define-repeat-map isearch
     ("s" isearch-repeat-forward)
@@ -562,7 +562,6 @@
     (:exit "RET" isearch-exit
            "C-g" keyboard-quit))
 
-  :config
   (setq repeat-echo-function #'ignore)
   (repeat-mode))
 
@@ -598,14 +597,11 @@
   :straight (link-hint-preview :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-preview")
   :defer 1
   :bind
-  (:map link-hint-preview-mode-map
-        ("RET" . link-hint-preview-open))
   (:map gr-map
         ("p" . link-hint-preview))
   :hook
   (link-hint-preview-mode-hook . tab-bar-disable-in-frame)
   (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
-  (link-hint-preview-mode-hook . hide-cursor-mode)
   )
 
 (defun tab-bar-disable-in-frame ()
@@ -1354,9 +1350,10 @@ parses its input."
 ;;;; corfu / cape
 
 (use-package corfu
-  ;; annoyingly finds zk-link after completion
   ;;:disabled
-  :init (global-corfu-mode 1)
+  ;;:init (global-corfu-mode -1)
+  :hook
+  (emacs-lisp-mode-hook . corfu-mode)
   :custom
   (corfu-cycle t)
   (corfu-auto t)
@@ -2704,7 +2701,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*sdcv\\*"
           "^\\*Backtrace\\*"
           "^\\*ZK-Index\\*"
-          "^\\*ZK-Luhmann\\*"
           "^\\*Apropos\\*"
           "^\\*eshell\\*"
           "^\\*Org Agenda"
@@ -2822,7 +2818,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;; (outline-1 ((t (:foreground "blue3" :weight bold :underline t))))
   ;; (outline-2 ((t (:foreground "black" :weight bold :underline t))))
   :hook
-  (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode))))
+  (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode)))
+  :custom
+  (outline-minor-mode-cycle t))
 
 (use-package outshine
   :defer 1
