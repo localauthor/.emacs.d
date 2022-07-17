@@ -411,6 +411,13 @@
          (lambda (buffer _)
            (select-window
             (display-buffer-at-bottom buffer _)))
+         (window-height . 0.4)
+         (side . bottom))
+
+        ("\\*ZK-Desktop"
+         (lambda (buffer _)
+           (select-window
+            (display-buffer-at-bottom buffer _)))
          (window-height . 0.5)
          (side . bottom))
 
