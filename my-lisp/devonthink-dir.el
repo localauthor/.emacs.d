@@ -25,13 +25,15 @@
   (interactive)
   (consult-find devonthink-dir initial))
 
-;; DevonThink Links
-;; obsolete, use org-link-set-parameters instead
-;; (org-add-link-type "x-devonthink-item" 'org-devonthink-item-open)
+(defun org-devonthink-setup ()
+  "Register org-devonthink link type"
+  (interactive)
+  (org-link-set-parameters "x-devonthink-item"
+                           :follow 'org-devonthink-item-open))
 
-;; (defun org-devonthink-item-open (uid)
-;;   "Open the given UID, which is a reference to an item in Devonthink."
-;;   (shell-command (concat "open \"x-devonthink-item:" uid "\"")))
+(defun org-devonthink-item-open (uid)
+  "Open the given UID, which is a reference to an item in Devonthink."
+  (shell-command (concat "open \"x-devonthink-item:" uid "\"")))
 
 ;; (defun gr/devonthink-find-file (keys-entries)
 ;;   "Search devonthink archive for file, using `consult-find'."
