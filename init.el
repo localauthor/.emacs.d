@@ -1471,6 +1471,27 @@ parses its input."
            (string (read-string "Search string: ")))
       (pdf-occur-search files string t)))
 
+  ;; overrides
+  ;; allows for finding files with citekeys anywhere in the file name
+  (defun gr/citar-file--make-filename-regexp (keys extensions &optional additional-sep)
+    "Regexp matching file names starting with KEYS and ending with EXTENSIONS.
+When ADDITIONAL-SEP is non-nil, it should be a regular expression
+that separates the key from optional additional text that follows
+it in matched file names.  The returned regexp captures the key
+as group 1, the extension as group 2, and any additional text
+following the key as group 3."
+    (when (and (null keys) (string-empty-p additional-sep))
+      (setq additional-sep nil))
+    (concat
+     "\\`"
+     (if keys (regexp-opt keys ".*\\(?1:") ".*?\\(?1:[a-z]+[0-9]\\{4\\}[a-z]?\\)")
+     (when additional-sep (concat "\\(?3:" additional-sep "[^z-a]*\\)?"))
+     "\\."
+     (if extensions (regexp-opt extensions "\\(?2:") "\\(?2:[^.]*\\)")
+     "\\'"))
+
+  (advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp)
+
   )
 
 ;;;; org-cite
