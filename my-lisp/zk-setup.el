@@ -1,20 +1,22 @@
 ;;; zk-setup.el --- Setup for zk, zk-index, zk-luhmann, etc.  -*- lexical-binding: t; -*-
 
+(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "my-lisp/zk")))
+(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "my-lisp/zk-luhmann")))
+
 ;;;; zk
 
 (use-package zk
-  :straight (zk :type nil
-                :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
-                :files (:defaults "zk-consult.el"))
+  :straight nil
   :defer 1
   :bind
   (:map zk-file-map
-        ("p" . zk-preview))
+        ("p" . zk-preview)
+        ("G" . zk-luhmann-index-goto))
   (:map zk-id-map
         ("p" . link-hint-preview-zk-link)
         ("s" . zk-search)
-        ("r" . zk-consult-grep)
-        ("g" . zk-luhmann-index-goto)
+        ("z" . zk-grep) ;; zk-consult-grep does not work as embark action
+        ("G" . zk-luhmann-index-goto)
         ("o" . link-hint--aw-select-zk-link))
   :hook
   (completion-at-point-functions . zk-completion-at-point)
@@ -22,7 +24,6 @@
   :custom
   (zk-directory "~/Dropbox/ZK/Zettels")
   (zk-file-extension "md")
-  (zk-default-backlink "201801190001")
   (zk-tag-regexp "\\s#[a-zA-Z0-9]\\+")
   (zk-link-and-title 'ask)
   (zk-new-note-link-insert 'ask)
@@ -64,9 +65,9 @@ Optional ARG."
 
 (use-package zk-index
   :after zk
-  :straight (zk-index :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
-                      :type nil
-                      :files ("zk-index.el"))
+  :straight nil ;; (zk-index :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
+            ;;           :type nil
+            ;;           :files ("zk-index.el"))
   :bind
   (:map zk-index-mode-map
         ("o" . zk-index-aw-select)
@@ -90,7 +91,7 @@ Optional ARG."
   (zk-index-desktop-prefix "- ")
   (zk-index-desktop-major-mode 'outline-mode)
   (zk-index-desktop-add-pos 'at-point)
-  (zk-index-desktop-directory "~/Dropbox/ZK/Desktops")
+  (zk-index-desktop-directory "~/Dropbox/ZK/ZK-Desktops")
   :custom-face
   (zk-index-desktop-button ((t (:background "gray95" :height .9)))))
 
@@ -98,7 +99,7 @@ Optional ARG."
 
 (use-package zk-luhmann
   :after zk-index
-  :straight (zk-luhmann :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk-luhmann")
+  :straight nil
   :bind (:map zk-index-mode-map
               ("l" . zk-luhmann-index-top)
               ("C-f" . zk-luhmann-index-forward)
@@ -114,26 +115,30 @@ Optional ARG."
 ;;;; zk-extras
 
 (use-package zk-consult
+  :after zk
   :straight nil
   :defer 1)
 
 (use-package zk-citar
-  :straight (zk-citar :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk")
+  :after zk
+  :straight nil
   :defer 1
   :config
   (setq citar-notes-source 'zk))
 
 (use-package zk-extras
+  :after zk
   :straight nil
   :defer 1
   :bind (:map zk-index-mode-map
               ("L" . zk-lit-notes-index))
   :config
-  (setq zk-core-notes-count (length (zk-non-luhmann-list)))
+  (setq zk-lit-notes-count (length (zk-lit-notes-list)))
   (setq zk-luhmann-notes-count (length (zk-luhmann-files))))
 
 (use-package zk-link-hint
-  :straight (zk-link-hint :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk")
+  :after zk
+  :straight nil
   :defer 1)
 
 (with-eval-after-load "embark"
@@ -154,19 +159,15 @@ Optional ARG."
   _h s_: Strct Nts  _c_: Insert Cite   _r_: Rename Note    _z_: zk grep
   _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib-open
                   _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz
-   [Luhmann: %`zk-luhmann-notes-count | Notes: %`zk-core-notes-count]"
+   [Luhmann: %`zk-luhmann-notes-count | Lit: %`zk-lit-notes-count] (_R_: Reset)"
     ("h h" (lambda () (interactive) (zk-find-file-by-id "201801190001")))
     ("h i" (lambda () (interactive) (zk-find-file-by-id "201801180001")))
     ("h s" (lambda () (interactive) (zk-find-file-by-id "201801180002")))
     ("N" zk-new-note)
-    ("R" zk-rename-note)
     ("r" zk-rename-note)
     ("i" zk-luhmann-insert-link)
     ("e" ebib-open)
     ("B" hydra-bib/body)
-    ;;("B b" gr/append-bibliography)
-    ;;("B r" citar-insert-reference)
-    ;;("B p" pullbib-pull)
     ("I" zk-index)
     ("l" zk-luhmann-index)
     ("G" zk-luhmann-index-goto)
@@ -176,16 +177,17 @@ Optional ARG."
     ("m" zk-make-link-buttons)
     ("o" link-hint-aw-select)
     ("b" zk-network)
-    ("S" (lambda () (interactive) (zk-stats 1)) :color red)
+    ("S" zk-index-desktop-select)
+    ("R" (lambda () (interactive) (zk-stats 1)) :color red)
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)
+    ("t" zk-consult-grep-tag-search)
     ("z" zk-consult-grep)
     ("g" zk-grep)
     ("x" zk-xref)
     ("s" zk-search)
     ("d" zk-index-send-to-desktop)
     ("D" zk-index-desktop)
-    ;; ("d" gr/consult-ripgrep-select-dir)
     ("p" devonthink-dir-find-file)
     ("q" nil)))
 
