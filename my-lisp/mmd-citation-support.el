@@ -30,24 +30,6 @@
 
 ;;; add highlighting and tooltips to mmd-citekeys
 
-(defvar gr/all-cite-keys (hash-table-keys (citar-get-entries)))
-
-;; Getting all-keys by putting (citar-get-candidates) in the activate
-;; function 'gr/mmd-citation-activate' makes things realllly slow when typing
-;; in the buffer, since font-lock calls that function repeatedly, so we
-;; instead put all-keys in a variable 'gr/all-cite-keys', above.
-
-;; However, the variable will be out of sync unless we refresh it, like so:
-
-;; (defun gr/refresh-cite-keys (&rest _)
-;;   "Refresh 'gr/all-cite-keys'."
-;;   (interactive)
-;;   (setq gr/all-cite-keys (mapcar (lambda (x) (nth 1 x)) (citar-get-candidates))))
-
-;; (advice-add #'citar-refresh :after #'gr/refresh-cite-keys)
-;; (advice-remove #'citar-refresh #'gr/refresh-cite-keys)
-
-
 (defun gr/mmd-citation-activate (limit)
   "Activate font-lock on mmd-citations up to LIMIT."
   (when (re-search-forward gr/full-mmd-citation-regexp limit t)
@@ -58,7 +40,7 @@
       t)))
 
 (defun gr/mmd-citation-fontify (key beg end)
-  (if (member key gr/all-cite-keys)
+  (if (member key (hash-table-keys (citar-get-entries)))
       (add-text-properties beg end
                            '(font-lock-face font-lock-keyword-face
                                             help-echo mmd-tooltip))
@@ -74,16 +56,9 @@
 
 
 ;; different ways to get list of all citekeys
-;; (gr/bibtex-all-field-values gr/bibliography "=key=")
 ;; or: (hash-table-keys (parsebib-parse gr/bibliography)) ;; slow
-;; or: (progn (ebib) (ebib--list-keys ebib--cur-db))
-;; or: (ebib-db-list-keys ebib--cur-db)
 ;; or: (org-cite-basic--all-keys) ;; (require 'oc)
-;; or: (mapcar (lambda (x) (nth 1 x)) citar--candidates-cache) ;; faaast, but need cache first
-;; or: (mapcar (lambda (x) (elt x 1)) citar--candidates-cache)
-;; or: (mapcar (lambda (x) (nth 1 x)) (citar-get-candidates)) ;; (require 'citar); and slow to run each tme
-
-;; (hash-table-keys (citar-get-entries)) faaast
+;; (hash-table-keys (citar-get-entries)) FAST
 
 (defvar mmd-tooltip-enable t)
 
