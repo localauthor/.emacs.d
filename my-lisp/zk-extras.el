@@ -21,7 +21,6 @@ Opens search results in an `xref' buffer."
 
 ;; (setq xref-show-xrefs-function 'consult-xref)
 
-
 ;;; General Utilities
 
 (defun link-hint-other-tab ()
@@ -55,8 +54,7 @@ Opens search results in an `xref' buffer."
   (let* ((pref-arg current-prefix-arg)
          (title (or title
                     (zk--parse-id 'title id)))
-         (luhmann-id (ignore-errors
-                       (string-match zk-luhmann-id-regexp title)
+         (luhmann-id (when (string-match zk-luhmann-id-regexp title)
                        (match-string 0 title))))
     (cond
      ((or (and (not pref-arg) (eq 't zk-link-and-title))
