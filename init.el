@@ -1,12 +1,5 @@
 ;;; init.el                    -*- lexical-binding: t; -*-
 
-(setq user-emacs-directory "~/.dotfiles/.emacs.d/")
-
-(setq use-package-always-defer nil)
-
-(load-library (concat user-emacs-directory "lisp/gcmh.el"))
-(gcmh-mode 1)
-
 ;;; Straight setup
 
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
@@ -105,6 +98,9 @@
 
 ;;; Misc Startups
 
+(load-library (concat user-emacs-directory "lisp/gcmh.el"))
+(gcmh-mode 1)
+
 ;; Debug if there's an error during setup. Set to nil at end of init.el
 (setq debug-on-error t)
 
@@ -134,8 +130,8 @@
 
 (setq safe-local-variable-values
       '((eval . (ignore-errors (when (derived-mode-p 'dired-mode)
-                                          (setq-local truncate-lines t)
-                                          (variable-pitch-mode 0))))
+                                 (setq-local truncate-lines t)
+                                 (variable-pitch-mode 0))))
         (eval . (lambda () (variable-pitch-mode 0)))
         (eval . (ignore-errors (when (zk-file-p)
                                  (face-remap-add-relative 'default
@@ -244,7 +240,7 @@
   (defun gr/tab-bar-face-setup ()
     (set-face-attribute
      'tab-bar nil
-     :font "Menlo" :height .8)
+     :font "Menlo" :height .7)
     (set-face-attribute
      'tab-bar-tab nil
      :background "grey75"
@@ -545,6 +541,12 @@
            ;; ("C-c" . 'flyspell-popup-correct)
            ;;("C-c" . 'flyspell-auto-correct-previous-word)
            )
+
+;;;;; C-s map
+
+(bind-keys :map global-map
+           ("C-s-/" . gr/citar-mmd-insert-citation))
+
 
 ;;;; define-repeat-map
 
@@ -907,8 +909,8 @@ parent."
   :defer 1
   :bind
   ("C-," . embark-act)
-  ("C-<" . embark-act-noquit)
-  ("C->" . embark-act-all)
+  ("C->" . embark-act-noquit)
+  ("C-<" . embark-act-all)
   ("M-," . embark-dwim)
   ("C-h b" . embark-bindings)
   (:map embark-identifier-map
@@ -1226,7 +1228,7 @@ That is, remove a non kept dired from the recent list."
   ("M-A" . marginalia-cycle)
   (:map minibuffer-local-map
         ("M-A" . marginalia-cycle))
-  :init
+  :config
   (marginalia-mode)
   )
 
@@ -1352,12 +1354,14 @@ parses its input."
 
 (use-package corfu
   ;;:disabled
-  ;;:init (global-corfu-mode -1)
+  :init (global-corfu-mode 1)
   :hook
   (emacs-lisp-mode-hook . corfu-mode)
+  :bind
+  ("M-i" . completion-at-point)
   :custom
   (corfu-cycle t)
-  (corfu-auto t)
+  (corfu-auto nil)
   (corfu-auto-delay .3)
   (corfu-auto-prefix 1)
   (corfu-quit-no-match 'separator)
@@ -1427,12 +1431,10 @@ parses its input."
         ("C-k" . kill-visual-line)
         ("C-h" . embark-keymap-help))
   (:map citar-map
-        ("F" . devonthink-dir-find-file)
         ("c" . citar-insert-citation)
         ("z" . zk-search)
         ("s" . ex/citar-search-pdf-contents))
   (:map citar-citation-map
-        ("F" . devonthink-dir-find-file)
         ("z" . zk-search)
         ("s" . ex/citar-search-pdf-contents))
   :custom
@@ -1623,13 +1625,11 @@ following the key as group 3."
 (use-package pdf-drop-mode
   :straight (:host github :repo "rougier/pdf-drop-mode")
   :defer 1
-  :custom
-  (pdf-drop-search-methods '(metadata title user-title content))
   :config
   (pdf-drop-mode)
   (setq pdf-drop-search-hook #'my/pdf-process)
   (defun my/pdf-process (file doi)
-    (ebib-zotero-import-identifier doi file))
+    (ebib-zotero-import-identifier (cdr doi) file))
   )
 
 
@@ -1874,11 +1874,14 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   ;;       		                 (:exclude "lisp/tablist.el" "lisp/tablist-filter.el")))
   :defer 3
   :bind
+
   (:map pdf-view-mode-map
         ("h" . pdf-annot-add-highlight-markup-annotation)
         ("l" . pdf-annot-list-annotations)
         ("t" . pdf-annot-add-text-annotation)
         ("D" . pdf-annot-delete)
+        ([remap beginning-of-buffer] . image-bob)
+        ([remap end-of-buffer] . image-eob)
         ("C-s" . pdf-occur))
   :hook
   (pdf-annot-list-mode-hook . (lambda () (pdf-annot-list-follow-minor-mode)))
