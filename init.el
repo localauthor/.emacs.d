@@ -266,6 +266,9 @@
 (use-package hydra
   :defer 1)
 
+(use-package keycast
+  :defer 1)
+
 ;;;; Faces / Themes Setup
 
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
@@ -523,8 +526,6 @@
            ("C-e" . gr/elfeed-open)
 
            ("W" . gr/word-count-subtree)
-
-           ("l" . gr/symbol-menu/body)
 
            ("D" . gr/lookup-word-at-point)
            ("d" . sdcv-search)
@@ -1941,7 +1942,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (use-package org-pdftools
   :hook (org-mode-hook . org-pdftools-setup-link))
 
-
 ;;;; Pandoc
 
 (use-package pandoc-mode
@@ -2589,7 +2589,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
               ("s" . xwwp-section)
               ("R" . xwwp-reader-toggle)))
 
-
 ;;;; pass
 
 (use-package pass
@@ -2860,14 +2859,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (visual-fill-column-width 90))
 
-;;;; hyperbole
-
-(use-package hyperbole
-  :disabled
-  :diminish
-  :config
-  (hyperbole-mode 0))
-
 ;;;; nxml-mode
 
 (use-package nxml-mode
@@ -2901,24 +2892,33 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
       (package-lint-current-buffer)
       (melpazoid))))
 
-;;;; relint
+;;;; accent
 
-(use-package relint
-  :disabled)
-
-;;;; denote
-
-(use-package denote
-  :disabled
-  :straight (denote :host github :repo "protesilaos/denote")
+(use-package accent
+  :defer 1
+  ;; :hook ((text-mode-hook . accent-menu-mode)
+  ;;        (org-mode-hook . accent-menu-mode)
+  ;;        (message-mode-hook . accent-menu-mode))
+  :bind
+  (:map gr-map
+        ("l" . accent-menu))
   :config
-  (setq denote-directory "~/tmp/denote/"
-        denote-infer-keywords t
-        denote-sort-keywords t
-        denote-file-type nil)
-  (require 'denote-retrieve)
-  (require 'denote-link))
-
+  (setq accent-diacritics '((a (ą á))
+                            (e (ė é ë))
+                            (i (į í))
+                            (o (ó))
+                            (u (ū ų ú ü))
+                            (s (š))
+                            (c (č))
+                            (z (ž))
+                            (A (Ą Á))
+                            (E (Ė É))
+                            (I (Į Í))
+                            (O (Ó))
+                            (U (Ū Ų Ú Ü))
+                            (S (Š))
+                            (C (Č))
+                            (Z (Ž))))
 
 ;;;; hide-cursor-mode
 
@@ -2943,6 +2943,12 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (define-key global-map (kbd "<f7>") 'hide-cursor-mode)
 
 (add-hook 'mu4e-view-mode-hook 'hide-cursor-mode)
+
+;;;; aggressive-indent
+
+(use-package aggressive-indent
+  :diminish
+  :hook (prog-mode-hook . aggressive-indent-mode))
 
 ;;; variable resets
 
