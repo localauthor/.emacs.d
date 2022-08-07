@@ -35,17 +35,14 @@ Symbols and Diacritics
 
 (defun gr/daily-notes-new-headline ()
   (interactive)
-  (let ((date (list (format-time-string "%Y-%m-%d %A"))))
-    (if-let ((headline
-              (ignore-errors
-                (org-find-olp date
-                              (concat org-directory
-                                      "/dailynote.org")))))
-        (goto-char headline)
+  (let ((headline (concat "* " (format-time-string "%Y-%m-%d %A"))))
+    (goto-char (point-min))
+    (unless (re-search-forward headline nil t)
       (goto-char (point-min))
-      (insert "* " (car date) "\n- |\n\n")
+      (insert headline "\n- |\n\n")
       (search-backward "|")
-      (delete-char 1))))
+      (delete-char 1))
+    (goto-char (point-min))))
 
 (defun gr/calfw-open-org-calendar ()
   (interactive)
