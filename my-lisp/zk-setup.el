@@ -1,11 +1,9 @@
 ;;; zk-setup.el --- Setup for zk, zk-index, zk-luhmann, etc.  -*- lexical-binding: t; -*-
 
-(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "my-lisp/zk")))
-(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "my-lisp/zk-luhmann")))
-
 ;;;; zk
 
 (use-package zk
+  :load-path "my-lisp/zk"
   :straight nil
   :defer 1
   :bind
@@ -64,6 +62,7 @@ Optional ARG."
 ;;;; zk-index
 
 (use-package zk-index
+  :load-path "my-lisp/zk"
   :after zk
   :straight nil ;; (zk-index :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
             ;;           :type nil
@@ -71,7 +70,7 @@ Optional ARG."
   :bind
   (:map zk-index-mode-map
         ("o" . zk-index-aw-select)
-        ("v" . link-hint-preview-button)
+        ("v" . zk-index-view-note)
         ("P" . link-hint-preview-button)
         ("j" . consult-line) ;; "jump"
         ("?" . hydra-zk-index/body))
@@ -89,7 +88,7 @@ Optional ARG."
   :custom
   (zk-index-prefix nil)
   (zk-index-desktop-prefix "- ")
-  (zk-index-desktop-major-mode 'outline-mode)
+  (zk-index-desktop-major-mode 'org-mode)
   (zk-index-desktop-add-pos 'at-point)
   (zk-index-desktop-directory "~/Dropbox/ZK/ZK-Desktops")
   :custom-face
@@ -98,6 +97,7 @@ Optional ARG."
 ;;;; zk-luhmann
 
 (use-package zk-luhmann
+  :load-path "my-lisp/zk-luhmann"
   :after zk-index
   :straight nil
   :bind (:map zk-index-mode-map
@@ -115,18 +115,23 @@ Optional ARG."
 ;;;; zk-extras
 
 (use-package zk-consult
+  :load-path "my-lisp/zk"
   :after zk
   :straight nil
   :defer 1)
 
 (use-package zk-citar
+  :load-path "my-lisp/zk"
   :after zk
   :straight nil
   :defer 1
   :config
-  (setq citar-notes-source 'zk))
+  (setq citar-notes-source 'zk)
+  :custom
+  (zk-citar-citekey-regexp "[a-z]+[0-9]\\{4\\}[a-z]?"))
 
 (use-package zk-extras
+  :load-path "my-lisp/zk"
   :after zk
   :straight nil
   :defer 1
@@ -137,6 +142,7 @@ Optional ARG."
   (setq zk-luhmann-notes-count (length (zk-luhmann-files))))
 
 (use-package zk-link-hint
+  :load-path "my-lisp/zk"
   :after zk
   :straight nil
   :defer 1)
