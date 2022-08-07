@@ -1444,22 +1444,21 @@ parses its input."
   (citar-file-note-extensions '("org" "md"))
   (citar-file-open-function 'citar-file-open-external)
   (citar-file-additional-files-separator " ")
-  (citar-file-open-prompt t)
+  (citar-open-prompt t)
   (citar-citeproc-csl-styles-dir "~/.csl")
   (citar-citeproc-csl-locales-dir "~/.csl/locales")
   (citar-format-reference-function 'citar-citeproc-format-reference)
   (citar-citeproc-csl-style
    "chicago-fullnote-bibliography-short-title-subsequent.csl")
-  (citar-display-transform-functions '((t . citar--clean-string)))
-  (citar-open-note-functions '(gr/citar-zk-open-note)) ;; added
-  (citar-open-note-function 'gr/citar-zk-open-note) ;; obsoleted
+  (citar-display-transform-functions nil)
   (citar-select-multiple nil)
+  (citar-symbols '((file "F" . " ")(note "N" . " ")))
+  (citar-open-resources '(:files :notes :create-notes))
 
   :config
   ;; are these requires necessary?
   (require 'citar-org)
   (require 'citar-file)
-  ;;(require 'citar-filenotify)
   (require 'citar-citeproc)
 
   (citar-embark-mode)
