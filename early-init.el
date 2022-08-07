@@ -18,6 +18,8 @@
 
 ;;; emacs config
 
+(setq user-emacs-directory "~/.dotfiles/.emacs.d/")
+
 (pixel-scroll-precision-mode)
 (setq set-mark-command-repeat-pop nil)
 (prefer-coding-system 'utf-8)
@@ -45,7 +47,7 @@
 
 (setq use-dialog-box nil)
 
-(setq recenter-positions '(middle top bottom))
+(setq recenter-positions '(middle bottom top))
 
 (add-hook 'after-make-frame-functions
           #'(lambda (frame)
