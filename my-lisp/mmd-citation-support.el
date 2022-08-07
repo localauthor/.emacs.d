@@ -112,9 +112,12 @@
   (if current-prefix-arg
       (insert gr/last-mmd-citation)
     (let* ((key (citar-select-ref))
-           (pages (read-from-minibuffer "Pages: "))
+           (pages (unless (looking-back "]" (- (point) 1))
+                    (read-from-minibuffer "Pages: ")))
            (mmd (format "[#%s]"  key)))
-      (if (string= "" pages) (insert mmd)
+      (if (or (not pages)
+              (string= "" pages))
+          (insert mmd)
         (insert (format "[%s]" pages) mmd))
       (setq gr/last-mmd-citation mmd)
       (kill-new mmd))))
@@ -166,10 +169,9 @@
     "Keymap for Embark comment actions."
     ("RET" citar-open)
     ("z" zk-search)
-    ("f" devonthink-dir-find-file)
     ("k" citar-copy-reference)
     ("e" citar-ebib-jump-to-entry)
-    ("F" citar-open-files)
+    ("f" citar-open-files)
     ("o" citar-open)
     ("n" citar-open-notes))
 
