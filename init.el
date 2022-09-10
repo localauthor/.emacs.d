@@ -545,7 +545,7 @@
 ;;;;; C-s map
 
 (bind-keys :map global-map
-           ("C-s-/" . gr/citar-mmd-insert-citation))
+           ("C-s-/" . gr/citar-insert-citation))
 
 
 ;;;; define-repeat-map
@@ -1457,18 +1457,12 @@ parses its input."
   :after (oc misc-file-handling devonthink-dir)
   :commands (citar-select-ref
              citar-select-refs
-             gr/citar-mmd-insert-citation
+             gr/citar-insert-citation
              citar-format-reference
              citar--ensure-entries)
   :bind
   (:map org-mode-map
-        ("C-c \\" . citar-insert-citation))
-  (:map citar-org-citation-map
-        ("<mouse-1>")
-        ("<mouse-3>")
-        ("C-d" . delete-char)
-        ("C-k" . kill-visual-line)
-        ("C-h" . embark-keymap-help))
+        ("C-c \\" . gr/citar-insert-citation))
   (:map citar-map
         ("c" . citar-insert-citation)
         ("z" . zk-search)
@@ -1501,8 +1495,6 @@ parses its input."
   (require 'citar-org)
   (require 'citar-file)
   (require 'citar-citeproc)
-
-  (citar-embark-mode)
 
   (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
 
@@ -1539,6 +1531,12 @@ following the key as group 3."
 
   )
 
+(use-package citar-embark
+  :defer 1
+  :config
+  (citar-embark-mode))
+
+
 ;;;; org-cite
 
 (use-package oc
@@ -1548,7 +1546,7 @@ following the key as group 3."
   (setq org-cite-csl-styles-dir "~/.csl"
         org-cite-csl-locales-dir "~/.csl/locales"
         org-odt-preferred-output-format nil ;; "docx"
-        org-odt-styles-file "~/Dropbox/Academic Writings/template.ott"
+        org-odt-styles-file "~/Dropbox/Academic/template.ott"
         org-cite-global-bibliography gr/bibliography)
   (setq org-cite-insert-processor 'citar
         org-cite-follow-processor 'citar
