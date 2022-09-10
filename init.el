@@ -1992,12 +1992,21 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (setq TeX-parse-self t)
   (setq-default TeX-engine 'luatex)
 
-;; for syncing auctex with pdf-tools
+  ;; for syncing auctex with pdf-tools
   (setq TeX-source-correlate-method 'synctex)
   (setq TeX-source-correlate-mode t))
 
 ;; set wider margins in latex
-(setq org-latex-packages-alist '(("margin=1in" "geometry" nil)))
+;; (setq org-latex-packages-alist '(("margin=1in" "geometry" nil)))
+
+(with-eval-after-load 'ox-latex
+  (add-to-list 'org-latex-classes
+               '("memoir" "\\documentclass[11pt]{memoir}"
+                 ("\\part{%s}" . "\\part*{%s}")
+                 ("\\chapter{%s}" . "\\chapter*{%s}")
+                 ("\\section{%s}" . "\\section*{%s}")
+                 ("\\subsection{%s}" . "\\subsection*{%s}")
+                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
 
 ;; pdflatex stopped working, for some reason (error "latexmk bad option")
 (setq org-latex-compiler "xelatex")
