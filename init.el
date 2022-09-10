@@ -22,13 +22,10 @@
 
 (straight-use-package 'use-package)
 
-;; the following sets the recipe used for org
-;; anything in the use-package in myinit.org is subsequent to this
-;; I specify ":files" to ensure oc-csl works properly
-
 ;; the recipe in straight gives an error, SSL certificate expired
 ;; couldn't figure out what that meant
 ;; setting the repo as below works
+;; I specify ":files" to ensure oc-csl works properly
 
 (straight-use-package '(org :repo "git://git.savannah.gnu.org/emacs/org-mode.git"
                             :files (:defaults "lisp/*.el"
@@ -36,8 +33,6 @@
                                               ("etc/csl/" "etc/csl/*"))))
 
 (setq straight-use-package-by-default t)
-
-(setq use-package-hook-name-suffix nil)
 
 (defun straight-fetch-report (&rest _)
   "Show fetched commit summary."
@@ -251,7 +246,7 @@
         tab-bar-tab-name-function 'tab-bar-tab-name-truncated)
   (gr/tab-bar-face-setup)
   :hook
-  (server-after-make-frame-hook . gr/tab-bar-face-setup))
+  (server-after-make-frame . gr/tab-bar-face-setup))
 
 (use-package hydra
   :defer 1)
@@ -599,8 +594,8 @@
   (:map gr-map
         ("p" . link-hint-preview))
   :hook
-  (link-hint-preview-mode-hook . tab-bar-disable-in-frame)
-  (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
+  (link-hint-preview-mode . tab-bar-disable-in-frame)
+  (link-hint-preview-mode . link-hint-preview-toggle-frame-mode-line)
   )
 
 (defun tab-bar-disable-in-frame ()
@@ -676,7 +671,7 @@
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist '("n" . "notes")))
   ;; :hook
-  ;; (org-mode-hook . variable-pitch-mode)
+  ;; (org-mode . variable-pitch-mode)
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
@@ -736,7 +731,7 @@
 ;;   :defer 1
 ;;   :after org
 ;;   :hook
-;;   (org-mode-hook . org-appear-mode))
+;;   (org-mode))
 
 (use-package org-agenda-setup
   :straight nil
@@ -762,7 +757,7 @@
   :defer t
   :after org
   :init
-  :hook (org-mode-hook . org-superstar-mode)
+  :hook (org-mode)
   :config
   (setq org-superstar-headline-bullets-list  '("◉" "○" "▪" "◦" "•" "▫" "•" "▫"))
   (setq org-superstar-item-bullet-alist
@@ -1015,7 +1010,7 @@ there, otherwise you are prompted for a message buffer."
   :after (embark consult)
   :demand t ; only necessary if you have the hook below
   :hook
-  (embark-collect-mode-hook . consult-preview-at-point-mode))
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;;; consult
 
@@ -1043,7 +1038,7 @@ there, otherwise you are prompted for a message buffer."
   ("C-;" . consult-imenu-all)
   ("C-:" . consult-outline)
   :hook
-  (embark-collect-mode-hook . consult-preview-at-point-mode)
+  (embark-collect-mode . consult-preview-at-point-mode)
   :custom
   (consult-fontify-preserve nil)
   (consult-project-function nil)
@@ -1296,7 +1291,7 @@ parses its input."
   ;; :config
   ;; (company-posframe-mode 1)
   :hook
-  (buffer-face-mode-hook . company-posframe-mode)
+  (buffer-face-mode)
   :custom
   (company-posframe-show-indicator t)
   (company-posframe-show-metadata nil)
@@ -1316,7 +1311,7 @@ parses its input."
   ;;:disabled
   :init (global-corfu-mode 1)
   :hook
-  (emacs-lisp-mode-hook . corfu-mode)
+  (emacs-lisp-mode)
   :bind
   ("M-i" . completion-at-point)
   :custom
@@ -1704,7 +1699,7 @@ following the key as group 3."
   :after citeproc
   :config
   ;; not quite ready for primetime
-  ;; :hook (org-mode-hook . (lambda ()
+  ;; :hook (org-mode . (lambda ()
   ;; (cursor-sensor-mode 1)
   ;; (org-cite-csl-activate-render-all)))
   )
@@ -1884,10 +1879,10 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
         ([remap end-of-buffer] . image-eob)
         ("C-s" . pdf-occur))
   :hook
-  (pdf-annot-list-mode-hook . (lambda () (pdf-annot-list-follow-minor-mode)))
-  (pdf-occur-buffer-mode-hook . next-error-follow-minor-mode)
-  (pdf-view-mode-hook . (lambda () (setq-local make-backup-files nil)))
-  ;;(pdf-view-mode-hook . pdf-keynav-minor-mode)
+  (pdf-annot-list-mode . (lambda () (pdf-annot-list-follow-minor-mode)))
+  (pdf-occur-buffer-mode . next-error-follow-minor-mode)
+  (pdf-view-mode . (lambda () (setq-local make-backup-files nil)))
+  ;;(pdf-view-mode . pdf-keynav-minor-mode)
   :custom
   (pdf-annot-activate-created-annotations t "automatically annotate highlights")
 
@@ -1942,7 +1937,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   )
 
 (use-package org-pdftools
-  :hook (org-mode-hook . org-pdftools-setup-link))
+  :hook (org-mode . org-pdftools-setup-link))
 
 ;;;; Pandoc
 
@@ -2025,7 +2020,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; annotate.el
 
 (use-package annotate
-  ;; :hook (after-save-hook . annotate-save-annotations)
+  ;; :hook (after-save . annotate-save-annotations)
   :disabled
   :custom
   (annotate-summary-ask-query nil)
@@ -2145,7 +2140,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :init
   :diminish (git-gutter-mode)
   :hook
-  (emacs-lisp-mode-hook . git-gutter-mode)
+  (emacs-lisp-mode)
   :config
   (set-face-foreground 'git-gutter:modified "orange")
   (set-face-foreground 'git-gutter:added    "forestgreen")
@@ -2181,8 +2176,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
         ("<backtab>". ibuffer-toggle-filter-group)
         ("TAB". ibuffer-toggle-filter-group))
   :hook
-  (ibuffer-hook . gr/truncate-lines)
-  (ibuffer-hook . gr/ibuffer-set-filter-group)
+  (ibuffer . gr/truncate-lines)
+  (ibuffer . gr/ibuffer-set-filter-group)
   :custom
   (ibuffer-expert t)
   (ibuffer-show-empty-filter-groups nil)
@@ -2264,11 +2259,11 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
         ("o" . link-hint-aw-select)
         ("C-x C-q" . dired-toggle-read-only))
   :hook
-  (dired-mode-hook . dired-omit-mode)
-  (dired-mode-hook . dired-hide-details-mode)
-  (dired-omit-mode-hook . force-truncate-lines)
-  (dired-omit-mode-hook . (lambda ()
-                            (delete "~" dired-omit-extensions))) ;; show backup files
+  (dired-mode . dired-omit-mode)
+  (dired-mode . dired-hide-details-mode)
+  (dired-omit-mode . force-truncate-lines)
+  (dired-omit-mode . (lambda ()
+                       (delete "~" dired-omit-extensions))) ;; show backup files
   :custom
   (dired-listing-switches "-algho --group-directories-first")
   (delete-by-moving-to-trash t)
@@ -2286,7 +2281,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (use-package all-the-icons-dired
   :disabled
   :defer t
-  :hook (dired-mode-hook . all-the-icons-dired-mode)
+  :hook (dired-mode)
   :diminish)
 
 ;;;; avy
@@ -2502,7 +2497,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         shr-use-colors nil
         shr-bullet "• ")
   :hook
-  (prot-eww-history-mode-hook . hl-line-mode)
+  (prot-eww-history-mode . hl-line-mode)
   :bind
   (:map prot-eww-map
         ("b" . prot-eww-visit-bookmark)
@@ -2789,11 +2784,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package paredit
   :defer t
   ;; :hook
-  ;; (emacs-lisp-mode-hook . enable-paredit-mode)
-  ;; (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
-  ;; (ielm-mode-hook . enable-paredit-mode)
-  ;; (lisp-mode-hook . enable-paredit-mode)
-  ;; (lisp-interaction-mode-hook . enable-paredit-mode)
+  ;; (emacs-lisp-mode . enable-paredit-mode)
+  ;; (eval-expression-minibuffer-setup . enable-paredit-mode)
+  ;; (ielm-mode . enable-paredit-mode)
+  ;; (lisp-mode . enable-paredit-mode)
+  ;; (lisp-interaction-mode . enable-paredit-mode)
   )
 
 ;;;; golden-ratio-scroll-screen
@@ -2831,7 +2826,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (outline-4 ((t (:underline t :height 1))))
   (outline-5 ((t (:underline t :height 1))))
   :hook
-  (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode)))
+  (outline-minor-mode . (lambda () (diminish 'outline-minor-mode)))
   :custom
   (outline-minor-mode-cycle t))
 
@@ -2839,16 +2834,16 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :defer 1
   :diminish
   :hook
-  (nxml-mode-hook . outshine-mode)
-  (emacs-lisp-mode-hook . outshine-mode)
-  (outline-minor-mode-hook . outshine-mode))
+  (nxml-mode)
+  (emacs-lisp-mode)
+  (outline-minor-mode))
 
 ;;;; whitespace-mode
 
 (use-package whitespace
   :defer 1
   ;; :hook
-  ;; (emacs-lisp-mode-hook . whitespace-mode)
+  ;; (emacs-lisp-mode)
   :custom
   (whitespace-style '(face trailing lines)))
 
@@ -2856,7 +2851,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package flycheck-package
   :defer 1
-  ;;:hook (emacs-lisp-mode-hook . flycheck-mode)
+  ;;:hook (emacs-lisp-mode . flycheck-mode)
   :custom
   (flycheck-emacs-lisp-load-path 'inherit))
 
@@ -2869,7 +2864,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;;only used in zk, as dir-local
   ;;because it doesn't work with git-gutter
   :hook
-  (org-mode-hook . visual-fill-column-mode)
+  (org-mode)
   :custom
   (visual-fill-column-width 90))
 
@@ -2910,9 +2905,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package accent
   :defer 1
-  ;; :hook ((text-mode-hook . accent-menu-mode)
-  ;;        (org-mode-hook . accent-menu-mode)
-  ;;        (message-mode-hook . accent-menu-mode))
+  ;; :hook ((text-mode . accent-menu-mode)
+  ;;        (org-mode . accent-menu-mode)
+  ;;        (message-mode . accent-menu-mode))
   :bind
   (:map gr-map
         ("l" . accent-menu))
@@ -2962,7 +2957,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package aggressive-indent
   :diminish
-  :hook (prog-mode-hook . aggressive-indent-mode))
+  :hook (prog-mode))
 
 ;;;; move-text
 
