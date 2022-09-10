@@ -106,6 +106,9 @@
 
 (setq load-prefer-newer t)
 
+(with-eval-after-load 'bind-key
+  (override-global-mode))
+
 (setq set-mark-command-repeat-pop t)
 
 ;; set mode for *scratch* buffer
