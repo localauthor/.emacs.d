@@ -1855,11 +1855,14 @@ don't want to fix with `SPC', and you can abort completely with
 ;;;; yasnippet
 
 (use-package yasnippet
+  :disabled
   :defer 2
   :diminish (yas-minor-mode)
   :config
   (yas-global-mode 1)
-  (yas-reload-all))
+  (yas-reload-all)
+  :custom
+  (yas-indent-line 'fixed)) ;; prevents error with invoice snippet
 
 ;; (use-package yasnippet-multiple-key
 ;;   :defer 1
