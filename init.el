@@ -321,9 +321,9 @@
  ("s-<left>" . move-beginning-of-line)
  ("s-<right>" . move-end-of-line)
  ("s-<up>" . beginning-of-buffer)
- ("s-<down>" . end-of-buffer)
- ("C-<up>" . move-line-up)
- ("C-<down>" . move-line-down))
+ ("s-<down>" . end-of-buffer))
+ ;; ("C-<up>" . move-line-up)
+ ;; ("C-<down>" . move-line-down))
 
 
 ;; Bold, italics, underline functions
@@ -2988,6 +2988,14 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package aggressive-indent
   :diminish
   :hook (prog-mode-hook . aggressive-indent-mode))
+
+;;;; move-text
+
+(use-package move-text
+  :bind
+  ("C-<up>" . move-text-up)
+  ("C-<down>" . move-text-down))
+
 
 ;;; variable resets
 
