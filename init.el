@@ -22,6 +22,19 @@
 
 (straight-use-package 'use-package)
 
+;; the following sets the recipe used for org
+;; anything in the use-package in myinit.org is subsequent to this
+;; I specify ":files" to ensure oc-csl works properly
+
+;; the recipe in straight gives an error, SSL certificate expired
+;; couldn't figure out what that meant
+;; setting the repo as below works
+
+(straight-use-package '(org :repo "git://git.savannah.gnu.org/emacs/org-mode.git"
+                            :files (:defaults "lisp/*.el"
+                                              ("etc/styles" "etc/styles/*")
+                                              ("etc/csl/" "etc/csl/*"))))
+
 (setq straight-use-package-by-default t)
 
 (setq use-package-hook-name-suffix nil)
@@ -153,19 +166,6 @@
                 (face-remap-add-relative 'default :family "Monospace" :height 130)))
         (eval face-remap-add-relative 'default :family "Monospace" :height 130)
         (eval remove-from-invisibility-spec '(org-link))))
-
-;; the following sets the recipe used for org
-;; anything in the use-package in myinit.org is subsequent to this
-;; I specify ":files" to ensure oc-csl works properly
-
-;; the recipe in straight gives an error, SSL certificate expired
-;; couldn't figure out what that meant
-;; setting the repo as below works
-
-(straight-use-package '(org :repo "git://git.sv.gnu.org/emacs/org-mode.git"
-                            :files (:defaults "lisp/*.el"
-                                              ("etc/styles" "etc/styles/*")
-                                              ("etc/csl/" "etc/csl/*"))))
 
 ;; added because f-shortdoc.el wasn't being found
 (use-package f
@@ -632,39 +632,6 @@
 (add-hook 'buffer-face-mode-hook (lambda () (diminish 'buffer-face-mode)))
 
 ;;; Org
-;;;; org straight.el setup
-
-;; https://github.com/raxod502/straight.el/blob/develop/README.md#installing-org-with-straightel
-(require 'subr-x)
-(straight-use-package 'git)
-
-(defun org-git-version ()
-  "The Git version of 'org-mode'.
-   Inserted by installing 'org-mode' or when a release is made."
-  (require 'git)
-  (let ((git-repo (expand-file-name
-                   "straight/repos/org/" user-emacs-directory)))
-    (string-trim
-     (git-run "describe"
-              "--match=release\*"
-              "--abbrev=6"
-              "HEAD"))))
-
-(defun org-release ()
-  "The release version of 'org-mode'.
-   Inserted by installing 'org-mode' or when a release is made."
-  (require 'git)
-  (let ((git-repo (expand-file-name
-                   "straight/repos/org/" user-emacs-directory)))
-    (string-trim
-     (string-remove-prefix
-      "release_"
-      (git-run "describe"
-               "--match=release\*"
-               "--abbrev=0"
-               "HEAD")))))
-
-(provide 'org-version)
 
 ;;;; org-mode
 
