@@ -680,8 +680,8 @@
   ("C-c C" . org-clock-goto)
   (:map org-mode-map
         ("RET" . scimax/org-return)
-        ;("C-c *" . org-toggle-item)
-        ;("C-x *" . org-toggle-item)
+        ;; ("C-c *" . org-toggle-item)
+        ;; ("C-x *" . org-toggle-item)
         ("C-c ;" . nil)
         ("<tab>" . org-cycle)
         ("C-c C-<tab>" . org-force-cycle-archived)
@@ -727,14 +727,14 @@
   (org-table-use-standard-references 'from)
   (org-catch-invisible-edits 'smart)
   (org-tags-column -77)
-  (org-tag-alist '(("noexport") ("noheadline")))
+  (org-tag-alist '(("export")("noexport") ("noheadline")))
   (org-goto-interface 'outline-path-completion)
   (org-outline-path-complete-in-steps nil)
   (org-hide-leading-stars nil)
   (org-hide-emphasis-markers nil)
   (org-link-keep-stored-after-insertion t)
   (org-link-search-must-match-exact-headline t)
-  (org-support-shift-select 'always)
+  (org-support-shift-select nil)
   (org-return-follows-link t)
   (org-export-backends '(ascii html latex md odt org))
   (org-log-done nil)
@@ -1221,7 +1221,7 @@ That is, remove a non kept dired from the recent list."
   ("M-A" . marginalia-cycle)
   (:map minibuffer-local-map
         ("M-A" . marginalia-cycle))
-  :config
+  :init
   (marginalia-mode)
   )
 
@@ -1371,7 +1371,7 @@ parses its input."
       read-buffer-completion-ignore-case t
       completion-ignore-case t)
 
-;; (setq tab-always-indent 'complete)
+(setq tab-always-indent 'complete)
 
 (use-package cape
   ;;:disabled
@@ -2126,7 +2126,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 ;;; my-lisp
 
-
 (use-package elfeed-setup
   :straight nil
   :defer t
@@ -2238,7 +2237,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
          (cons "default"
                (append
                 '(
-                  ("Article" (or (and (filename . "/Academic Writing/*")
+                  ("Article" (or (and (filename . "/Academic/*")
                                       (not (name . "magit")))))
                   ("Autumn 2022" (or (and (filename . "/Autumn 2022/*")
                                           (not (name . "magit")))))
@@ -2681,8 +2680,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; ace-window
 
 (use-package ace-window
-  :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
-                        :files (:defaults "ace-window-posframe.el"))
+  ;; :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
+  ;;                       :files (:defaults "ace-window-posframe.el"))
   :defer 2
   :bind
   ("C-x o" . ace-window)
@@ -2742,6 +2741,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*Messages\\*"
           "^\\*Warnings\\*"
           "^\\*sdcv\\*"
+          "^\\*xref\\*"
           "^\\*Backtrace\\*"
           "^\\*ZK-Index\\*"
           "^\\*Apropos\\*"
@@ -2965,7 +2965,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                             (U (Ū Ų Ú Ü))
                             (S (Š))
                             (C (Č))
-                            (Z (Ž))))
+                            (Z (Ž)))))
 
 ;;;; hide-cursor-mode
 
