@@ -123,7 +123,6 @@
 
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
-;; put here to allow initial-buffer-choice to work in daemon mode
 (setq auto-save-default nil) ; stop creating #autosave# files
 
 (setq mu4e-mu-binary "/usr/local/bin/mu")
@@ -139,14 +138,6 @@
                                                           :height 130))))
         (eval gr/daily-notes-new-headline)
         (eval setq-local zk-directory default-directory)
-        (eval face-remap-add-relative 'org-level-8 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-7 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-6 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-5 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-4 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-3 :family "Monospace")
-        (eval face-remap-add-relative 'org-level-2 :height 140)
-        (eval face-remap-add-relative 'org-level-1 :height 150)
         (checkdoc-package-keywords-flag)
         (dired-omit-size-limit)
         (org-confirm-babel-evaluate)
@@ -284,6 +275,8 @@
 ;;            (2 . ((foreground "navy blue"))))))
 ;;   )
 
+(use-package ef-themes
+  :straight (ef-themes :host github :repo "protesilaos/ef-themes"))
 
 ;;;; MacOS Keybindings
 
@@ -721,9 +714,6 @@
   :custom-face
   (org-drawer ((t (:foreground "gray60" :height .8))))
   (org-special-keyword ((t (:foreground "gray50" :height .8))))
-  ;; (org-level-1 ((t (:inherit outline-1 :height 130))))
-  ;; (org-level-2 ((t (:inherit outline-2))))
-  ;; (org-level-3 ((t (:inherit outline-3 :underline t))))
   :custom
   (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
   (default-major-mode 'org-mode)
@@ -2852,9 +2842,12 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-S-<left>" . outline-promote)
   ("C-<right>" . outline-demote)
   ("C-<left>" . outline-promote)
-  ;; :custom-face
-  ;; (outline-1 ((t (:foreground "blue3" :weight bold :underline t))))
-  ;; (outline-2 ((t (:foreground "black" :weight bold :underline t))))
+  :custom-face
+  (outline-1 ((t (:weight bold :underline t :height 130))))
+  (outline-2 ((t (:weight bold :underline t :height 1))))
+  (outline-3 ((t (:underline t :height 1))))
+  (outline-4 ((t (:underline t :height 1))))
+  (outline-5 ((t (:underline t :height 1))))
   :hook
   (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode)))
   :custom
