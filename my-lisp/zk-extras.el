@@ -54,7 +54,7 @@ Opens search results in an `xref' buffer."
   (let* ((pref-arg current-prefix-arg)
          (title (or title
                     (zk--parse-id 'title id)))
-         (luhmann-id (when (string-match zk-luhmann-id-regexp title)
+         (luhmann-id (when (string-match (zk-luhmann-id-regexp) title)
                        (match-string 0 title))))
     (cond
      ((or (and (not pref-arg) (eq 't zk-link-and-title))
@@ -65,7 +65,7 @@ Opens search results in an `xref' buffer."
           (zk--insert-link-and-title id title)
         (progn
           (when luhmann-id
-              (insert luhmann-id " "))
+            (insert luhmann-id " "))
           (zk--insert-link id))))
      ((or t
           (and pref-arg (eq 't zk-link-and-title)))
@@ -86,34 +86,6 @@ Opens search results in an `xref' buffer."
                   `((?i . ,id)(?t . ,title)))))
   (message "Copied link to current buffer"))
 
-
-(defun zk-index-make-buttons ()
-  "Re-make buttons in ZK-Index.
-For use when opening a saved index."
-  (interactive)
-  (let ((inhibit-read-only t)
-        (ids (zk--id-list)))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward zk-id-regexp nil t)
-        (let* ((beg (line-beginning-position))
-               (end (line-end-position))
-               (id (match-string-no-properties 1)))
-          (when (member id ids)
-            (beginning-of-line)
-            (make-text-button beg end
-                              'type 'zk-index
-                              'action 'zk-index-button-action
-                              'help-echo 'zk-index-help-echo)
-            (when zk-index-invisible-ids
-              (beginning-of-line)
-              (re-search-forward id)
-              (replace-match
-               (propertize id 'invisible t))
-              (goto-char (match-end 0)))))))))
-
-;; incorporate into zk-index-mode, along with visible-line-mode -1 and truncate-lines t
-;;
 
 ;;;###autoload
 (defun zk-word-count (&optional files)
