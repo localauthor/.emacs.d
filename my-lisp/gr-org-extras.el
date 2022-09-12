@@ -3,31 +3,32 @@
 ;;;; org move item/heading up/do
 
 ;; Distinguishes between item and heading
+;; replaced with move-text package
 
-(defun move-line-up ()
-  "Move up the current line."
-  (interactive)
-  (if (and (derived-mode-p 'org-mode)
-           (org-at-heading-p))
-      (call-interactively #'org-move-subtree-up)
-    (when (derived-mode-p 'prog-mode 'text-mode)
-      (progn (transpose-lines 1)
-             (forward-line -2)
-             (indent-according-to-mode))
-      )))
+;; (defun move-line-up ()
+;;   "Move up the current line."
+;;   (interactive)
+;;   (if (and (derived-mode-p 'org-mode)
+;;            (org-at-heading-p))
+;;       (call-interactively #'org-move-subtree-up)
+;;     (when (derived-mode-p 'prog-mode 'text-mode)
+;;       (progn (transpose-lines 1)
+;;              (forward-line -2)
+;;              (indent-according-to-mode))
+;;       )))
 
-(defun move-line-down ()
-  "Move down the current line."
-  (interactive)
-  (if (and (derived-mode-p 'org-mode)
-           (org-at-heading-p))
-      (call-interactively #'org-move-subtree-down)
-    (when (derived-mode-p 'prog-mode 'text-mode)
-      (progn (forward-line 1)
-             (transpose-lines 1)
-             (forward-line -1)
-             (indent-according-to-mode))
-      )))
+;; (defun move-line-down ()
+;;   "Move down the current line."
+;;   (interactive)
+;;   (if (and (derived-mode-p 'org-mode)
+;;            (org-at-heading-p))
+;;       (call-interactively #'org-move-subtree-down)
+;;     (when (derived-mode-p 'prog-mode 'text-mode)
+;;       (progn (forward-line 1)
+;;              (transpose-lines 1)
+;;              (forward-line -1)
+;;              (indent-according-to-mode))
+;;       )))
 
 
 ;;;; org narrow/widen
