@@ -33,29 +33,18 @@
 ;; Debug if there's an error during setup. Set to nil at end of init.el
 (setq debug-on-error t)
 
-(setq load-prefer-newer t)
-
-(with-eval-after-load 'bind-key
-  (override-global-mode))
-
-(setq set-mark-command-repeat-pop t)
-
 ;; set mode for *scratch* buffer
 (setq initial-major-mode 'emacs-lisp-mode)
 (setq initial-scratch-message nil)
-
-(setq warning-suppress-types '((comp)))
 
 (defun efs/display-startup-time ()
   (message "Emacs loaded in %s with %d garbage collections."
            (format "%.2f seconds"
                    (float-time
-                     (time-subtract after-init-time before-init-time)))
+                    (time-subtract after-init-time before-init-time)))
            gcs-done))
 
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
-
-(setq auto-save-default nil) ; stop creating #autosave# files
 
 (setq mu4e-mu-binary "/usr/local/bin/mu")
 
@@ -82,11 +71,6 @@
                 (face-remap-add-relative 'default :family "Monospace" :height 130)))
         (eval face-remap-add-relative 'default :family "Monospace" :height 130)
         (eval remove-from-invisibility-spec '(org-link))))
-
-;; added because f-shortdoc.el wasn't being found
-(use-package f
-  :straight (f :files (:defaults "f-shortdoc.el"))
-  :defer 1)
 
 
 ;;; Basics
@@ -2890,6 +2874,12 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-<down>" . move-text-down))
 
 
+;;;; ctrlf
+
+(use-package ctrlf
+  :defer 1
+  :config
+  (ctrlf-mode 1))
 ;;; variable resets
 
 (setq debug-on-error nil)
