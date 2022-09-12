@@ -106,21 +106,31 @@
 (defvar gr/last-mmd-citation nil)
 
 ;;;###autoload
-(defun gr/citar-mmd-insert-citation ()
-  "Insert BibTeX KEY-ENTRY in mmd format, with option to include PAGES."
-  (interactive)
+(defun gr/format-mmd-citation (key)
+  "Format BibTeX KEY in mmd format, with option to include pages."
   (if current-prefix-arg
       (insert gr/last-mmd-citation)
-    (let* ((key (citar-select-ref))
-           (pages (unless (looking-back "]" (- (point) 1))
+    (let* ((pages (unless (looking-back "]" (- (point) 1))
                     (read-from-minibuffer "Pages: ")))
-           (mmd (format "[#%s]"  key)))
+           (mmd (format "[#%s]" key)))
       (if (or (not pages)
               (string= "" pages))
           (insert mmd)
         (insert (format "[%s]" pages) mmd))
       (setq gr/last-mmd-citation mmd)
       (kill-new mmd))))
+
+;;;###autoload
+(defun gr/citar-insert-citation ()
+  "Insert cite-key, format depending on context.
+When in zk file, mmd format; when org-mode, org-cite."
+  (interactive)
+  (let ((key (citar-select-ref)))
+    (if (zk-file-p)
+        (gr/format-mmd-citation key)
+      (condition-case nil
+          (citar-insert-citation (list key))
+        (error (gr/format-mmd-citation key))))))
 
 ;;; link-hint integration
 

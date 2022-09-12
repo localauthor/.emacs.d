@@ -46,7 +46,7 @@
     (add-to-list 'consult-buffer-sources 'zk-consult-source 'append))
   (consult-customize
    zk-find-file zk-find-file-by-full-text-search zk-network zk-backlinks zk-links-in-note
-      :preview-key (list (kbd "C-{"))))
+   :preview-key (list (kbd "C-{"))))
 
 (defun zk-org-try-to-follow-link (fn &optional arg)
   "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.
@@ -178,7 +178,7 @@ Optional ARG."
     ("l" zk-luhmann-index)
     ("G" zk-luhmann-index-goto)
     ("L" zk-lit-notes-index)
-    ("c" gr/citar-mmd-insert-citation)
+    ("c" gr/citar-insert-citation)
     ("C" zk-current-notes)
     ("m" zk-make-link-buttons)
     ("o" link-hint-aw-select)
