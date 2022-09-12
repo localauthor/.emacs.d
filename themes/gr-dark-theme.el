@@ -8,14 +8,14 @@
   (custom-theme-set-faces
    'gr-dark
    `(default ((,class (:family "JetBrains Mono" ;;"IBM Plex Mono" "Menlo"
-                               :height 120 :background "#212121" :foreground "grey90"))))
+                               :height 120 :background "#212121" :foreground "grey75"))))
    `(fixed-pitch ((,class (:family "Monospace" :height 130 :background "#212121" :foreground "#f6f3e8"))))
    `(variable-pitch ((,class (:family "Times New Roman" :height 1.2 :background "#212121" :foreground "#f6f3e8"))))
    `(cursor ((,class (:background "#656565"))))
    ;; Highlighting faces
    `(fringe ((,class (:background "#303030"))))
    `(highlight ((,class (:background "#454545" :foreground "#ffffff"
-			 :underline t))))
+			             :underline t))))
    `(region ((,class (:background "#444444" :foreground "#f6f3e8"))))
    `(secondary-selection ((,class (:background "#333366" :foreground "#f6f3e8"))))
    `(isearch ((,class (:background "#343434" :foreground "#857b6f"))))
@@ -88,26 +88,17 @@
    `(org-todo ((,class (:family "Menlo" :weight bold :height 1 :foreground "#e5786d"))))
    `(org-done ((,class (:family "Menlo" :weight bold :height 1 :foreground "#95e454"))))
 
-   `(outline-1 ((,class (:foreground "grey90"))))
-   `(outline-2 ((,class (:foreground "grey90"))))
-   `(outline-3 ((,class (:height 1 :foreground "grey90"))))
-   `(outline-4 ((,class (:height 1 :foreground "grey90"))))
-   `(outline-5 ((,class (:height 1 :foreground "grey90"))))
-   `(outline-6 ((,class (:height 1 :foreground "grey90"))))
-   `(outline-7 ((,class (:height 1 :foreground "grey90"))))
-   `(outline-8 ((,class (:height 1 :foreground "grey90"))))
+   `(outline-1 ((,class (:foreground "#95e454" :weight bold :underline t))))
+   `(outline-2 ((,class (:foreground "#99968b" :weight bold :underline t))))
+   `(outline-3 ((,class (:foreground "grey90" :underline t))))
+   `(outline-4 ((,class (:foreground "grey90" :underline t))))
+   `(outline-5 ((,class (:foreground "grey90" :underline t))))
+   `(outline-6 ((,class (:foreground "grey90"))))
+   `(outline-7 ((,class (:foreground "grey90"))))
+   `(outline-8 ((,class (:foreground "grey90"))))
 
-   `(outshine-level-1 ((,class (:height 1 :foreground "grey90"))))
-   `(outshine-level-2 ((,class (:weight bold :underline t :foreground "grey90"))))
-   `(outshine-level-3 ((,class (:height 1 :foreground "grey90"))))
-   `(outshine-level-4 ((,class (:height 1 :foreground "grey90"))))
-   `(outshine-level-5 ((,class (:height 1 :foreground "grey90"))))
-   `(outshine-level-6 ((,class (:height 1 :foreground "grey90"))))
-   `(outshine-level-7 ((,class (:height 1 :foreground "grey90"))))
-   `(outshine-level-8 ((,class (:height 1 :foreground "grey90"))))
-
-   `(org-level-1 ((,class (:inherit outline-1 :height 1 :foreground "grey90"))))
-   `(org-level-2 ((,class (:inherit outline-2 :weight bold :underline t :foreground "grey90"))))
+   `(org-level-1 ((,class (:inherit outline-1 :height 130))))
+   `(org-level-2 ((,class (:inherit outline-2))))
    `(org-level-3 ((,class (:inherit outline-3))))
    `(org-level-4 ((,class (:inherit outline-4))))
    `(org-level-5 ((,class (:inherit outline-5))))
@@ -149,7 +140,7 @@
    ;;                         :family "Times New Roman"
    ;;                         :height 1.1
    ;;                         :foreground "#f6f3e8"))))
-  ))
+   ))
 
 
 (custom-theme-set-variables
