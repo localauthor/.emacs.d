@@ -16,7 +16,7 @@ Symbols and Diacritics
   ("z" (insert "ž"))
   ("i" (insert "į"))
   ("E" (insert "€"))
-)
+  )
 
 ;;;###autoload
 (defun gr/daily-notes ()
@@ -354,7 +354,7 @@ Use a prefix arg to get regular RET. "
         (org-insert-todo-heading nil))
        ;; no content, delete
        ((and (eolp) (eq 'item (car (org-element-context))))
-        (setf (buffer-substring (line-beginning-position) (point)) ""))
+        (delete-region (line-beginning-position) (line-end-position)))
        ((eq 'paragraph (car (org-element-context)))
         (goto-char (org-element-property :end (org-element-context)))
         (org-insert-todo-heading nil))
@@ -406,8 +406,7 @@ Use a prefix arg to get regular RET. "
               ))
         ;; The heading was empty, so we delete it
         (beginning-of-line)
-        (setf (buffer-substring
-               (line-beginning-position) (line-end-position)) "")))
+        (delete-region (line-beginning-position) (line-end-position))))
 
      ;; tables
      ((org-at-table-p)
@@ -419,9 +418,10 @@ Use a prefix arg to get regular RET. "
           (org-return)
         ;; empty row
         (beginning-of-line)
-        (setf (buffer-substring
-               (line-beginning-position) (line-end-position)) "")
+        (delete-region (line-beginning-position) (line-end-position))
         (org-return)))
+
+     ;; footnotes
 
      ;; fall-through case
      (t
