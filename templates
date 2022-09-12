@@ -1,0 +1,174 @@
+;; ~/.config/emacs/templates
+
+fundamental-mode ;; Available everywhere
+
+(az "Ąžuolas")
+
+emacs-lisp-mode
+(use- "(use-package " p n> r> ")")
+(autoload ";;;###autoload")
+(pt "(point)")
+(lambda "(lambda (" p ")" n> r> ")")
+(var "(defvar " p "\n  \"" p "\")")
+(local "(defvar-local " p "\n  \"" p "\")")
+(const "(defconst " p "\n  \"" p "\")")
+(custom "(defcustom " p "\n  \"" p "\"" n> ":type '" p ")")
+(face "(defface " p " '((t :inherit " p "))\n  \"" p "\")")
+(group "(defgroup " p " nil\n  \"" p "\"" n> ":group '" p n> ":prefix \"" p "-\")")
+(macro "(defmacro " p " (" p ")\n  \"" p "\"" n> r> ")")
+(alias "(defalias '" p " '" p ")")
+(fun "(defun " p " (" p ")\n  \"" p "\"" n> r> ")")
+(iflet "(if-let (" p ")" n> r> ")")
+(whenlet "(when-let (" p ")" n> r> ")")
+(iflet* "(if-let* (" p ")" n> r> ")")
+(whenlet* "(when-let* (" p ")" n> r> ")")
+(andlet* "(and-let* (" p ")" n> r> ")")
+(cond "(cond" n "(" q "))" >)
+(pcase "(pcase " (p "scrutinee") n "(" q "))" >)
+(let "(let (" p ")" n> r> ")")
+(let* "(let* (" p ")" n> r> ")")
+(rec "(letrec (" p ")" n> r> ")")
+(dotimes "(dotimes (" p ")" n> r> ")")
+(dolist "(dolist (" p ")" n> r> ")")
+(loop "(cl-loop for " p " in " p " do" n> r> ")")
+(command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive" p ")" n> r> ")")
+(advice "(defun " (p "adv" name) " (&rest app)" n> p n> "(apply app))" n>
+        "(advice-add #'" (p "fun") " " (p ":around") " #'" (s name) ")")
+(provide "(provide '" (file-name-base (or (buffer-file-name) (buffer-name))) ")" n
+         ";;; " (file-name-nondirectory (or (buffer-file-name) (buffer-name))) " ends here" n)
+
+eshell-mode
+
+(for "for " (p "i") " in " p " { " q " }")
+(while "while { " p " } { " q " }")
+(until "until { " p " } { " q " }")
+(if "if { " p " } { " q " }")
+(ife "if { " p " } { " p " } { " q " }")
+(unl "unless { " p " } { " q " }")
+(unle "unless { " p " } { " p " } { " q " }")
+
+
+org-mode
+
+(title "#+title: " p n "#+author: Grant Rosson" n "#+language: en" n n)
+(quote "#+begin_quote" n> r> n> "#+end_quote")
+(example "#+begin_example" n> r> n> "#+end_example")
+(center "#+begin_center" n> r> n> "#+end_center")
+(comment "#+begin_comment" n> r> n> "#+end_comment")
+(verse "#+begin_verse" n> r> n> "#+end_verse")
+(src "#+begin_src " p n> r> n> "#+end_src" :post (org-edit-src-code))
+(elisp "#+begin_src emacs-lisp" n> r> n "#+end_src" :post (org-edit-src-code))
+
+
+(bp
+ ":PROPERTIES:" n
+ ":EXPORT_FILE_NAME: " (p "filename") n
+ ":EXPORT_HUGO_CATEGORIES: " (p "category") n
+ ":END:" n
+ "#+begin_center" n "//------------------------------------------------------------------------------------------//" n
+ "#+end_center" n)
+
+
+(invoice
+ "call org-babel-tangle [C-c C-v t]" n
+ "#+name: Invoice" n
+ "#+begin_src yaml :tangle \"./invoice-boilerplate/details.yml\"" n
+ "---" n
+ "invoice-nr: " (p "invoice number" invoice-nr) n
+ "author: Grant Rosson" n
+ "city: Vilnius" n
+ "from:" n
+ "- Professional Editing and Proofreading" n
+ "- grantrosson@gmail.com" n
+ "to:" n
+ "- " (p "client name" client-name) n
+ "- " (p "client address") n
+ "- " (p "client city/country") n
+ "- " (p "client phone/email") n
+ "service:" n
+ "- description: " (p "description") n
+ "  details: " (p "word count") n
+ "  price: " (p "price") n n 
+ "closingnote: |" n
+ "  Please transfer the due amount to the following bank account within the next 14 days:" n n
+ "    Grant Rosson  " n
+ "    Revolut Bank  " n
+ "    IBAN: LT71 3250 0002 3787 5480  " n
+ "    BIC: REVOLT21  " n
+ "    " n
+ "    INDIVIDUALIOS VEIKLOS VYKDYMO PAŽYMA Nr. 1116106  " n
+ "    " n
+ "    We really appreciate your business and look forward to future projects together." n
+ "    " n
+ "    Best regards," n
+ "    " n
+ "# Invoice settings" n
+ "currency: EUR" n
+ "# commasep: true" n
+ "lang: en-US" n n
+ "# Typography and layout" n
+ "seriffont: Hoefler Text" n
+ "sansfont: Helvetica Neue" n
+ "fontsize: 10pt" n
+ "geometry: a4paper, left=43mm, right=43mm, top=51mm, bottom=17mm" n
+ "# letterhead: true # To include personalized letterheads" n
+ "---" n
+ "#+end_src" n n
+ "#+begin_src shell" n
+ "cd ./invoice-boilerplate" n
+ "make" n
+ "mv ./output.pdf '../2022 Projects/" (s client-name) " " (s invoice-nr) "/Rosson - Invoice - " (s client-name) " " (s invoice-nr) ".pdf'" n
+ "#+end_src")
+
+(article
+ "#+TITLE: " (p "title") n
+ "#+AUTHOR: Grant Rosson" n
+ "#+STARTUP: overview" n
+ "#+EXPORT_SELECT_TAGS: export" n
+ "#+bibliography: ~/Dropbox/gr-bibliography.bib" n
+ "#+cite_export: csl ~/.csl/chicago-note-bibliography.csl" n
+ "#+OPTIONS: title:nil author:nil toc:nil num:nil date:nil ':t broken-links:t tags:nil" n
+ "#+latex_class: article" n
+ "#+latex_class_options: [a4paper,11pt]" n
+ "#+latex_header: \\input{/Users/grantrosson/Dropbox/Academic/Articles/articleheader.tex}")
+
+(fiction
+ "#+TITLE: " (p "title") n
+ "#+AUTHOR: Grant Rosson" n
+ "#+STARTUP: overview" n
+ "#+EXPORT_SELECT_TAGS: export" n
+ "#+bibliography: ~/Dropbox/gr-bibliography.bib" n
+ "#+cite_export: csl ~/.csl/chicago-note-bibliography.csl" n
+ "#+OPTIONS: title:nil author:nil toc:nil num:nil date:nil ':t broken-links:t tags:nil" n
+ "#+latex_class: memoir" n
+ "#+latex_class_options: [10pt]" n
+ "#+latex_header: \\usepackage[paperwidth=5in,paperheight=8in,top=.75in,bottom=.65in,bindingoffset=.1in,left=.5in,right=.5in]{geometry}" n
+ "#+latex_header: \\raggedbottom" n
+ "#+latex_header: \\setSingleSpace{1}" n
+ "#+latex_header: \\SingleSpacing")
+
+
+(reveal
+ "#+TITLE: " (p "title") n
+ "#+AUTHOR: Grant Rosson" n
+ "#+OPTIONS: toc:nil num:nil" n
+ "#+OPTIONS: reveal_title_slide:nil org-reveal-ignore-speaker-notes:nil" n
+ "#+cite_export: csl ~/.csl/modern-language-association.csl" n
+ "#+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js" n n
+ "* Reminders and Useful Things                                                 :noexport:" n n
+ "- Use /relative/ file paths, not absolute. (The inliner program can't handle absolute file paths.)" n n
+ "- Before exporting, set the variable org-reveal-ignore-speaker-notes to t, otherwise students can see all your notes." n n n
+ "#+ATTR_REVEAL: :frag (appear)" n n
+ "#+ATTR_HTML: :width 60% :height 60%" n n
+ "#+begin_notes" n
+ "Speaker notes here" n
+ "#+end_notes" n n n
+ "* Notes                                                            :noexport:" n n q n n n
+ "* Bibliography" n 
+ "#+print_bibliography:")
+
+
+;; Local Variables:
+;; mode: lisp-data
+;; outline-regexp: "[a-z]"
+;; End:
