@@ -18,6 +18,22 @@ Symbols and Diacritics
   ("E" (insert "€"))
   )
 
+(defun gr/select-theme ()
+  (interactive)
+  (let ((theme (intern (completing-read "Select: " '(gr-light ef-autumn)))))
+    (mapc #'disable-theme custom-known-themes)
+    (load-theme theme :no-confirm)))
+
+(defun gr/toggle-theme ()
+  (interactive)
+  (if (equal custom-enabled-themes '(gr-light))
+      (progn
+        (mapc #'disable-theme '(gr-light))
+        (load-theme 'ef-autumn :no-confirm))
+    (progn
+      (mapc #'disable-theme '(ef-autumn))
+      (load-theme 'gr-light :no-confirm))))
+
 ;;;###autoload
 (defun gr/daily-notes ()
   "Pop up dailynotes.org."
