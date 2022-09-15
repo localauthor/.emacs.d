@@ -24,6 +24,7 @@
 (straight-use-package 'org)
 
 (setq straight-use-package-by-default t)
+(setq use-package-hook-name-suffix nil)
 
 ;;; Misc Startups
 
@@ -153,7 +154,7 @@
         tab-bar-tab-name-function 'tab-bar-tab-name-truncated)
   (gr/tab-bar-face-setup)
   :hook
-  (server-after-make-frame . gr/tab-bar-face-setup))
+  (server-after-make-frame-hook . gr/tab-bar-face-setup))
 
 (use-package hydra
   :defer 1)
@@ -180,8 +181,7 @@
 ;;            (2 . ((foreground "navy blue"))))))
 ;;   )
 
-(use-package ef-themes
-  :straight (ef-themes :host github :repo "protesilaos/ef-themes"))
+(use-package ef-themes)
 
 ;;;; MacOS Keybindings
 
@@ -501,8 +501,8 @@
   (:map gr-map
         ("p" . link-hint-preview))
   :hook
-  (link-hint-preview-mode . tab-bar-disable-in-frame)
-  (link-hint-preview-mode . link-hint-preview-toggle-frame-mode-line)
+  (link-hint-preview-mode-hook . tab-bar-disable-in-frame)
+  (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
   )
 
 (defun tab-bar-disable-in-frame ()
@@ -566,8 +566,8 @@
         ("C-S-<down>" . org-metadown)
         ("C-S-<left>" . org-shiftmetaleft)
         ("C-S-<right>" . org-shiftmetaright)
-        ("C-<up>" . move-line-up)
-        ("C-<down>" . move-line-down)
+        ;; ("C-<up>" . move-line-up)
+        ;; ("C-<down>" . move-line-down)
         ("C-<return>" . org-meta-return)
         ("M-<return>" . org-insert-heading-respect-content)
         ("C-c $" . gr/org-mark-done-and-archive-datetree)
@@ -578,7 +578,7 @@
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist '("n" . "notes")))
   ;; :hook
-  ;; (org-mode . variable-pitch-mode)
+  ;; (org-mode-hook . variable-pitch-mode)
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
@@ -917,7 +917,7 @@ there, otherwise you are prompted for a message buffer."
   :after (embark consult)
   :demand t ; only necessary if you have the hook below
   :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
+  (embark-collect-mode-hook . consult-preview-at-point-mode))
 
 ;;;; consult
 
@@ -945,7 +945,7 @@ there, otherwise you are prompted for a message buffer."
   ("C-;" . consult-imenu-all)
   ("C-:" . consult-outline)
   :hook
-  (embark-collect-mode . consult-preview-at-point-mode)
+  (embark-collect-mode-hook . consult-preview-at-point-mode)
   :custom
   (consult-fontify-preserve nil)
   (consult-project-function nil)
@@ -1606,7 +1606,7 @@ following the key as group 3."
   :after citeproc
   :config
   ;; not quite ready for primetime
-  ;; :hook (org-mode . (lambda ()
+  ;; :hook (org-mode-hook . (lambda ()
   ;; (cursor-sensor-mode 1)
   ;; (org-cite-csl-activate-render-all)))
   )
@@ -1786,10 +1786,10 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
         ([remap end-of-buffer] . image-eob)
         ("C-s" . pdf-occur))
   :hook
-  (pdf-annot-list-mode . (lambda () (pdf-annot-list-follow-minor-mode)))
-  (pdf-occur-buffer-mode . next-error-follow-minor-mode)
-  (pdf-view-mode . (lambda () (setq-local make-backup-files nil)))
-  ;;(pdf-view-mode . pdf-keynav-minor-mode)
+  (pdf-annot-list-mode-hook . (lambda () (pdf-annot-list-follow-minor-mode)))
+  (pdf-occur-buffer-mode-hook . next-error-follow-minor-mode)
+  (pdf-view-mode-hook . (lambda () (setq-local make-backup-files nil)))
+  ;;(pdf-view-mode-hook . pdf-keynav-minor-mode)
   :custom
   (pdf-annot-activate-created-annotations t "automatically annotate highlights")
 
@@ -1844,7 +1844,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   )
 
 (use-package org-pdftools
-  :hook (org-mode . org-pdftools-setup-link))
+  :hook (org-mode-hook . org-pdftools-setup-link))
 
 ;;;; Pandoc
 
@@ -1927,7 +1927,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; annotate.el
 
 (use-package annotate
-  ;; :hook (after-save . annotate-save-annotations)
+  ;; :hook (after-save-hook . annotate-save-annotations)
   :disabled
   :custom
   (annotate-summary-ask-query nil)
@@ -2083,8 +2083,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
         ("<backtab>". ibuffer-toggle-filter-group)
         ("TAB". ibuffer-toggle-filter-group))
   :hook
-  (ibuffer . gr/truncate-lines)
-  (ibuffer . gr/ibuffer-set-filter-group)
+  (ibuffer-hook . gr/truncate-lines)
+  (ibuffer-hook . gr/ibuffer-set-filter-group)
   :custom
   (ibuffer-expert t)
   (ibuffer-show-empty-filter-groups nil)
@@ -2166,11 +2166,11 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
         ("o" . link-hint-aw-select)
         ("C-x C-q" . dired-toggle-read-only))
   :hook
-  (dired-mode . dired-omit-mode)
-  (dired-mode . dired-hide-details-mode)
-  (dired-omit-mode . force-truncate-lines)
-  (dired-omit-mode . (lambda ()
-                       (delete "~" dired-omit-extensions))) ;; show backup files
+  (dired-mode-hook . dired-omit-mode)
+  (dired-mode-hook . dired-hide-details-mode)
+  (dired-omit-mode-hook . force-truncate-lines)
+  (dired-omit-mode-hook . (lambda ()
+                            (delete "~" dired-omit-extensions))) ;; show backup files
   :custom
   (dired-listing-switches "-algho --group-directories-first")
   (delete-by-moving-to-trash t)
@@ -2404,7 +2404,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         shr-use-colors nil
         shr-bullet "• ")
   :hook
-  (prot-eww-history-mode . hl-line-mode)
+  (prot-eww-history-mode-hook . hl-line-mode)
   :bind
   (:map prot-eww-map
         ("b" . prot-eww-visit-bookmark)
@@ -2547,6 +2547,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 
 ;;;; ace-window
+
+(use-package posframe
+  :defer 1)
 
 (use-package ace-window
   ;; :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
@@ -2691,11 +2694,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package paredit
   :defer t
   ;; :hook
-  ;; (emacs-lisp-mode . enable-paredit-mode)
-  ;; (eval-expression-minibuffer-setup . enable-paredit-mode)
-  ;; (ielm-mode . enable-paredit-mode)
-  ;; (lisp-mode . enable-paredit-mode)
-  ;; (lisp-interaction-mode . enable-paredit-mode)
+  ;; (emacs-lisp-mode-hook . enable-paredit-mode)
+  ;; (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
+  ;; (ielm-mode-hook . enable-paredit-mode)
+  ;; (lisp-mode-hook . enable-paredit-mode)
+  ;; (lisp-interaction-mode-hook . enable-paredit-mode)
   )
 
 ;;;; golden-ratio-scroll-screen
@@ -2733,7 +2736,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (outline-4 ((t (:underline t :height 1))))
   (outline-5 ((t (:underline t :height 1))))
   :hook
-  (outline-minor-mode . (lambda () (diminish 'outline-minor-mode)))
+  (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode)))
   :custom
   (outline-minor-mode-cycle t))
 
@@ -2758,7 +2761,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package flycheck-package
   :defer 1
-  ;;:hook (emacs-lisp-mode . flycheck-mode)
+  ;;:hook (emacs-lisp-mode-hook . flycheck-mode)
   :custom
   (flycheck-emacs-lisp-load-path 'inherit))
 
@@ -2812,9 +2815,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package accent
   :defer 1
-  ;; :hook ((text-mode . accent-menu-mode)
-  ;;        (org-mode . accent-menu-mode)
-  ;;        (message-mode . accent-menu-mode))
+  ;; :hook ((text-mode-hook . accent-menu-mode)
+  ;;        (org-mode-hook . accent-menu-mode)
+  ;;        (message-mode-hook . accent-menu-mode))
   :bind
   (:map gr-map
         ("l" . accent-menu))
@@ -2869,7 +2872,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; move-text
 
 (use-package move-text
-  :bind
+  :bind*
   ("C-<up>" . move-text-up)
   ("C-<down>" . move-text-down))
 
@@ -2880,6 +2883,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :defer 1
   :config
   (ctrlf-mode 1))
+
 ;;; variable resets
 
 (setq debug-on-error nil)
