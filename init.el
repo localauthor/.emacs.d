@@ -638,7 +638,7 @@
 ;;   :defer 1
 ;;   :after org
 ;;   :hook
-;;   (org-mode))
+;;   (org-mode-hook))
 
 (use-package org-agenda-setup
   :straight nil
@@ -664,7 +664,7 @@
   :defer t
   :after org
   :init
-  :hook (org-mode)
+  :hook (org-mode-hook)
   :config
   (setq org-superstar-headline-bullets-list  '("◉" "○" "▪" "◦" "•" "▫" "•" "▫"))
   (setq org-superstar-item-bullet-alist
@@ -1198,7 +1198,7 @@ parses its input."
   ;; :config
   ;; (company-posframe-mode 1)
   :hook
-  (buffer-face-mode)
+  (buffer-face-mode-hook)
   :custom
   (company-posframe-show-indicator t)
   (company-posframe-show-metadata nil)
@@ -1218,7 +1218,7 @@ parses its input."
   ;;:disabled
   :init (global-corfu-mode 1)
   :hook
-  (emacs-lisp-mode)
+  (emacs-lisp-mode-hook)
   :bind
   ("M-i" . completion-at-point)
   :custom
@@ -1265,7 +1265,7 @@ parses its input."
 
 (use-package company-prescient
   :disabled
-  ;; interfers with Luhmann, zk sort order
+  ;; interferes with Luhmann, zk sort order
   :config
   (company-prescient-mode -1))
 
@@ -1315,7 +1315,6 @@ parses its input."
 (defvar gr/bibliography '("~/Dropbox/gr-bibliography.bib"))
 
 (use-package citar
-  ;; :straight (:host github :repo "bdarcus/citar" :fork t)
   :after (oc misc-file-handling devonthink-dir)
   :commands (citar-select-ref
              citar-select-refs
@@ -1589,7 +1588,6 @@ following the key as group 3."
           ("Copy DOI" . gr/biblio--copy-doi-ext)
           ("Grab from Sci-Hub" . gr/biblio--get-from-sci-hub-ext)
           ("Find open access copy on Dissemin" . biblio-dissemin--lookup-record)))
-
   )
 
 (use-package ebib-biblio
@@ -2047,7 +2045,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :init
   :diminish (git-gutter-mode)
   :hook
-  (emacs-lisp-mode)
+  (emacs-lisp-mode-hook)
   :config
   (set-face-foreground 'git-gutter:modified "orange")
   (set-face-foreground 'git-gutter:added    "forestgreen")
@@ -2188,7 +2186,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (use-package all-the-icons-dired
   :disabled
   :defer t
-  :hook (dired-mode)
+  :hook (dired-mode-hook)
   :diminish)
 
 ;;;; avy
@@ -2744,16 +2742,16 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :defer 1
   :diminish
   :hook
-  (nxml-mode)
-  (emacs-lisp-mode)
-  (outline-minor-mode))
+  (nxml-mode-hook)
+  (emacs-lisp-mode-hook)
+  (outline-minor-mode-hook))
 
 ;;;; whitespace-mode
 
 (use-package whitespace
   :defer 1
   ;; :hook
-  ;; (emacs-lisp-mode)
+  ;; (emacs-lisp-mode-hook)
   :custom
   (whitespace-style '(face trailing lines)))
 
@@ -2774,7 +2772,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;;only used in zk, as dir-local
   ;;because it doesn't work with git-gutter
   :hook
-  (org-mode)
+  (org-mode-hook)
   :custom
   (visual-fill-column-width 90))
 
@@ -2867,7 +2865,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package aggressive-indent
   :diminish
-  :hook (prog-mode))
+  :hook (prog-mode-hook))
 
 ;;;; move-text
 
