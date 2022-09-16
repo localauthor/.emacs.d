@@ -18,15 +18,15 @@
                (error (push local-repo error-repos)))
              (unless (or (string-empty-p commits)
                          (not commits))
-               (push (cons package (split-string commits "\n")) updates))))))
+               (push (flatten-list (list package local-repo (split-string commits "\n"))) updates))))))
       (if updates
           (progn
             (insert (propertize "Recently Fetched Commits" 'face 'outline-1)
                     "\n\n")
             (mapc (lambda (update)
-                    (let* ((commits (cdr update))
+                    (let* ((commits (cddr update))
                            (package (car update))
-                           (dir (straight--repos-dir local-repo)))
+                           (dir (straight--repos-dir (nth 1 update))))
                       (insert
                        (propertize
                         (format "%s [%s commit%s]\n"
@@ -45,7 +45,7 @@
                                            (let ((default-directory dir))
                                              (magit-show-commit (magit-commit-p rev)))))
                                 (newline)))
-                            (cdr update)))
+                            (cddr update)))
                     (newline))
                   (cl-sort updates #'string< :key #'car)))
         (insert (propertize "No Recently Fetched Commits" 'face 'outline-1)))
