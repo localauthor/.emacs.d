@@ -1631,45 +1631,6 @@ following the key as group 3."
   :straight (sdcv-mode :host github :repo "gucong/emacs-sdcv")
   :defer 1)
 
-;;;; ispell / flyspell
-
-(use-package ispell
-  :defer 3
-  :config
-  (setq ispell-program-name "/usr/local/bin/hunspell")
-  (setq ispell-local-dictionary "en_US")
-  )
-
-(use-package flyspell
-  :defer 3
-  :bind
-  (:map gr-map
-        ("C-c" . flyspell-auto-correct-previous-word))
-  ;;:custom-face
-  ;;(flyspell-incorrect ((t nil)))
-  )
-
-;; (use-package flyspell-popup)
-
-;; (dolist (hook '(text-mode-hook))
-;;   (add-hook hook (lambda () (flyspell-mode 1))))
-
-(with-eval-after-load "flyspell"
-  (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
-  (define-key flyspell-mouse-map [mouse-3] #'undefined))
-
-(use-package flyspell-correct
-  :after flyspell
-  :bind
-  (:map flyspell-mode-map ("M-[" . flyspell-correct-wrapper))
-  :config
-  (setq flyspell-correct-interface #'flyspell-correct-completing-read)
-  )
-
-(use-package flyspell-correct-popup
-  :after flyspell-correct
-  )
-
 
 ;;;; autocorrect with abbrev
 
