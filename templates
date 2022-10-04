@@ -151,7 +151,7 @@ org-mode
 (reveal
  "#+TITLE: " (p "title") n
  "#+AUTHOR: Grant Rosson" n
- "#+OPTIONS: toc:nil num:nil" n
+ "#+OPTIONS: toc:nil num:nil author:nil title:nil date:nil tags:nil" n
  "#+OPTIONS: reveal_title_slide:nil org-reveal-ignore-speaker-notes:nil" n
  "#+cite_export: csl ~/.csl/modern-language-association.csl" n
  "#+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js" n n
