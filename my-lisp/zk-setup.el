@@ -6,6 +6,7 @@
   :load-path "my-lisp/zk"
   :straight nil
   :defer 1
+  :after consult
   :bind
   (:map zk-file-map
         ("p" . zk-preview)
@@ -64,9 +65,7 @@ Optional ARG."
 (use-package zk-index
   :load-path "my-lisp/zk"
   :after zk
-  :straight nil ;; (zk-index :local-repo "~/.dotfiles/.emacs.d/my-lisp/zk/"
-            ;;           :type nil
-            ;;           :files ("zk-index.el"))
+  :straight nil
   :bind
   (:map zk-index-mode-map
         ("o" . zk-index-aw-select)
@@ -115,36 +114,25 @@ Optional ARG."
 ;;;; zk-extras
 
 (use-package zk-consult
+  :straight nil
   :load-path "my-lisp/zk"
   :after zk
-  :straight nil
   :defer 1)
 
 (use-package zk-citar
+  :straight nil
   :load-path "my-lisp/zk"
   :after zk
-  :straight nil
   :defer 1
   :config
   (setq citar-notes-source 'zk)
   :custom
   (zk-citar-citekey-regexp "[a-z]+[0-9]\\{4\\}[a-z]?"))
 
-(use-package zk-extras
-  :load-path "my-lisp/zk"
-  :after zk
-  :straight nil
-  :defer 1
-  :bind (:map zk-index-mode-map
-              ("L" . zk-lit-notes-index))
-  :config
-  (setq zk-lit-notes-count (length (zk-lit-notes-list)))
-  (setq zk-luhmann-notes-count (length (zk-luhmann-files))))
-
 (use-package zk-link-hint
+  :straight nil
   :load-path "my-lisp/zk"
   :after zk
-  :straight nil
   :defer 1)
 
 (with-eval-after-load "embark"
@@ -157,25 +145,33 @@ Optional ARG."
 
 ;;;; zk hydras
 
+(use-package zk-extras
+  :straight nil
+  :load-path "my-lisp/zk"
+  :after zk zk-luhmann
+  :bind (:map zk-index-mode-map
+              ("L" . zk-lit-notes-index)))
+
 (eval-and-compile
   (defhydra hydra-zk (:hint nil
+                            :pre (require 'zk-extras)
                             :color blue)
     "
   _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: to desktop
   _h s_: Strct Nts  _c_: Insert Cite   _r_: Rename Note    _z_: zk grep
   _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib-open
                   _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz
-   [Luhmann: %`zk-luhmann-notes-count | Lit: %`zk-lit-notes-count] (_R_: Reset)"
-    ("h h" (lambda () (interactive) (zk-find-file-by-id "201801190001")))
-    ("h i" (lambda () (interactive) (zk-find-file-by-id "201801180001")))
-    ("h s" (lambda () (interactive) (zk-find-file-by-id "201801180002")))
+   [Luhmann: %(zk-luhmann-notes-count) | Lit: %(zk-lit-notes-count)]"
+    ("h h" (zk-find-file-by-id "201801190001"))
+    ("h i" (zk-find-file-by-id "201801180001"))
+    ("h s" (zk-find-file-by-id "201801180002"))
     ("N" zk-new-note)
     ("r" zk-rename-note)
     ("i" zk-luhmann-insert-link)
     ("e" ebib-open)
     ("B" hydra-bib/body)
     ("I" zk-index)
-    ("l" zk-luhmann-index)
+    ("l" (progn (zk-index) (zk-luhmann-index-top)))
     ("G" zk-luhmann-index-goto)
     ("L" zk-lit-notes-index)
     ("c" gr/citar-insert-citation)
@@ -184,7 +180,6 @@ Optional ARG."
     ("o" link-hint-aw-select)
     ("b" zk-network)
     ("S" zk-index-desktop-select)
-    ("R" (lambda () (interactive) (zk-stats 1)) :color red)
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)
     ("t" zk-consult-grep-tag-search)
@@ -202,7 +197,7 @@ Optional ARG."
 
 (eval-and-compile
   (defhydra hydra-bib (:hint nil
-                            :color blue)
+                             :color blue)
     "
        _r_: Insert Ref          _e_: ebib-hydra        _d_: DOI Lookup
        _b_: Insert Bib          _I_: Auto Import       _i_: ISBN Look up"

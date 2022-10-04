@@ -123,6 +123,14 @@ Optionally takes list of FILES."
                (zk--directory-files t "[a-z]+[0-9]\\{4\\}[a-z]?")))))
 
 ;;;###autoload
+(defun zk-lit-notes-count ()
+  (length (zk-lit-notes-list)))
+
+;;;###autoload
+(defun zk-luhmann-notes-count ()
+  (length (zk-luhmann-files)))
+
+;;;###autoload
 (defun zk-lit-notes-index ()
   "List lit notes in ZK-Index, by size."
   (interactive)
@@ -150,28 +158,11 @@ Optionally takes list of FILES."
           (append ed-notes lit-notes journal poem))
          (notes
           (remq nil (mapcar
-                         (lambda (x)
-                           (unless (member x non-notes)
-                             x))
-                         all-notes))))
+                     (lambda (x)
+                       (unless (member x non-notes)
+                         x))
+                     all-notes))))
     (zk-word-count notes)))
-
-(defvar zk-core-notes-count nil)
-(defvar zk-luhmann-notes-count nil)
-(defvar gr/dickinson-ref-regexp "\\(Fr[0-9]\\{1,4\\}\\)")
-
-;;;###autoload
-(defun zk-stats (&optional arg)
-  "Report number of notes, various categories.
-Optional ARG to inhibit message, for resetting counts."
-  (interactive)
-  (setq zk-core-notes-count (length (zk-non-luhmann-list)))
-  (setq zk-luhmann-notes-count (length (zk-luhmann-files)))
-  (unless arg
-    (message (format "Luhmann: %s | Notes: %s | Lit: %s"
-                     zk-luhmann-notes-count
-                     zk-core-notes-count
-                     (length (zk-lit-notes-list))))))
 
 ;;;###autoload
 (defun zk-non-luhmann-list ()
@@ -200,6 +191,25 @@ Also excludes, journal, poem, Dickinson, and literature notes."
                  (unless (member x notes)
                    x))
                all-notes))))
+
+
+(defvar zk-luhmann-notes-count (length (zk-luhmann-files)))
+(defvar zk-lit-notes-count (length (zk-lit-notes-list)))
+(defvar zk-core-notes-count (length (zk-non-luhmann-list)))
+(defvar gr/dickinson-ref-regexp "\\(Fr[0-9]\\{1,4\\}\\)")
+
+;;;###autoload
+(defun zk-stats (&optional arg)
+  "Report number of notes, various categories.
+Optional ARG to inhibit message, for resetting counts."
+  (interactive)
+  (setq zk-core-notes-count (length (zk-non-luhmann-list)))
+  (setq zk-luhmann-notes-count (length (zk-luhmann-files)))
+  (unless arg
+    (message (format "Luhmann: %s | Notes: %s | Lit: %s"
+                     zk-luhmann-notes-count
+                     zk-core-notes-count
+                     (length (zk-lit-notes-list))))))
 
 ;;;###autoload
 (defun zk-non-luhmann-index ()
