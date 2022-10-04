@@ -33,6 +33,7 @@
 (set-keyboard-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
 
+(setq dictionary-server "dict.org")
 
 (setq auto-save-default nil) ;; stop creating #autosave# files
 (setq create-lockfiles nil)  ;; stop creating .# files
