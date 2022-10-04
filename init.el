@@ -137,7 +137,7 @@
   (defun gr/tab-bar-face-setup ()
     (set-face-attribute
      'tab-bar nil
-     :font "Menlo" :height .7)
+     :font "Menlo" :height .8)
     (set-face-attribute
      'tab-bar-tab nil
      :background "grey75"
@@ -289,7 +289,6 @@
 (setq split-height-threshold nil)
 (setq split-width-threshold 160)
 
-
 ;;;; display-buffer-alist
 
 (setq display-buffer-alist
@@ -422,7 +421,7 @@
            ("W" . gr/word-count-subtree)
 
            ("D" . gr/lookup-word-at-point)
-           ("d" . sdcv-search)
+           ("d" . dictionary-search)
 
            ("L" . toggle-truncate-lines)
 
@@ -622,6 +621,7 @@
      ("~"
       (:overline t)
       verbatim)))
+  (org-fold-core-style 'text-properties) ; text-properties don't unfold with ctrlf, only isearch; ctrlf issue #118
   (org-startup-with-latex-preview nil)
   (org-use-fast-todo-selection 'expert)
   (org-edit-src-content-indentation 0)
@@ -663,7 +663,6 @@
 (use-package org-superstar
   :defer t
   :after org
-  :init
   :hook (org-mode-hook)
   :config
   (setq org-superstar-headline-bullets-list  '("◉" "○" "▪" "◦" "•" "▫" "•" "▫"))
@@ -672,7 +671,7 @@
           (?* . ?➤)
           (?- . ?–))))
 
-;;;;  org-journal
+;;;; org-journal
 
 (use-package org-journal
   :defer t
@@ -1393,7 +1392,6 @@ following the key as group 3."
   )
 
 (use-package citar-embark
-  :defer 1
   :config
   (citar-embark-mode))
 
@@ -1442,7 +1440,6 @@ following the key as group 3."
         ("s" . ebib-filter-any)
         ("O" . ebib-filters-apply-filter)
         ("s-s" . ebib-save-curent-database)
-        ("q" . ebib-smart-quit)
         )
   (:map ebib-entry-mode-map
         ("?" . (lambda ()
@@ -1506,7 +1503,8 @@ following the key as group 3."
   :defer 1
   :bind
   (:map ebib-index-mode-map
-        ("o" . ebib-citar-open-resource))
+        ("o" . ebib-citar-open-resource)
+        ("q" . ebib-smart-quit))
   (:map ebib-entry-mode-map
         ("o" . ebib-citar-open-resource))
   (:map citar-map
@@ -1628,9 +1626,9 @@ following the key as group 3."
 ;;;; sdcv-mode
 
 (use-package sdcv-mode
+  :disabled
   :straight (sdcv-mode :host github :repo "gucong/emacs-sdcv")
   :defer 1)
-
 
 ;;;; autocorrect with abbrev
 
@@ -1802,13 +1800,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
     (advice-add 'pdf-annot-edit-contents-commit :after 'bjm/save-buffer-no-args))
   )
 
-(use-package org-pdftools
-  :hook (org-mode-hook . org-pdftools-setup-link))
-
-;;;; Pandoc
-
-(use-package pandoc-mode
-  :defer t)
+;; (use-package org-pdftools
+;;   :hook (org-mode-hook . org-pdftools-setup-link))
 
 ;;;; LaTeX / AUCTeX
 
@@ -1920,32 +1913,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;; org-wc-display is useful
 
 
-;;;; markdown mode
-
-(use-package markdown-mode
-  :disabled)
-
-
-;;;; org-mind-map
-
-(use-package org-mind-map
-  :straight (:host github :repo "the-ted/org-mind-map")
-  :defer t
-  :config
-  (setq org-mind-map-engine "dot")
-  ;; if t, links don't work
-  ;; error in org-mind-map-write-tags
-  (setq org-mind-map-include-text nil)
-  (setq org-mind-map-default-graph-attribs '(("autosize" . "false")
-  ("size" . "9,12")
-  ("resolution" . "100")
-  ("nodesep" . "0.75")
-  ("overlap" . "false")
-  ("spline" . "true")
-  ("rankdir" . "TB")))
-  (setq org-mind-map-dot-output '("pdf" "png" "svg")))
-
-
 ;;;; emacs-benchmark
 
 (use-package elisp-benchmarks
@@ -1998,22 +1965,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;               (delete '(vc-mode vc-mode) mode-line-format))
 
 
-
-;;;; git-gutter
-
-(use-package git-gutter
-  :disabled
-  :init
-  :diminish (git-gutter-mode)
-  :hook
-  (emacs-lisp-mode-hook)
-  :config
-  (set-face-foreground 'git-gutter:modified "orange")
-  (set-face-foreground 'git-gutter:added    "forestgreen")
-  (set-face-foreground 'git-gutter:deleted  "red")
-  (set-fringe-mode '(8 . 0))
-  )
-
 ;;;; esup
 
 (use-package esup
@@ -2022,13 +1973,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (esup-user-init-file (concat user-emacs-directory "init.el"))
   :config
   (setq esup-depth 0))
-
-;;;; re-builder
-
-(use-package re-builder
-  :defer 1
-  :init
-  (setq reb-re-syntax 'string))
 
 ;;;; ibuffer
 
@@ -2304,30 +2248,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   ;;(vundo-glyph-alist vundo-unicode-symbols)
   (vundo-roll-back-on-quit nil))
-
-;;;; python
-
-(use-package python-mode
-  :disabled
-  :defer 1
-  :straight nil
-  :config
-  (setq python-shell-interpreter (format "%s/.pyenv/shims/python" home-dir))
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((python . t)
-     (dot . t)))
-  )
-
-(with-eval-after-load "python"
-  (defun python-shell-completion-native-try ()
-    "Return non-nil if can trigger native completion."
-    (let ((python-shell-completion-native-enable t)
-          (python-shell-completion-native-output-timeout
-           python-shell-completion-native-try-output-timeout))
-      (python-shell-completion-native-get-completions
-       (get-buffer-process (current-buffer))
-       "_"))))
 
 ;;;; wgrep
 
@@ -2640,44 +2560,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
     (pop-to-buffer "*Google Translate*" 'display-buffer-below-selected))
   )
 
-;;;; nov.el
-
-(use-package nov
-  :defer t
-  :init
-  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
-
-
-;;;; paredit
-
-(use-package paredit
-  :defer t
-  ;; :hook
-  ;; (emacs-lisp-mode-hook . enable-paredit-mode)
-  ;; (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
-  ;; (ielm-mode-hook . enable-paredit-mode)
-  ;; (lisp-mode-hook . enable-paredit-mode)
-  ;; (lisp-interaction-mode-hook . enable-paredit-mode)
-  )
-
-;;;; golden-ratio-scroll-screen
-
-(use-package golden-ratio-scroll-screen
-  :defer 1
-  :config
-  (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
-  (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
-
-;;;; explain-pause-mode
-
-(use-package explain-pause-mode
-;;  :disabled
-  :defer t
-  :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
-  :diminish
-  :config
-  (explain-pause-mode))
-
 ;;;; outshine-mode
 
 (use-package outline-mode
@@ -2720,7 +2602,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package flycheck-package
   :defer 1
-  ;;:hook (emacs-lisp-mode-hook . flycheck-mode)
   :custom
   (flycheck-emacs-lisp-load-path 'inherit))
 
@@ -2736,16 +2617,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (org-mode-hook)
   :custom
   (visual-fill-column-width 90))
-
-;;;; nxml-mode
-
-(use-package nxml-mode
-  :straight nil
-  :bind
-  (:map nxml-mode-map
-        ("C-<return>" . completion-at-point))
-  :config
-  (add-to-list 'rng-schema-locating-files "~/Dropbox/TEI/nxml-schemas/schemas.xml"))
 
 ;;;; melpazoid
 
@@ -2836,12 +2707,151 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-<down>" . move-text-down))
 
 
+;;; disabled
 ;;;; ctrlf
 
 (use-package ctrlf
+  :disabled
   :defer 1
   :config
   (ctrlf-mode 1))
+
+;; doesn't unfold org buffers
+
+;;;; nxml-mode
+
+(use-package nxml-mode
+  :disabled
+  :straight nil
+  :bind
+  (:map nxml-mode-map
+        ("C-<return>" . completion-at-point))
+  :config
+  (add-to-list 'rng-schema-locating-files "~/Dropbox/TEI/nxml-schemas/schemas.xml"))
+
+
+;;;; explain-pause-mode
+
+(use-package explain-pause-mode
+  :disabled
+  :defer t
+  :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
+  :diminish
+  :config
+  (explain-pause-mode))
+
+
+;;;; nov.el
+
+(use-package nov
+  :disabled
+  :defer t
+  :init
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+
+;;;; paredit
+
+(use-package paredit
+  :disabled
+  :defer t
+  ;; :hook
+  ;; (emacs-lisp-mode-hook . enable-paredit-mode)
+  ;; (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
+  ;; (ielm-mode-hook . enable-paredit-mode)
+  ;; (lisp-mode-hook . enable-paredit-mode)
+  ;; (lisp-interaction-mode-hook . enable-paredit-mode)
+  )
+
+;;;; golden-ratio-scroll-screen
+
+(use-package golden-ratio-scroll-screen
+  :disabled
+  :defer 1
+  :config
+  (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
+  (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
+
+
+;;;; python
+
+(use-package python-mode
+  :disabled
+  :defer 1
+  :straight nil
+  :config
+  (setq python-shell-interpreter (format "%s/.pyenv/shims/python" home-dir))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t)
+     (dot . t)))
+  )
+
+(with-eval-after-load "python"
+  (defun python-shell-completion-native-try ()
+    "Return non-nil if can trigger native completion."
+    (let ((python-shell-completion-native-enable t)
+          (python-shell-completion-native-output-timeout
+           python-shell-completion-native-try-output-timeout))
+      (python-shell-completion-native-get-completions
+       (get-buffer-process (current-buffer))
+       "_"))))
+
+
+;;;; git-gutter
+
+(use-package git-gutter
+  :disabled
+  :init
+  :diminish (git-gutter-mode)
+  :hook
+  (emacs-lisp-mode-hook)
+  :config
+  (set-face-foreground 'git-gutter:modified "orange")
+  (set-face-foreground 'git-gutter:added    "forestgreen")
+  (set-face-foreground 'git-gutter:deleted  "red")
+  (set-fringe-mode '(8 . 0))
+  )
+
+;;;; re-builder
+
+(use-package re-builder
+  :defer 1
+  :init
+  (setq reb-re-syntax 'string))
+
+
+;;;; markdown mode
+
+(use-package markdown-mode
+  :disabled)
+
+
+;;;; org-mind-map
+
+(use-package org-mind-map
+  :disabled
+  :straight (:host github :repo "the-ted/org-mind-map")
+  :defer t
+  :config
+  (setq org-mind-map-engine "dot")
+  ;; if t, links don't work
+  ;; error in org-mind-map-write-tags
+  (setq org-mind-map-include-text nil)
+  (setq org-mind-map-default-graph-attribs '(("autosize" . "false")
+                                             ("size" . "9,12")
+                                             ("resolution" . "100")
+                                             ("nodesep" . "0.75")
+                                             ("overlap" . "false")
+                                             ("spline" . "true")
+                                             ("rankdir" . "TB")))
+  (setq org-mind-map-dot-output '("pdf" "png" "svg")))
+
+;;;; Pandoc
+
+(use-package pandoc-mode
+  :disabled
+  :defer t)
+
 
 ;;; variable resets
 
