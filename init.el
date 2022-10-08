@@ -291,34 +291,24 @@
 
 ;;;; display-buffer-alist
 
+(setq switch-to-buffer-obey-display-actions t)
+
 (setq display-buffer-alist
       `(
         ("magit:"
          (display-buffer-at-bottom)
-         (window-height . 0.5)
-         (side . bottom))
+         (window-height . 0.5))
 
         ("\\*elfeed-entry"
          (display-buffer-at-bottom)
-         (window-height . 0.6)
-         (side . bottom))
+         (window-height . 0.6))
 
-        ("\\*ZK-Index"
-         (lambda (buffer _)
-           (select-window
-            (display-buffer-at-bottom buffer _)))
-         (window-height . 0.4)
-         (side . bottom))
-
-        ("\\*ZK-Desktop"
-         (lambda (buffer _)
-           (select-window
-            (display-buffer-at-bottom buffer _)))
-         (window-height . 0.5)
-         (side . bottom))
+        ("\\*ZK-Index\\|\\*ZK-Desktop"
+         (gr/select-buffer-at-bottom)
+         (window-height . 0.4))
 
         (,(concat
-           "dailynotes.org\\|"
+           ;;"dailynotes.org\\|"
            "\\*\\("
            (string-join
             '("Completions" "Async" "Backups:" "helpful"
@@ -326,31 +316,24 @@
               "Messages" "Metahelp" "Python" "Org Agenda"
               "Warnings" "Go Translate" "Google Translate"
               "Org Select" "Compile-Log" "[Hh]elp" "annotations"
-              "calfw-details" "Embark Collect")
+              "calfw-details" "Embark Collect" "Dictionary")
             "\\|") "\\)")
          (display-buffer-at-bottom)
-         (window-height . 0.38)
-         (side . bottom))
+         (window-height . 0.38))
         )
       )
 
-(defun my-switch-to-buffer-list (buffer alist)
-  (select-window  (display-buffer-use-some-window buffer alist)))
+(defun gr/select-buffer-at-bottom (buffer alist)
+  "Display buffer at bottom and select it"
+  (select-window (display-buffer-at-bottom buffer alist)))
 
-(defun +select-buffer-in-side-window (buffer alist)
+(defun gr/select-buffer-in-side-window (buffer alist)
   "Display buffer in a side window and select it"
-  (let ((window (display-buffer-in-side-window buffer alist)))
-    (select-window window)))
+  (select-window (display-buffer-in-side-window buffer alist)))
 
-(defun +select-buffer-at-bottom (buffer alist)
-  "Display buffer in a side window and select it"
-  (let ((window (display-buffer-at-bottom buffer alist)))
-    (select-window window)))
-
-(defun +select-buffer-in-direction (buffer alist)
+(defun gr/select-buffer-in-direction (buffer alist)
   "Display buffer in direction specified by ALIST and select it."
-  (let ((window (display-buffer-in-direction buffer alist)))
-    (select-window window)))
+  (select-window (display-buffer-in-direction buffer alist)))
 
 (defvar +occur-grep-modes-list '(occur-mode
                                  grep-mode
@@ -398,7 +381,9 @@
            ("i" . gr/open-init-file)
 
            ("C-t" . gr/open-tasks-file)
-           ("t" . gr/open-tasks-upcoming-agenda-other-frame)
+           ;;("t" . gr/open-tasks-upcoming-agenda-other-frame)
+
+           ("T" . gr/toggle-theme)
 
            ("C-f" . gr/open-fragments-file)
            ("f" . gr/open-fragments-file-other-frame)
@@ -425,7 +410,7 @@
 
            ("L" . toggle-truncate-lines)
 
-           ("T" . google-translate-smooth-translate)
+           ("t" . google-translate-smooth-translate)
 
            ;;("T" . gr/google-translate-lt-en)
            ;; ("T" . go-translate-popup-current)
@@ -781,6 +766,7 @@ parent."
   ("C-h b" . embark-bindings)
   (:map embark-identifier-map
         ("$" . ispell-region)
+        ("d" . dictionary-search)
         ("z" . zk-search))
   (:map embark-symbol-map
         ("h" . helpful-symbol)
@@ -1397,6 +1383,7 @@ following the key as group 3."
   )
 
 (use-package citar-embark
+  :after (citar)
   :config
   (citar-embark-mode))
 
@@ -2496,6 +2483,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "Output"
           "^\\*Messages\\*"
           "^\\*Warnings\\*"
+          "^\\*Dictionary\\*"
           "^\\*sdcv\\*"
           "^\\*xref\\*"
           "^\\*Backtrace\\*"
