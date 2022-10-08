@@ -574,8 +574,13 @@
   :mode (("\\.org$" . org-mode))
   :init
   (with-eval-after-load "org"
-    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-    (add-to-list 'org-structure-template-alist '("n" . "notes")))
+    (setq org-structure-template-alist
+          '(("c" . "comment")
+            ("q" . "quote")
+            ("s" . "src")
+            ("v" . "verse")
+            ("el" . "src emacs-lisp")
+            ("C" . "center"))))
   ;; :hook
   ;; (org-mode-hook . variable-pitch-mode)
   :config
