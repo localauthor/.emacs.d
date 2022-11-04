@@ -1,11 +1,11 @@
 ;;; prot-eww.el --- Extensions for EWW -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021  Protesilaos Stavrou, Abhiseck Paira
+;; Copyright (C) 2021-2022  Protesilaos Stavrou, Abhiseck Paira
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;;         Abhiseck Paira <abhiseckpaira@disroot.org>
 ;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
-;; URL: https://protesilaos.com/dotemacs
+;; URL: https://protesilaos.com/emacs/dotemacs
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "28.1"))
 
@@ -27,7 +27,7 @@
 ;;; Commentary:
 ;;
 ;; Extensions for the eww, intended for my Emacs setup:
-;; <https://protesilaos.com/dotemacs/>.
+;; <https://protesilaos.com/emacs/dotemacs/>.
 ;;
 ;; Remember that every piece of Elisp that I write is for my own
 ;; educational and recreational purposes.  I am not a programmer and I
@@ -50,13 +50,15 @@
 (require 'elpher nil t)
 (require 'url-parse)
 (require 'prot-common)
-(require 'prot-pulse)
 
 (defgroup prot-eww ()
   "Tweaks for EWW."
   :group 'eww)
 
 ;;;; Basic setup
+
+;; TODO 2021-10-15: Deprecate this in favour of what we added to Emacs29.
+;; <https://protesilaos.com/codelog/2021-10-15-emacs-29-eww-rename-buffers/>.
 
 (defun prot-eww--rename-buffer ()
   "Rename EWW buffer using page title or URL.
@@ -355,19 +357,19 @@ in the strings too, so strings take the form
 LABEL @ URL ~ POSITION."
   (let (links match)
     (save-excursion
-      (goto-char (point-min))
+      (goto-char (point-max))
       ;; NOTE 2021-07-25: The first clause in the `or' is meant to
       ;; address a bug where if a URL is in `point-min' it does not get
       ;; captured.
-      (while (setq match (text-property-search-forward 'shr-url))
+      (while (setq match (text-property-search-backward 'shr-url))
         (let* ((raw-url (prop-match-value match))
                (start-point-prop (prop-match-beginning match))
                (end-point-prop (prop-match-end match))
                (url (when (stringp raw-url)
                       (propertize raw-url 'face 'link)))
                (label (replace-regexp-in-string "\n" " " ; NOTE 2021-07-25: newlines break completion
-                       (buffer-substring-no-properties
-                       start-point-prop end-point-prop)))
+                                                (buffer-substring-no-properties
+                                                 start-point-prop end-point-prop)))
                (point start-point-prop)
                (line (line-number-at-pos point t))
                (column (save-excursion (goto-char point) (current-column)))
@@ -428,8 +430,7 @@ consider whole buffer."
            (selection (completing-read prompt links nil t))
            (position (replace-regexp-in-string "^.*(\\([0-9]+\\))[\s\t]+~" "\\1" selection))
            (point (string-to-number position)))
-      (goto-char point)
-      (prot-pulse-pulse-line))))
+      (goto-char point))))
 
 (defvar prot-eww--occur-feed-regexp
   (concat "\\(rss\\|atom\\)\\+xml.\\(.\\|\n\\)"
@@ -469,12 +470,17 @@ consider whole buffer."
 ;;modify it.
 
 (defvar prot-eww-search-engines
-  '((duck . (duck
-                "https://duckduckgo.com/html/?q="
-                hist-var prot-eww--duck-hist))
+  '((debbugs . (debbugs
+                "https://debbugs.gnu.org/cgi/bugreport.cgi?bug="
+                hist-var prot-eww--debbugs-hist))
     (wikipedia . (wikipedia
                   "https://en.m.wikipedia.org/w/index.php?search="
-                  hist-var prot-eww--wikipedia-hist))))
+                  hist-var prot-eww--wikipedia-hist))
+    (archwiki . (archwiki
+                 "https://wiki.archlinux.org/index.php?search="
+                 hist-var prot-eww--archwiki-hist))
+    (aur . (aur "https://aur.archlinux.org/packages/?K="
+                hist-var prot-eww--aur-hist)))
   "Alist of Plist of web search engines related data.
 From now on refer to this type of data as APLIST.  Each element
 of APLIST is (KEY . VALUE) pair.  KEY is a symbol specifying
@@ -489,7 +495,7 @@ K2 is the symbol 'hist-var', V2 is also a symbol that has a format
 NOTE: If you modify this variable after `prot-eww' is loaded you
 need to run the following code after modification:
 
-    (prot-eww--define-hist-var prot-eww-search-engines)"
+    (prot-eww--define-hist-var prot-eww-search-engines)")
 
 ;; Below 's-string' is short for 'search-string'. For wikipedia which
 ;; is this string: "https://en.m.wikipedia.org/w/index.php?search=". I
@@ -823,7 +829,7 @@ Otherwise, fetch URL and afterwards try to restore the point."
                :url)
               location)
              (setq reuse-p temp-buffer)
-             (setq 'buffer temp-buffer))))
+             (setq buffer temp-buffer))))
          eww-buffers)
         ;; Don't switch to that buffer, otherwise it will cause
         ;; problems if we want to open the bookmark in another window.
@@ -847,7 +853,7 @@ Otherwise, fetch URL and afterwards try to restore the point."
           (eww location 4)
           ;; after the `set-buffer' in `eww', the current buffer is
           ;; the buffer we want
-          (setq 'buffer (current-buffer))
+          (setq buffer (current-buffer))
           ;; restore the definition of pop-to-buffer...
           (advice-remove
            #'pop-to-buffer #'prot-eww--pop-to-buffer)
@@ -871,6 +877,84 @@ Otherwise, fetch URL and afterwards try to restore the point."
                       front rear position))))
             (add-hook 'eww-after-render-hook function-symbol))))))
      ((user-error "Cannot jump to this bookmark")))))
+
+
+;;; lynx dump
+
+(defcustom prot-eww-post-lynx-dump-function nil
+  "Function to run on lynx dumped buffer for post-processing.
+Function is called with the URL of the page the buffer is
+visiting.
+
+Specifying nil turns off this variable, meaning that no
+post-processing takes place."
+  :group 'prot-eww
+  :type '(choice (const :tag "Unspecified" nil)
+                 function))
+
+(defcustom prot-eww-lynx-dump-dir
+  (if (stringp eww-download-directory)
+      eww-download-directory
+    (funcall eww-download-directory))
+  "Directory to save lynx dumped files.
+It should be an existing directory or a sexp that evaluates to an
+existing directory."
+  :group 'prot-eww
+  :type '(choice directory sexp))
+
+(defun prot-eww--lynx-available-p ()
+  "Check if `lynx' is available in PATH."
+  (executable-find "lynx"))
+
+(defun prot-eww--get-text-property-string (prop)
+  "Return string that has text property PROP at (point).
+The string is from (point) to end of PROP.  If there is no text
+property PROP at (point), return nil."
+  (let* ((match (text-property-search-forward prop))
+         (start-point-prop (prop-match-beginning match))
+         (end-point-prop (prop-match-end match)))
+    (and
+     (<= start-point-prop (point) end-point-prop)
+     (replace-regexp-in-string
+      "\n" " "
+      (buffer-substring-no-properties
+       start-point-prop end-point-prop)))))
+
+(defun prot-eww--current-page-title ()
+  "Return title of the Web page EWW buffer is visiting."
+  (plist-get eww-data :title))
+
+(defun prot-eww-lynx-dump (url filename)
+  "Run lynx -dump on URL and save output as FILENAME.
+When run interactively in a eww buffer visiting a web page, run
+lynx dump on the web page's URL.  If point is on a link, then run
+lynx dump on that link instead."
+  (interactive
+   (let* ((default-url (or (get-text-property (point) 'shr-url)
+                           (eww-current-url)))
+          (dir prot-eww-lynx-dump-dir)
+          (title (or
+                  (prot-eww--get-text-property-string 'shr-url)
+                  (prot-eww--current-page-title)))
+          (def-file-name
+            (file-name-concat dir
+                              (concat (prot-eww--sluggify title) ".txt"))))
+     (list
+      (read-string (format "URL [%s]: " default-url) nil nil default-url)
+      (read-file-name (format "File Name [%s]: " def-file-name) dir def-file-name))))
+  (if (prot-eww--lynx-available-p)
+      (progn
+        (access-file prot-eww-lynx-dump-dir "Non existing directory specified")
+        (with-temp-file filename
+          (with-temp-message
+              (format "Running `lynx --dump %s'" url)
+            (let ((coding-system-for-read 'prefer-utf-8))
+              (call-process "lynx" nil t nil "-dump" url)))
+          (with-temp-message "Processing lynx dumped buffer..."
+            (and
+             (functionp prot-eww-post-lynx-dump-function)
+             (funcall prot-eww-post-lynx-dump-function url)))))
+    (error "`lynx' executable not found in PATH")))
 
 (provide 'prot-eww)
 ;;; prot-eww.el ends here

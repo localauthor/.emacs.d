@@ -1,9 +1,9 @@
 ;;; prot-common.el --- Common functions for my dotemacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2021  Protesilaos Stavrou
+;; Copyright (C) 2020-2022  Protesilaos Stavrou
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
-;; URL: https://protesilaos.com/dotemacs
+;; URL: https://protesilaos.com/emacs/dotemacs
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "27.1"))
 
@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 ;;
-;; Common functions for my Emacs: <https://protesilaos.com/dotemacs/>.
+;; Common functions for my Emacs: <https://protesilaos.com/emacs/dotemacs/>.
 ;;
 ;; Remember that every piece of Elisp that I write is for my own
 ;; educational and recreational purposes.  I am not a programmer and I
@@ -71,6 +71,57 @@
     (error "%s is not a valid positive number" n)))
 
 ;;;###autoload
+(defun prot-common-reverse-percentage (number percent change-p)
+  "Determine the original value of NUMBER given PERCENT.
+
+CHANGE-P should specify the increase or decrease.  For simplicity,
+nil means decrease while non-nil stands for an increase.
+
+NUMBER must satisfy `numberp', while PERCENT must be `natnump'."
+  (unless (numberp number)
+    (user-error "NUMBER must satisfy numberp"))
+  (unless (natnump percent)
+    (user-error "PERCENT must satisfy natnump"))
+  (let* ((pc (/ (float percent) 100))
+         (pc-change (if change-p (+ 1 pc) pc))
+         (n (if change-p pc-change (float (- 1 pc-change)))))
+    ;; FIXME 2021-12-21: If float, round to 4 decimal points.
+    (/ number n)))
+
+;;;###autoload
+(defun prot-common-percentage-change (n-original n-final)
+  "Find percentage change between N-ORIGINAL and N-FINAL numbers.
+
+When the percentage is not an integer, it is rounded to 4
+floating points: 16.666666666666664 => 16.667."
+  (unless (numberp n-original)
+    (user-error "N-ORIGINAL must satisfy numberp"))
+  (unless (numberp n-final)
+    (user-error "N-FINAL must satisfy numberp"))
+  (let* ((difference (float (abs (- n-original n-final))))
+         (n (* (/ difference n-original) 100))
+         (round (floor n)))
+    ;; FIXME 2021-12-21: Any way to avoid the `string-to-number'?
+    (if (> n round) (string-to-number (format "%0.4f" n)) round)))
+
+;;;###autoload
+(defun prot-common-rotate-list-of-symbol (symbol)
+  "Rotate list value of SYMBOL by moving its car to the end.
+Return the first element before performing the rotation.
+
+This means that if `sample-list' has an initial value of `(one
+two three)', this function will first return `one' and update the
+value of `sample-list' to `(two three one)'.  Subsequent calls
+will continue rotating accordingly."
+  (unless (symbolp symbol)
+    (user-error "%s is not a symbol" symbol))
+  (when-let* ((value (symbol-value symbol))
+              (list (and (listp value) value))
+              (first (car list)))
+    (set symbol (append (cdr list) (list first)))
+    first))
+
+;;;###autoload
 (defun prot-common-empty-buffer-p ()
   "Test whether the buffer is empty."
   (or (= (point-min) (point-max))
@@ -105,6 +156,12 @@
 (defun prot-common-window-bounds ()
   "Determine start and end points in the window."
   (list (window-start) (window-end)))
+
+;;;###autoload
+(defun prot-common-page-p ()
+  "Return non-nil if there is a `page-delimiter' in the buffer."
+  (or (save-excursion (re-search-forward page-delimiter nil t))
+      (save-excursion (re-search-backward page-delimiter nil t))))
 
 ;;;###autoload
 (defun prot-common-read-data (file)
@@ -213,38 +270,15 @@ Return the exit code and output in a list."
   "Regular expression that matches URLs.
 Copy of variable `browse-url-button-regexp'.")
 
-;; This was my old approach to the task:
-;;
-;; ;; Based on `org--line-empty-p'.
-;; (defmacro prot-common--line-p (name regexp)
-;;   "Make NAME function to match REGEXP on line n from point."
-;;   `(defun ,name (n)
-;;      (save-excursion
-;;        (goto-char (point-at-bol))
-;;        (and (not (bobp))
-;; 	        (or (beginning-of-line n) t)
-;; 	        (save-match-data
-;; 	          (looking-at ,regexp))))))
-;;
-;; (prot-common--line-p
-;;  prot-common-empty-line-p
-;;  "[\s\t]*$")
-;;
-;; (prot-common--line-p
-;;  prot-common-indent-line-p
-;;  "^[\s\t]+")
-;;
-;; (prot-common--line-p
-;;  prot-common-non-empty-line-p
-;;  "^.+$")
-;;
-;; (prot-common--line-p
-;;  prot-common-text-list-line-p
-;;  "^\\([\s\t#*+]+\\|[0-9]+[^\s]?[).]+\\)")
-;;
-;; (prot-common--line-p
-;;  prot-common-text-heading-line-p
-;;  "^[=-]+")
+(autoload 'auth-source-search "auth-source")
+
+;;;###autoload
+(defun prot-common-auth-get-field (host prop)
+  "Find PROP in `auth-sources' for HOST entry."
+  (when-let ((source (auth-source-search :host host)))
+    (if (eq prop :secret)
+       (funcall (plist-get (car source) prop))
+      (plist-get (flatten-list source) prop))))
 
 (provide 'prot-common)
 ;;; prot-common.el ends here
