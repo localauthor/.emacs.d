@@ -14,7 +14,7 @@
 
 (setq package-enable-at-startup nil)
 
-(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/11:/usr/local/opt/libgccjit/lib/gcc/11:/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin21/11")
+(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/12:/usr/local/opt/libgccjit/lib/gcc/12:/usr/local/opt/gcc/lib/gcc/12/gcc/x86_64-apple-darwin21/12")
 
 ;;; emacs config
 
@@ -34,6 +34,7 @@
 (set-default-coding-systems 'utf-8)
 
 (setq dictionary-server "dict.org")
+
 
 (setq auto-save-default nil) ;; stop creating #autosave# files
 (setq create-lockfiles nil)  ;; stop creating .# files
@@ -77,8 +78,10 @@
 
 (setq search-default-mode nil) ;; use literal strings in isearch, not regexps
 
+(setq isearch-lazy-count t)
+
 (setq ad-redefinition-action 'accept)
-(setq warning-suppress-types '((emacs) (comp) (:warning) comp))
+(setq warning-suppress-types '((bytecomp) (emacs) (comp) (:warning) comp))
 (setq ring-bell-function 'ignore)
 
 (setq vc-follow-symlinks t)
