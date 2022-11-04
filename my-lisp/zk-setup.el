@@ -7,6 +7,7 @@
   :straight nil
   :defer 1
   :after consult
+  :mode (("\\.md$" . org-mode))
   :bind
   (:map zk-file-map
         ("p" . zk-preview)
@@ -38,9 +39,7 @@
      zk-unlinked-notes))
   :config
   (zk-setup-auto-link-buttons)
-  (with-eval-after-load 'embark-org
-    (zk-setup-embark))
-  (add-to-list 'auto-mode-alist '("\\.md$" . org-mode))
+  (zk-setup-embark)
   (with-eval-after-load 'embark
     (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map))
   (with-eval-after-load 'consult

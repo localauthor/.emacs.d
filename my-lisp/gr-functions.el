@@ -20,7 +20,7 @@ Symbols and Diacritics
 
 (defun gr/select-theme ()
   (interactive)
-  (let ((theme (intern (completing-read "Select: " '(gr-light ef-autumn)))))
+  (let ((theme (intern (completing-read "Select: " '(gr-light ef-bio)))))
     (mapc #'disable-theme custom-known-themes)
     (load-theme theme :no-confirm)))
 
@@ -29,9 +29,9 @@ Symbols and Diacritics
   (if (equal custom-enabled-themes '(gr-light))
       (progn
         (mapc #'disable-theme '(gr-light))
-        (load-theme 'ef-autumn :no-confirm))
+        (load-theme 'ef-bio :no-confirm))
     (progn
-      (mapc #'disable-theme '(ef-autumn))
+      (mapc #'disable-theme '(ef-bio))
       (load-theme 'gr-light :no-confirm))))
 
 ;;;###autoload
@@ -46,7 +46,9 @@ Symbols and Diacritics
            (set-frame-position (selected-frame) 845 20)
            (delete-other-windows))
           (t (pop-to-buffer buffer
-                            '(display-buffer-at-bottom))))
+                            '((display-buffer-at-bottom)
+                              ;;(window-height . 0.5)
+                              ))))
     (gr/daily-notes-new-headline)))
 
 (defun gr/daily-notes-new-headline ()
@@ -71,7 +73,6 @@ Symbols and Diacritics
   (select-frame (make-frame-command))
   (set-frame-position (selected-frame) 150 20)
   (set-frame-size (selected-frame) 160 60)
-  ;;(delete-other-windows)
   (calfw-open-org-calendar))
 
 (defun gr/word-count-subtree ()

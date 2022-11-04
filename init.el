@@ -97,7 +97,6 @@
 
 (use-package emacs
   :straight nil
-  :defer 1
   :bind
   ("C-x [" . beginning-of-buffer)
   ("C-x ]" . end-of-buffer)
@@ -114,7 +113,6 @@
   )
 
 (use-package tab-bar
-  :defer 2
   ;;:config
   ;;(tab-bar-mode 1)
   ;;(tab-bar-history-mode)
@@ -137,7 +135,7 @@
   (defun gr/tab-bar-face-setup ()
     (set-face-attribute
      'tab-bar nil
-     :font "Menlo" :height .8)
+     :font "Menlo" :height .7)
     (set-face-attribute
      'tab-bar-tab nil
      :background "grey75"
@@ -291,7 +289,8 @@
 
 ;;;; display-buffer-alist
 
-(setq switch-to-buffer-obey-display-actions t)
+(setq switch-to-buffer-obey-display-actions nil)
+;; with t, popwin-dummy buffer shows up with elfeed-entry
 
 (setq display-buffer-alist
       `(
@@ -468,7 +467,6 @@
 
 (use-package link-hint-aw-select
   :straight (link-hint-aw-select :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-aw-select")
-  :defer 1
   :bind
   (:map gr-map
         ("o" . link-hint-aw-select))
@@ -480,7 +478,6 @@
 
 (use-package link-hint-preview
   :straight (link-hint-preview :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-preview")
-  :defer 1
   :bind
   (:map gr-map
         ("p" . link-hint-preview))
@@ -757,7 +754,6 @@ parent."
 
 (use-package embark
   :straight (:files (:defaults "embark-org.el"))
-  :defer 1
   :bind
   ("C-," . embark-act)
   ("C->" . embark-act-noquit)
@@ -898,7 +894,6 @@ there, otherwise you are prompted for a message buffer."
 
 (use-package embark-org
   :straight nil
-  :defer 1
   :bind
   (:map embark-org-link-map
         ("x" . consult-file-externally)))
@@ -912,7 +907,6 @@ there, otherwise you are prompted for a message buffer."
 ;;;; consult
 
 (use-package consult
-  :defer 1
   :after (embark)
   :bind
   ;;("C-s" . consult-line)
@@ -1128,7 +1122,6 @@ parses its input."
 
 (use-package company
   :disabled
-  :defer 1
   :diminish
   :bind
   (:map company-active-map
@@ -1165,12 +1158,12 @@ parses its input."
   (setq tab-always-indent nil)
   (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
   (setq company-backends '((company-capf
-                           ;;company-elisp
-                           company-dabbrev-code
-                           ;;company-gtags
-                           ;;company-etags
-                           ;;company-keywords
-                           )
+                            ;;company-elisp
+                            company-dabbrev-code
+                            ;;company-gtags
+                            ;;company-etags
+                            ;;company-keywords
+                            )
                            company-bbdb
                            company-files
                            company-dabbrev
@@ -1179,7 +1172,6 @@ parses its input."
 
 (use-package company-posframe
   :disabled
-  :defer 1
   :diminish
   :bind
   (:map company-posframe-active-map
@@ -1248,6 +1240,7 @@ parses its input."
 ;;;; prescient / company-prescient
 
 (use-package prescient
+  :defer t
   :config
   (prescient-persist-mode 1)
   :custom
@@ -1434,10 +1427,10 @@ following the key as group 3."
         ("s-s" . ebib-save-curent-database)
         )
   (:map ebib-entry-mode-map
-        ("?" . (lambda ()
-                 (interactive)
-                 (embark-bindings-in-keymap ebib-entry-mode-map)))
-        ("h" . hydra-ebib/body)
+        ("C-h" . (lambda ()
+                   (interactive)
+                   (embark-bindings-in-keymap ebib-entry-mode-map)))
+        ("?" . hydra-ebib/body)
         ("d" . nil)
         ("j" . ebib-jump-to-entry)
         ("e" . ebib-edit-current-field)
@@ -1465,15 +1458,29 @@ following the key as group 3."
     (let ((inhibit-message t))
       (unless (bound-and-true-p truncate-lines)
         (toggle-truncate-lines))))
+  )
+
+
+(use-package ebib-extras
+  :straight nil
+  :commands (ebib-open)
+  :bind
+  (:map ebib-index-mode-map
+        ("o" . ebib-citar-open-resource)
+        ("q" . ebib-smart-quit))
+  (:map ebib-entry-mode-map
+        ("o" . ebib-citar-open-resource))
+  (:map citar-map
+        ("e" . citar-ebib-jump-to-entry))
+  :config
 
   (defhydra hydra-ebib (:hint nil :color blue)
     "
   _j_: Jump to Entry   _k_: Add Keyword    _!_: Auto-Citekey     _s_: DOI Lookup
-  _O_: Apply Filter    _e_: ebib-open      _E_: Edit Citekey     _S_: ISBN Lookup
+  _O_: Apply Filter                        _E_: Edit Citekey     _S_: ISBN Lookup
   _C_: Cancel Filter   _D_: Delete Field   _X_: Delete Entry     _I_: Auto Import
   "
     ("k" ebib-add-keywords-to-entry)
-    ("e" ebib-open)
     ("!" ebib-generate-autokey)
     ("X" ebib-delete-entry)
     ("E" ebib-edit-keyname)
@@ -1486,28 +1493,14 @@ following the key as group 3."
     ("I" ebib-zotero-import-identifier)
     ("S" ebib-isbn-web-search)
     ("s" crossref-lookup)
-    ("q" nil))
-  )
-
-
-(use-package ebib-extras
-  :straight nil
-  :defer 1
-  :bind
-  (:map ebib-index-mode-map
-        ("o" . ebib-citar-open-resource)
-        ("q" . ebib-smart-quit))
-  (:map ebib-entry-mode-map
-        ("o" . ebib-citar-open-resource))
-  (:map citar-map
-        ("e" . citar-ebib-jump-to-entry)))
+    ("q" nil)))
 
 (use-package ebib-zotero
-   :straight nil
-   :defer 1
-   :bind
-   (:map ebib-index-mode-map
-         ("I" . ebib-zotero-import-identifier)))
+  :straight nil
+  :commands ebib-auto-import
+  :bind
+  (:map ebib-index-mode-map
+        ("I" . ebib-zotero-import-identifier)))
 
 
 (use-package pdf-drop-mode
@@ -1527,7 +1520,7 @@ following the key as group 3."
   :straight (:host github :repo "emacs-pe/scihub.el")
   :defer 1
   :custom
-  (scihub-download-directory (expand-file-name "~/Downloads")))
+  (scihub-download-directory (expand-file-name "~/DT3 Inbox")))
 
 (use-package biblio
   :defer 1
@@ -1723,9 +1716,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   ;;                                        ("build" "Makefile")
   ;;                                        ("build" "server")
   ;;       		                 (:exclude "lisp/tablist.el" "lisp/tablist-filter.el")))
-  :defer 3
   :bind
-
   (:map pdf-view-mode-map
         ("h" . pdf-annot-add-highlight-markup-annotation)
         ("l" . pdf-annot-list-annotations)
@@ -1734,6 +1725,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
         ([remap beginning-of-buffer] . image-bob)
         ([remap end-of-buffer] . image-eob)
         ("C-s" . pdf-occur))
+  :mode (("\\.pdf\\'" . pdf-view-mode))
   :hook
   (pdf-annot-list-mode-hook . (lambda () (pdf-annot-list-follow-minor-mode)))
   (pdf-occur-buffer-mode-hook . next-error-follow-minor-mode)
@@ -1749,7 +1741,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (setq pdf-view-use-scaling t)
   ;; turn off cua so copy works
   (add-hook 'pdf-view-mode-hook (lambda () (cua-mode 0)))
-  (add-hook 'pdf-view-mode-hook (lambda () (linum-mode -1)))
+  ;;(add-hook 'pdf-view-mode-hook (lambda () (linum-mode -1)))
   ;; more fine-grained zooming
   (setq pdf-view-resize-factor 1.1)
 
@@ -1868,6 +1860,20 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
       nil)
     (browse-url "http://localhost:1313/")))
 
+(defun gr/bluepencil-deploy ()
+  (interactive)
+  (shell-command "cd ~/Dropbox/bluepencil/bluepencil-web && ./deploy.sh"))
+
+(defun gr/bluepencil-test ()
+  (interactive)
+  (let ((browse-url-browser-function 'browse-url-default-browser))
+    (if
+        (equal 1 (shell-command "pgrep 'hugo'"))
+        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/bluepencil/bluepencil-web && hugo server")
+      nil)
+    (browse-url "http://localhost:1313/")))
+
+
 ;;;; annotate.el
 
 (use-package annotate
@@ -1970,7 +1976,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 (use-package ibuffer
   :straight (:type built-in)
-  :defer 1
   :bind
   (:map ctl-x-map
         ("C-b" . ibuffer))
@@ -2051,7 +2056,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; dired
 
 (use-package dired
-  :defer t
   :straight (:type built-in)
   :bind
   ("C-x C-j" . dired-jump)
@@ -2089,7 +2093,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; avy
 
 (use-package avy
-  :defer t
   :bind
   ("M-g w" . avy-goto-word-1)
   :bind*
@@ -2200,7 +2203,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; helpful
 
 (use-package helpful
-  :defer 1
   :bind
   (:map help-map
         ("f" . helpful-symbol)
@@ -2249,7 +2251,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; web browsing / eww / xwidget webkit /xwwp
 
 (use-package eww
-  :defer t
   :straight (:type built-in)
   :bind
   (:map eww-mode-map
@@ -2425,7 +2426,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package ace-window
   ;; :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
   ;;                       :files (:defaults "ace-window-posframe.el"))
-  :defer 2
   :bind
   ("C-x o" . ace-window)
   :custom-face
@@ -2637,7 +2637,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; accent
 
 (use-package accent
-  :defer 1
   ;; :hook ((text-mode-hook . accent-menu-mode)
   ;;        (org-mode-hook . accent-menu-mode)
   ;;        (message-mode-hook . accent-menu-mode))
@@ -2699,9 +2698,51 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-<up>" . move-text-up)
   ("C-<down>" . move-text-down))
 
+;;;; dwim-shell-commands
 
-;;; disabled
-;;;; ctrlf
+(use-package dwim-shell-command
+  :bind
+  (:map gr-map
+        ("x" . gr/reveal-in-finder))
+  :config
+  (defun gr/reveal-in-finder ()
+    "Reveal selected files in macOS Finder."
+    (interactive)
+    (dwim-shell-command-on-marked-files
+     "Reveal in Finder"
+     "import AppKit
+     NSWorkspace.shared.activateFileViewerSelecting([\"<<*>>\"].map{URL(fileURLWithPath:$0)})"
+     :silent-success t
+     :shell-pipe  "swift -"
+     :join-separator  ", "))
+  )
+
+;;;; notmuch
+
+(use-package notmuch
+  :disabled
+  :defer t
+  :custom
+  (notmuch-search-oldest-first . nil))
+
+(defun gr/notmuch-refresh ()
+  (interactive)
+  (async-shell-command "mbsync -a && notmuch new"))
+
+;;;; ledger-mode
+
+(use-package ledger-mode
+  :mode ("\\.dat\\'" . ledger-mode)
+  :custom
+  (ledger-clear-whole-transactions t))
+
+;;;; vterm
+
+(use-package vterm
+  :defer t)
+
+;;;; disabled
+;;;;; ctrlf
 
 (use-package ctrlf
   :disabled
@@ -2711,7 +2752,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;; doesn't unfold org buffers
 
-;;;; nxml-mode
+;;;;; nxml-mode
 
 (use-package nxml-mode
   :disabled
@@ -2723,7 +2764,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (add-to-list 'rng-schema-locating-files "~/Dropbox/TEI/nxml-schemas/schemas.xml"))
 
 
-;;;; explain-pause-mode
+;;;;; explain-pause-mode
 
 (use-package explain-pause-mode
   :disabled
@@ -2734,15 +2775,14 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (explain-pause-mode))
 
 
-;;;; nov.el
+;;;;; nov.el
 
 (use-package nov
   :disabled
   :defer t
-  :init
-  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+  :mode ("\\.epub\\'" . nov-mode))
 
-;;;; paredit
+;;;;; paredit
 
 (use-package paredit
   :disabled
@@ -2755,7 +2795,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;; (lisp-interaction-mode-hook . enable-paredit-mode)
   )
 
-;;;; golden-ratio-scroll-screen
+;;;;; golden-ratio-scroll-screen
 
 (use-package golden-ratio-scroll-screen
   :disabled
@@ -2765,7 +2805,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
 
 
-;;;; python
+;;;;; python
 
 (use-package python-mode
   :disabled
@@ -2790,7 +2830,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
        "_"))))
 
 
-;;;; git-gutter
+;;;;; git-gutter
 
 (use-package git-gutter
   :disabled
@@ -2805,7 +2845,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (set-fringe-mode '(8 . 0))
   )
 
-;;;; re-builder
+;;;;; re-builder
 
 (use-package re-builder
   :defer 1
@@ -2813,13 +2853,13 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (setq reb-re-syntax 'string))
 
 
-;;;; markdown mode
+;;;;; markdown mode
 
 (use-package markdown-mode
   :disabled)
 
 
-;;;; org-mind-map
+;;;;; org-mind-map
 
 (use-package org-mind-map
   :disabled
@@ -2839,11 +2879,12 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                                              ("rankdir" . "TB")))
   (setq org-mind-map-dot-output '("pdf" "png" "svg")))
 
-;;;; Pandoc
+;;;;; Pandoc
 
 (use-package pandoc-mode
   :disabled
   :defer t)
+
 
 
 ;;; variable resets
