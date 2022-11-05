@@ -5,6 +5,7 @@
 ;;; Code:
 (require 'zk)
 (require 'zk-index)
+(require 'zk-desktop)
 (require 'zk-luhmann)
 
 ;;; xref

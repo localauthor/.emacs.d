@@ -151,7 +151,7 @@
 
 (when (memq window-system '(mac ns))
   (defun nsystem-move-file-to-trash (path)
-    "Moves file at PATH to  macOS Trash following `move-file-to-trash' convention.
+    "Moves file at PATH to macOS Trash following `move-file-to-trash' convention.
 
       Relies on the command-line utility 'trash' to be installed.
       Get it from:  <http://hasseg.org/trash/>"

@@ -72,25 +72,36 @@ Optional ARG."
         ("P" . link-hint-preview-button)
         ("j" . consult-line) ;; "jump"
         ("?" . hydra-zk-index/body))
-  (:map zk-index-desktop-button-map
-        ("v" . link-hint-preview-button)
-        ("o" . zk-index-aw-select))
   (:map zk-index-view-mode-map
         ("RET" . zk-index-view-mode))
   :config
   (zk-index-setup-embark)
-  :hook
-  (zk-index-desktop-mode-hook . (lambda () (variable-pitch-mode -1)))
-  (zk-index-desktop-mode-hook . cursor-face-highlight-mode)
-  (zk-index-desktop-mode-hook . (lambda () (setq-local cursor-face-highlight-nonselected-window t)))
   :custom
-  (zk-index-prefix nil)
-  (zk-index-desktop-prefix "- ")
-  (zk-index-desktop-major-mode 'org-mode)
-  (zk-index-desktop-add-pos 'at-point)
-  (zk-index-desktop-directory "~/Dropbox/ZK/ZK-Desktops")
+  (zk-index-prefix nil))
+
+;;;; zk-desktop
+
+(use-package zk-desktop
+  :load-path "my-lisp/zk"
+  :straight nil
+  :commands zk-desktop
+  :bind
+  (:map zk-desktop-button-map
+        ("v" . link-hint-preview-button)
+        ("o" . zk-index-aw-select))
+  :config
+  (zk-desktop-setup-embark)
+  :hook
+  (zk-desktop-mode-hook . (lambda () (variable-pitch-mode -1)))
+  (zk-desktop-mode-hook . cursor-face-highlight-mode)
+  (zk-desktop-mode-hook . (lambda () (setq-local cursor-face-highlight-nonselected-window t)))
+  :custom
+  (zk-desktop-prefix "- ")
+  (zk-desktop-major-mode 'org-mode)
+  (zk-desktop-add-pos 'at-point)
+  (zk-desktop-directory "~/Dropbox/ZK/ZK-Desktops")
   :custom-face
-  (zk-index-desktop-button ((t (:background "gray95" :height .9)))))
+  (zk-desktop-button ((t (:background "gray95" :height .9)))))
 
 ;;;; zk-luhmann
 
@@ -178,7 +189,7 @@ Optional ARG."
     ("m" zk-make-link-buttons)
     ("o" link-hint-aw-select)
     ("b" zk-network)
-    ("S" zk-index-desktop-select)
+    ("S" zk-desktop-select)
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)
     ("t" zk-consult-grep-tag-search)
@@ -186,8 +197,8 @@ Optional ARG."
     ("g" zk-grep)
     ("x" zk-xref)
     ("s" zk-search)
-    ("d" zk-index-send-to-desktop)
-    ("D" zk-index-desktop)
+    ("d" zk-desktop-send-to-desktop)
+    ("D" zk-desktop)
     ("p" devonthink-dir-find-file)
     ("q" nil)))
 
