@@ -179,7 +179,8 @@
 ;;            (2 . ((foreground "navy blue"))))))
 ;;   )
 
-(use-package ef-themes)
+(use-package ef-themes
+  :defer 1)
 
 ;;;; MacOS Keybindings
 
@@ -1299,11 +1300,11 @@ parses its input."
 
 (use-package citar
   :after (oc misc-file-handling devonthink-dir)
-  :commands (citar-select-ref
-             citar-select-refs
-             gr/citar-insert-citation
-             citar-format-reference
-             citar--ensure-entries)
+  ;; :commands (citar-select-ref
+  ;;            citar-select-refs
+  ;;            gr/citar-insert-citation
+  ;;            citar-format-reference
+  ;;            citar--ensure-entries)
   :bind
   (:map org-mode-map
         ("C-c \\" . gr/citar-insert-citation))
@@ -1463,7 +1464,7 @@ following the key as group 3."
 
 (use-package ebib-extras
   :straight nil
-  :commands (ebib-open)
+  :commands ebib-open
   :bind
   (:map ebib-index-mode-map
         ("o" . ebib-citar-open-resource)
@@ -1606,7 +1607,8 @@ following the key as group 3."
 
 (use-package zk-setup
   :straight nil
-  :defer 1)
+  :bind
+  ("C-z" . hydra-zk/body))
 
 ;;;; sdcv-mode
 
@@ -1922,7 +1924,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (use-package elfeed-setup
   :straight nil
   :defer t
-  :commands (gr/elfeed-open-new-window))
+  :commands gr/elfeed-open-new-window)
 
 (use-package misc-file-handling
   :straight nil
@@ -1931,7 +1933,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (use-package text-to-speech
   :straight nil
   :defer t
-  :commands (hydra-mac-speak/body))
+  :commands hydra-mac-speak/body)
 
 (use-package devonthink-dir
   :straight nil
