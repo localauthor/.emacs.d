@@ -202,9 +202,6 @@ Optional ARG."
     ("p" devonthink-dir-find-file)
     ("q" nil)))
 
-(bind-key* (kbd "C-z") 'hydra-zk/body)
-(bind-key* (kbd "M-z") 'hydra-zk/body)
-
 (eval-and-compile
   (defhydra hydra-bib (:hint nil
                              :color blue)
