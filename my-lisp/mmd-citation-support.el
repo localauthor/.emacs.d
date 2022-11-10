@@ -126,7 +126,9 @@
 When in zk file, mmd format; when org-mode, org-cite."
   (interactive)
   (let ((key (citar-select-ref)))
-    (if (zk-file-p)
+    (if (or (zk-file-p)
+            (file-in-directory-p buffer-file-name
+                                 zk-desktop-directory))
         (gr/format-mmd-citation key)
       (condition-case nil
           (citar-insert-citation (list key))
