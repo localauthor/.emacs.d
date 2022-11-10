@@ -1206,8 +1206,8 @@ parses its input."
   ("M-i" . completion-at-point)
   :custom
   (corfu-cycle t)
-  (corfu-auto nil)
-  (corfu-auto-delay .3)
+  (corfu-auto t)
+  (corfu-auto-delay .5)
   (corfu-auto-prefix 1)
   (corfu-quit-no-match 'separator)
   (corfu-quit-at-boundary 'separator)
