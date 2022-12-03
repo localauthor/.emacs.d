@@ -895,6 +895,7 @@ there, otherwise you are prompted for a message buffer."
 
 (use-package embark-org
   :straight nil
+  :after embark
   :bind
   (:map embark-org-link-map
         ("x" . consult-file-externally)))
@@ -1247,12 +1248,16 @@ parses its input."
   :custom
   (prescient-aggressive-file-save t))
 
+(use-package vertico-prescient
+  :defer t
+  :config
+  (vertico-prescient-mode))
+
 (use-package company-prescient
   :disabled
   ;; interferes with Luhmann, zk sort order
   :config
   (company-prescient-mode -1))
-
 
 ;;;; tempel
 
@@ -1510,9 +1515,10 @@ following the key as group 3."
   :config
   (pdf-drop-mode)
   (setq pdf-drop-search-hook #'my/pdf-process)
-  (defun my/pdf-process (file doi)
-    (ebib-zotero-import-identifier (cdr doi) file))
   )
+
+(defun my/pdf-process (file doi)
+  (ebib-zotero-import-identifier (cdr doi) file))
 
 
 ;;;; biblio / sci-hub
@@ -1525,7 +1531,7 @@ following the key as group 3."
 
 (use-package biblio
   :defer 1
-  :after (ebib)
+  ;;:after ebib
   :custom
   (biblio-crossref-user-email-address vu-email)
   :config
@@ -1828,8 +1834,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;(setq org-startup-with-latex-preview t)
 (setq org-preview-latex-default-process 'dvisvgm)
 
-
-
 ;;;; ox-hugo
 
 (use-package ox-hugo
@@ -1838,40 +1842,40 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 (defun gr/blog-deploy-localauthor ()
   (interactive)
-  (shell-command "cd ~/Dropbox/Writings/localauthor && ./deploy.sh"))
+  (shell-command "cd ~/Library/CloudStorage/Dropbox/Sites/localauthor && ./deploy.sh"))
 
 (defun gr/blog-test-localauthor ()
   (interactive)
   (let ((browse-url-browser-function 'browse-url-default-browser))
     (if
-        (equal 1 (shell-command "pgrep 'hugo'"))
-        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/Writings/localauthor && hugo server")
+        (equal 1 (shell-command "pgrep 'hugo -t hugo-la-rocinante'"))
+        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Library/CloudStorage/Dropbox/Sites/localauthor && hugo server")
       nil)
     (browse-url "http://localhost:1313/")))
 
 (defun gr/web-deploy ()
   (interactive)
-  (shell-command "cd ~/Dropbox/gr-web && ./deploy.sh"))
+  (shell-command "cd ~/Library/CloudStorage/Dropbox/Sites/gr-web && ./deploy.sh"))
 
 (defun gr/web-test ()
   (interactive)
   (let ((browse-url-browser-function 'browse-url-default-browser))
     (if
         (equal 1 (shell-command "pgrep 'hugo'"))
-        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/gr-web && hugo server")
+        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Library/CloudStorage/Dropbox/Sites/gr-web && hugo server")
       nil)
     (browse-url "http://localhost:1313/")))
 
 (defun gr/bluepencil-deploy ()
   (interactive)
-  (shell-command "cd ~/Dropbox/bluepencil/bluepencil-web && ./deploy.sh"))
+  (shell-command "cd ~/Library/CloudStorage/Dropbox/Sites/bluepencil/bluepencil-web && ./deploy.sh"))
 
 (defun gr/bluepencil-test ()
   (interactive)
   (let ((browse-url-browser-function 'browse-url-default-browser))
     (if
         (equal 1 (shell-command "pgrep 'hugo'"))
-        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/bluepencil/bluepencil-web && hugo server")
+        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Library/CloudStorage/Dropbox/Sites/bluepencil/bluepencil-web && hugo server")
       nil)
     (browse-url "http://localhost:1313/")))
 
@@ -2487,6 +2491,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*Warnings\\*"
           "^\\*Dictionary\\*"
           "^\\*sdcv\\*"
+          "^\\*vterm\\*"
           "^\\*xref\\*"
           "^\\*Backtrace\\*"
           "^\\*ZK-Index\\*"
@@ -2743,6 +2748,15 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package vterm
   :defer t)
 
+;;;; mastodon
+
+(use-package mastodon
+  :defer t
+  :custom
+  (mastodon-instance-url "https://zirk.us")
+  (mastodon-active-user "grantrosson"))
+
+
 ;;;; disabled
 ;;;;; ctrlf
 
@@ -2763,7 +2777,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (:map nxml-mode-map
         ("C-<return>" . completion-at-point))
   :config
-  (add-to-list 'rng-schema-locating-files "~/Dropbox/TEI/nxml-schemas/schemas.xml"))
+  (add-to-list 'rng-schema-locating-files "~/Library/CloudStorage/Dropbox/Code/TEI/nxml-schemas/schemas.xml"))
 
 
 ;;;;; explain-pause-mode

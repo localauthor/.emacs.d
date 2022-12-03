@@ -172,10 +172,8 @@ Symbols and Diacritics
   (cond ((equal p '(4)) (find-file (concat user-emacs-directory "init.el")))
         (t  (gr/make-frame)
             (find-file (concat user-emacs-directory "init.el")))))
-            ;;(set-frame-position (selected-frame) 845 20)
-            ;;(delete-other-windows))))
-
-(global-set-key (kbd "C-c i") 'gr/open-init-file)
+;;(set-frame-position (selected-frame) 845 20)
+;;(delete-other-windows))))
 
 ;;OPEN init.el
 (defun open-user-init-file ()

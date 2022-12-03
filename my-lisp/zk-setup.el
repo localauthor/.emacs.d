@@ -167,11 +167,11 @@ Optional ARG."
                             :pre (require 'zk-extras)
                             :color blue)
     "
-  _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: to desktop
-  _h s_: Strct Nts  _c_: Insert Cite   _r_: Rename Note    _z_: zk grep
-  _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib-open
-                  _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz
-   [Luhmann: %(zk-luhmann-notes-count) | Lit: %(zk-lit-notes-count)]"
+    _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: to desktop
+    _h s_: Strct Nts  _c_: Insert Cite   _r_: Rename Note    _z_: zk grep
+    _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib-open
+                    _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz
+    [Luhmann: %(zk-luhmann-notes-count) | Lit: %(zk-lit-notes-count)]"
     ("h h" (zk-find-file-by-id "201801190001"))
     ("h i" (zk-find-file-by-id "201801180001"))
     ("h s" (zk-find-file-by-id "201801180002"))

@@ -100,10 +100,26 @@
       delete-old-versions t ;; Don't ask to delete excess backup versions.
       backup-by-copying t) ;; Copy all files, don't rename them.
 
+(setq backup-directory-alist
+      `(("." . ,(concat user-emacs-directory "backups/per-save"))))
+
+(defun force-backup-of-buffer ()
+  ;; Make a special "per session" backup at the first save of each
+  ;; emacs session.
+  (when (not buffer-backed-up)
+    ;; Override the default parameters for per-session backups.
+    (let ((backup-directory-alist `(("." . ,(concat user-emacs-directory "backups/per-session"))))
+          (kept-new-versions 3))
+      (backup-buffer)))
+  ;; Make a "per save" backup on each save.  The first save results in
+  ;; both a per-session and a per-save backup, to keep the numbering
+  ;; of per-save backups consistent.
+  (let ((buffer-backed-up nil))
+    (backup-buffer)))
+
 (with-eval-after-load 'zk
-  (setq backup-directory-alist
-        `((,zk-id-regexp . ,(concat user-emacs-directory "backups/per-save/ZK-backups"))
-          ("." . ,(concat user-emacs-directory "backups/per-save"))))
+  (add-to-list 'backup-directory-alist
+               `(,zk-id-regexp . ,(concat user-emacs-directory "backups/per-save/ZK-backups")))
 
   (defun force-backup-of-buffer ()
     ;; Make a special "per session" backup at the first save of each
@@ -118,9 +134,9 @@
     ;; both a per-session and a per-save backup, to keep the numbering
     ;; of per-save backups consistent.
     (let ((buffer-backed-up nil))
-      (backup-buffer)))
+      (backup-buffer))))
 
-  (add-hook 'before-save-hook 'force-backup-of-buffer))
+(add-hook 'before-save-hook 'force-backup-of-buffer)
 
 (setq epg-gpg-program "/usr/local/bin/gpg")
 (setq xref-search-program 'ripgrep)
