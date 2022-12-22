@@ -47,7 +47,7 @@ Optional initial INPUT."
     (format "%s" value)))
 
 (defun gr/open-file-externally (alist &optional input)
-  (consult-file-externally (gr/select-from-alist alist input)))
+  (embark-open-externally (gr/select-from-alist alist input)))
 
 (defun gr/pretty-file-alist (list)
 ;; embark actions don't work on files in this list, bc they are not full paths
