@@ -20,10 +20,10 @@
 
 (setq straight-host-usernames '((github . "localauthor")))
 
-(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
+
 (straight-use-package 'org)
 
-(setq straight-use-package-by-default t)
 (setq use-package-hook-name-suffix nil)
 
 ;;; Misc Startups
@@ -306,6 +306,9 @@
         ("\\*ZK-Index\\|\\*ZK-Desktop"
          (gr/select-buffer-at-bottom)
          (window-height . 0.4))
+
+        ("*mu4e-main*"
+         (display-buffer-full-frame))
 
         (,(concat
            ;;"dailynotes.org\\|"
@@ -1262,9 +1265,9 @@ parses its input."
 ;;;; tempel
 
 (use-package tempel
-  ;; Require trigger prefix before template name when completing.
-  ;; :custom
-  ;; (tempel-trigger-prefix "<")
+  ;;Require trigger prefix before template name when completing.
+  :custom
+  (tempel-trigger-prefix "<")
 
   :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
          ("M-*" . tempel-insert)
@@ -1341,10 +1344,6 @@ parses its input."
   (citar-open-resources '(:files :notes :create-notes))
 
   :config
-  ;; are these requires necessary?
-  (require 'citar-org)
-  (require 'citar-file)
-  (require 'citar-citeproc)
 
   (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
 
@@ -1690,7 +1689,7 @@ don't want to fix with `SPC', and you can abort completely with
 ;;;; org-reveal
 
 (use-package ox-reveal
-  :defer 2
+  :defer 1
   :config
   (setq org-reveal-root (format "file://%s/.reveal.js" home-dir))
   :custom
@@ -1842,40 +1841,40 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 (defun gr/blog-deploy-localauthor ()
   (interactive)
-  (shell-command "cd ~/Library/CloudStorage/Dropbox/Sites/localauthor && ./deploy.sh"))
+  (shell-command "cd ~/Dropbox/Sites/localauthor && ./deploy.sh"))
 
 (defun gr/blog-test-localauthor ()
   (interactive)
   (let ((browse-url-browser-function 'browse-url-default-browser))
     (if
         (equal 1 (shell-command "pgrep 'hugo -t hugo-la-rocinante'"))
-        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Library/CloudStorage/Dropbox/Sites/localauthor && hugo server")
+        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/Sites/localauthor && hugo server")
       nil)
     (browse-url "http://localhost:1313/")))
 
 (defun gr/web-deploy ()
   (interactive)
-  (shell-command "cd ~/Library/CloudStorage/Dropbox/Sites/gr-web && ./deploy.sh"))
+  (shell-command "cd ~/Dropbox/Sites/gr-web && ./deploy.sh"))
 
 (defun gr/web-test ()
   (interactive)
   (let ((browse-url-browser-function 'browse-url-default-browser))
     (if
         (equal 1 (shell-command "pgrep 'hugo'"))
-        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Library/CloudStorage/Dropbox/Sites/gr-web && hugo server")
+        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/Sites/gr-web && hugo server")
       nil)
     (browse-url "http://localhost:1313/")))
 
 (defun gr/bluepencil-deploy ()
   (interactive)
-  (shell-command "cd ~/Library/CloudStorage/Dropbox/Sites/bluepencil/bluepencil-web && ./deploy.sh"))
+  (shell-command "cd ~/Dropbox/Sites/bluepencil/bluepencil-web && ./deploy.sh"))
 
 (defun gr/bluepencil-test ()
   (interactive)
   (let ((browse-url-browser-function 'browse-url-default-browser))
     (if
         (equal 1 (shell-command "pgrep 'hugo'"))
-        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Library/CloudStorage/Dropbox/Sites/bluepencil/bluepencil-web && hugo server")
+        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/Sites/bluepencil/bluepencil-web && hugo server")
       nil)
     (browse-url "http://localhost:1313/")))
 
@@ -2777,7 +2776,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (:map nxml-mode-map
         ("C-<return>" . completion-at-point))
   :config
-  (add-to-list 'rng-schema-locating-files "~/Library/CloudStorage/Dropbox/Code/TEI/nxml-schemas/schemas.xml"))
+  (add-to-list 'rng-schema-locating-files "~/Dropbox/Code/TEI/nxml-schemas/schemas.xml"))
 
 
 ;;;;; explain-pause-mode
