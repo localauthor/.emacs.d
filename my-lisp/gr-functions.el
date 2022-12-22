@@ -106,7 +106,8 @@ Symbols and Diacritics
   (interactive)
   (select-frame (make-frame))
   (set-frame-size (selected-frame) 125 45)
-  (mu4e))
+  (mu4e)
+  (delete-other-windows))
 ;;   (display-buffer-full-frame " *mu4e-main*" '(nil)))
 ;;   ;; (switch-to-buffer " *mu4e-main*")
 ;;   (pop-to-buffer-same-window " *mu4e-main*")
@@ -169,9 +170,11 @@ Symbols and Diacritics
 (defun gr/open-init-file (p)
   "Open myinit.org in new frame. With universal argument, open in current window."
   (interactive "P")
-  (cond ((equal p '(4)) (find-file (concat user-emacs-directory "init.el")))
-        (t  (gr/make-frame)
-            (find-file (concat user-emacs-directory "init.el")))))
+  (cond ((equal p '(4))
+         (gr/make-frame)
+         (find-file (concat user-emacs-directory "init.el")))
+        (t (find-file (concat user-emacs-directory "init.el")))))
+
 ;;(set-frame-position (selected-frame) 845 20)
 ;;(delete-other-windows))))
 
