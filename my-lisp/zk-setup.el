@@ -10,10 +10,8 @@
   :mode (("\\.md$" . org-mode))
   :bind
   (:map zk-file-map
-        ("p" . zk-preview)
         ("G" . zk-luhmann-index-goto))
   (:map zk-id-map
-        ("p" . link-hint-preview-zk-link)
         ("s" . zk-search)
         ("z" . zk-grep) ;; zk-consult-grep does not work as embark action
         ("G" . zk-luhmann-index-goto)
@@ -30,8 +28,8 @@
   (zk-link-format "[[%s]]")
   (zk-link-and-title-format "%t [[%i]]")
   (zk-completion-at-point-format "%t [[%i]]")
-  (zk-search-function #'zk-xref) ;; #'zk-consult-grep) ;; #'zk-grep ;; 
-  (zk-tag-search-function #'zk-xref) ;; #'zk-consult-grep-tag-search) ;; #'zk-grep 
+  (zk-search-function #'zk-xref) ;; #'zk-consult-grep) ;; #'zk-grep ;;
+  (zk-tag-search-function #'zk-xref) ;; #'zk-consult-grep-tag-search) ;; #'zk-grep
   (zk-current-notes-function nil)
   (zk-select-file-function 'zk-consult-select-file)
   (zk-consult-preview-functions
@@ -143,7 +141,14 @@ Optional ARG."
   :straight nil
   :load-path "my-lisp/zk"
   :after zk
-  :defer 1)
+  :defer 1
+  :bind
+  (:map zk-file-map
+        ("p" . zk-preview))
+  (:map zk-id-map
+        ("p" . link-hint-preview-zk-link))
+  :config
+  (require 'link-hint-preview))
 
 (with-eval-after-load "embark"
   (embark-define-keymap embark-become-zk-file-map
