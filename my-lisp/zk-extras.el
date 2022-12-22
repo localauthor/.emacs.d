@@ -204,12 +204,9 @@ Also excludes, journal, poem, Dickinson, and literature notes."
   "Report number of notes, various categories.
 Optional ARG to inhibit message, for resetting counts."
   (interactive)
-  (setq zk-core-notes-count (length (zk-non-luhmann-list)))
-  (setq zk-luhmann-notes-count (length (zk-luhmann-files)))
   (unless arg
-    (message (format "Luhmann: %s | Notes: %s | Lit: %s"
-                     zk-luhmann-notes-count
-                     zk-core-notes-count
+    (message (format "Luhmann: %s | Lit: %s"
+                     (length (zk-luhmann-files))
                      (length (zk-lit-notes-list))))))
 
 ;;;###autoload
