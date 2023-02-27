@@ -44,16 +44,16 @@
     (add-to-list 'consult-buffer-sources 'zk-consult-source 'append))
   (consult-customize
    zk-find-file zk-find-file-by-full-text-search zk-network zk-backlinks zk-links-in-note
-   :preview-key (list (kbd "C-{"))))
+   :preview-key '("C-{")))
 
-(defun zk-org-try-to-follow-link (fn &optional arg)
-  "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.
+  (defun zk-org-try-to-follow-link (fn &optional arg)
+    "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.
 Optional ARG."
-  (let ((org-link-search-must-match-exact-headline t))
-    (condition-case nil
-	(apply fn arg)
-      (error (unless (ignore-errors (zk-follow-link-at-point))
-               (message "Invalid org-link type"))))))
+    (let ((org-link-search-must-match-exact-headline t))
+      (condition-case nil
+	  (apply fn arg)
+        (error (unless (ignore-errors (zk-follow-link-at-point))
+                 (message "Invalid org-link type"))))))
 
 (advice-add 'org-open-at-point :around #'zk-org-try-to-follow-link)
 
@@ -151,12 +151,12 @@ Optional ARG."
   (require 'link-hint-preview))
 
 (with-eval-after-load "embark"
-  (embark-define-keymap embark-become-zk-file-map
-    "Keymap for Embark zk-file actions."
+  (defvar-keymap embark-become-zk-file-map
+    :doc "Keymap for Embark zk-file actions."
     :parent embark-meta-map
-    ("f" zk-find-file)
-    ("g" consult-grep)
-    ("s" zk-find-file-by-full-text-search)))
+    "f" #'zk-find-file
+    "g" #'consult-grep
+    "s" #'zk-find-file-by-full-text-search))
 
 ;;;; zk hydras
 

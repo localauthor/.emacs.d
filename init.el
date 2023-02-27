@@ -1,9 +1,9 @@
-;;; init.el                    -*- lexical-binding: t; -*-
+;; init.el                    -*- lexical-binding: t; -*-
 
 ;;; Straight setup
 
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
-(setq straight-repository-branch "develop")
+(setq straight-repository-branch "rr-fix-renamed-variable")
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -107,8 +107,8 @@
         ("o" . link-hint-open-link))
   (:map help-mode-map
         ("o" . link-hint-open-link))
-  ;;:custom-face (default ((t (:family "IBM Plex Mono" :height 120))))
   :custom-face (default ((t (:family "JetBrains Mono"))))
+  ;;:custom-face (default ((t (:family "Consolas" :height 130))))
   ;; config in early-init.el
   )
 
@@ -159,6 +159,34 @@
 
 (use-package keycast
   :defer 1)
+
+;;;; blood-sugar
+
+(use-package plz
+  :defer 1)
+
+(defvar gr/blood-sugar "BG:")
+
+(defun gr/blood-sugar ()
+  (interactive)
+  (let* ((inhibit-message t)
+         (data (plz 'get "https://rutaruta.fly.dev/api/v1/entries"))
+         (bg (string-to-number (elt (split-string data) 2)))
+         (bg-final (calc-eval '("$/18" calc-internal-prec 2) nil bg))
+         (trend (elt (split-string data) 3))
+         (arrow (pcase trend
+                  ("\"DoubleUp\"" "⇈")
+                  ("\"SingleUp\"" "↑")
+                  ("\"FortyFiveUp\"" "↗")
+                  ("\"Flat\"" "→")
+                  ("\"FortyFiveDown\"" "↘")
+                  ("\"SingleDown\"" "↓")
+                  ("\"DoubleDown\"" "⇊"))))
+    (setq gr/blood-sugar (concat " BG:" bg-final arrow " "))))
+
+(add-to-list 'global-mode-string '(:eval gr/blood-sugar) t)
+
+(run-at-time "10 sec" 300 'gr/blood-sugar)
 
 ;;;; Faces / Themes Setup
 
@@ -388,8 +416,8 @@
 
            ("T" . gr/toggle-theme)
 
-           ("C-f" . gr/open-fragments-file)
-           ("f" . gr/open-fragments-file-other-frame)
+           ("f" . gr/open-fragments-file)
+           ("C-f" . gr/open-fragments-file-other-frame)
 
            ("m" . gr/open-mu4e)
            ("M" . mu4e)
@@ -575,6 +603,7 @@
   (add-to-list 'org-file-apps '("\\.docx\\'" . default) 'append)
   :custom-face
   (org-drawer ((t (:foreground "gray60" :height .8))))
+  (org-table ((t (:height 1))))
   (org-special-keyword ((t (:foreground "gray50" :height .8))))
   :custom
   (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
@@ -869,27 +898,28 @@ there, otherwise you are prompted for a message buffer."
   (push 'embark--allow-edit
         (alist-get 'write-file embark-target-injection-hooks))
 
-  (embark-define-keymap this-buffer-map
-    "Commands to act on current file or buffer."
-    ("RET" eval-buffer)
-    ("e" eval-buffer)
-    ("R" rename-file)
-    ("D" delete-file)
-    ("W" write-file)
-    ("$" ispell)
-    ("!" shell-command)
-    ("&" async-shell-command)
-    ("x" consult-file-externally)         ; useful for PDFs
-    ("c" copy-file)
-    ("k" kill-buffer)
-    ("z" bury-buffer)
-    ("s" embark-eshell)
-    ("|" embark-shell-command-on-buffer)
-    ("g" revert-buffer)
-    ("p" pwd)
-    ("SPC" mark-whole-buffer)
-    ("<" previous-buffer)
-    (">" next-buffer))
+  (defvar-keymap this-buffer-map
+    :doc "Commands to act on current file or buffer."
+    :parent embark-general-map
+    "RET" #'eval-buffer
+    "e" #'eval-buffer
+    "R" #'rename-file
+    "D" #'delete-file
+    "W" #'write-file
+    "$" #'ispell
+    "!" #'shell-command
+    "&" #'async-shell-command
+    "x" #'consult-file-externally         ; useful for PDFs
+    "c" #'copy-file
+    "k" #'kill-buffer
+    "z" #'bury-buffer
+    "s" #'embark-eshell
+    "|" #'embark-shell-command-on-buffer
+    "g" #'revert-buffer
+    "p" #'pwd
+    "SPC" #'mark-whole-buffer
+    "<" #'previous-buffer
+    ">" #'next-buffer)
 
   (add-to-list 'embark-repeat-actions #'previous-buffer)
   (add-to-list 'embark-repeat-actions #'next-buffer)
@@ -947,8 +977,8 @@ there, otherwise you are prompted for a message buffer."
    consult-git-grep consult-grep consult-global-mark consult-ripgrep
    consult-bookmark consult--source-buffer consult-recent-file consult-xref
    consult--source-bookmark consult-buffer
-   :preview-key (list (kbd "C-{")
-                      :debounce 1.5 'any))
+   :preview-key '("C-{"
+                  :debounce 1.5 any))
 
   (setq consult-preview-key 'any)
 
@@ -988,9 +1018,10 @@ there, otherwise you are prompted for a message buffer."
     (outshine-narrow-to-subtree)
     (outline-show-subtree))
 
-  (embark-define-keymap embark-consult-outline-map
-    "Keymap for embark actions in `consult-outline'."
-    ("r" my/consult-outline-narrow-heading))
+  (defvar-keymap embark-consult-outline-map
+    :doc "Keymap for embark actions in `consult-outline'."
+    :parent embark-general-map
+    "r" #'my/consult-outline-narrow-heading)
 
   (defun with-embark-consult-outline-map (fn &rest args)
     "Let-bind `embark-keymap-alist' to include `consult-location'."
@@ -1211,7 +1242,7 @@ parses its input."
   :custom
   (corfu-cycle t)
   (corfu-auto t)
-  (corfu-auto-delay .5)
+  (corfu-auto-delay 1)
   (corfu-auto-prefix 1)
   (corfu-quit-no-match 'separator)
   (corfu-quit-at-boundary 'separator)
@@ -2389,16 +2420,17 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (setf epg-pinentry-mode 'loopback)
 
   ;; add embark actions for password-store
-  (embark-define-keymap embark-password-store-actions
-    "Keymap for actions for password-store."
-    ("c" password-store-copy)
-    ("f" password-store-copy-field)
-    ("i" password-store-insert)
-    ("I" password-store-generate)
-    ("r" password-store-rename)
-    ("e" password-store-edit)
-    ("k" password-store-remove)
-    ("U" password-store-url))
+  (defvar-keymap embark-password-store-actions
+    :doc "Keymap for actions for password-store."
+    :parent embark-general-map
+    "c" #'password-store-copy
+    "f" #'password-store-copy-field
+    "i" #'password-store-insert
+    "I" #'password-store-generate
+    "r" #'password-store-rename
+    "e" #'password-store-edit
+    "k" #'password-store-remove
+    "U" #'password-store-url)
 
   (add-to-list 'embark-keymap-alist '(password-store . embark-password-store-actions))
 

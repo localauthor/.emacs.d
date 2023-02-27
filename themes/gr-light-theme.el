@@ -36,7 +36,7 @@
 
   (custom-theme-set-faces
    'gr-light
-   '(default ((t (:family "JetBrains Mono" ;;"IBM Plex Mono" ;; 
+   '(default ((t (:family "JetBrains Mono" ;; "IBM Plex Mono" ;; 
                           ;;:foundry "IBM"
                           :width normal
                           :height 1

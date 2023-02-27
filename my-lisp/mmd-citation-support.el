@@ -27,6 +27,7 @@
 
 (defvar gr/mmd-citation-regexp "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]")
 (defvar gr/full-mmd-citation-regexp "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#\\(?4:[[:alpha:]-']*?[[:digit:]]\\{4\\}.?\\)]\\)")
+(defvar citar-citeproc-csl-style nil)
 
 ;;; add highlighting and tooltips to mmd-citekeys
 
@@ -177,15 +178,16 @@ When in zk file, mmd format; when org-mode, org-cite."
       (let ((mmd-citation (thing-at-point 'symbol t)))
         `(mmd-citation ,mmd-citation . ,(bounds-of-thing-at-point 'symbol)))))
 
-  (embark-define-keymap embark-mmd-citation-map
-    "Keymap for Embark comment actions."
-    ("RET" citar-open)
-    ("z" zk-search)
-    ("k" citar-copy-reference)
-    ("e" citar-ebib-jump-to-entry)
-    ("f" citar-open-files)
-    ("o" citar-open)
-    ("n" citar-open-notes))
+  (defvar-keymap embark-mmd-citation-map
+    :doc "Keymap for Embark comment actions."
+    :parent embark-general-map
+    "RET" #'citar-open
+    "z" #'zk-search
+    "k" #'citar-copy-reference
+    "e" #'citar-ebib-jump-to-entry
+    "f" #'citar-open-files
+    "o" #'citar-open
+    "n" #'citar-open-notes)
 
   (add-to-list 'embark-keymap-alist '(mmd-citation . embark-mmd-citation-map))
   (add-to-list 'embark-target-finders 'embark-target-mmd-citation-at-point)
