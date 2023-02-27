@@ -31,7 +31,6 @@
   (zk-search-function #'zk-xref) ;; #'zk-consult-grep) ;; #'zk-grep ;;
   (zk-tag-search-function #'zk-xref) ;; #'zk-consult-grep-tag-search) ;; #'zk-grep
   (zk-current-notes-function nil)
-  (zk-select-file-function 'zk-consult-select-file)
   (zk-consult-preview-functions
    '(zk-current-notes
      zk-unlinked-notes))
@@ -125,7 +124,9 @@ Optional ARG."
   :straight nil
   :load-path "my-lisp/zk"
   :after zk
-  :defer 1)
+  :defer 1
+  :custom
+  (zk-select-file-function 'zk-consult-select-file))
 
 (use-package zk-citar
   :straight nil
