@@ -1,0 +1,1 @@
+/Users/grantrosson/.dotfiles/.emacs.d/elpaca/repos/flycheck/flycheck-buttercup.el

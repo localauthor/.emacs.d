@@ -1,0 +1,1 @@
+/Users/grantrosson/.dotfiles/.emacs.d/elpaca/repos/consult/consult-org.el

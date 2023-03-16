@@ -1,28 +1,58 @@
 ;; init.el                    -*- lexical-binding: t; -*-
 
-;;; Straight setup
+;;; Elpaca setup
 
-(setq straight-check-for-modifications '(check-on-save find-when-checking))
-(setq straight-repository-branch "rr-fix-renamed-variable")
+(defvar elpaca-installer-version 0.2)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil
+                              :files (:defaults (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(when-let ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+           (build (expand-file-name "elpaca/" elpaca-builds-directory))
+           (order (cdr elpaca-order))
+           ((add-to-list 'load-path (if (file-exists-p build) build repo)))
+           ((not (file-exists-p repo))))
+  (condition-case-unless-debug err
+      (if-let ((buffer (pop-to-buffer-same-window "*elpaca-installer*"))
+               ((zerop (call-process "git" nil buffer t "clone"
+                                     (plist-get order :repo) repo)))
+               (default-directory repo)
+               ((zerop (call-process "git" nil buffer t "checkout"
+                                     (or (plist-get order :ref) "--"))))
+               (emacs (concat invocation-directory invocation-name))
+               ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                     "--eval" "(byte-recompile-directory \".\" 0 'force)"))))
+          (progn (require 'elpaca)
+                 (elpaca-generate-autoloads "elpaca" repo)
+                 (kill-buffer buffer))
+        (error "%s" (with-current-buffer buffer (buffer-string))))
+    ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+(require 'elpaca-autoloads)
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;; Install use-package support
+(elpaca elpaca-use-package
+  ;; Enable :elpaca use-package keyword.
+  (elpaca-use-package-mode)
+  ;; Assume :elpaca t unless otherwise specified.
+  (setq elpaca-use-package-by-default t))
 
-(setq straight-host-usernames '((github . "localauthor")))
+(set-face-attribute
+ 'elpaca-finished nil
+ :foreground "brown")
 
-(setq straight-use-package-by-default t)
+(set-face-attribute
+ 'elpaca-blocked nil
+ :foreground "brown")
 
-(straight-use-package 'org)
+;; Block until current queue processed.
+(elpaca-wait)
+
+;; (use-package org)
 
 (setq use-package-hook-name-suffix nil)
 
@@ -96,15 +126,15 @@
   (exec-path-from-shell-initialize))
 
 (use-package emacs
-  :straight nil
+  :elpaca nil
   :bind
   ("C-x [" . beginning-of-buffer)
   ("C-x ]" . end-of-buffer)
   ("C-c e" . eval-buffer)
   ("C-x e" . eval-last-sexp)
   ("C-x E" .  kmacro-end-and-call-macro)
-  (:map Info-mode-map
-        ("o" . link-hint-open-link))
+  ;; (:map Info-mode-map
+  ;;       ("o" . link-hint-open-link))
   (:map help-mode-map
         ("o" . link-hint-open-link))
   :custom-face (default ((t (:family "JetBrains Mono"))))
@@ -113,6 +143,7 @@
   )
 
 (use-package tab-bar
+  :elpaca nil
   ;;:config
   ;;(tab-bar-mode 1)
   ;;(tab-bar-history-mode)
@@ -163,30 +194,31 @@
 ;;;; blood-sugar
 
 (use-package plz
-  :defer 1)
+  :defer 1
+  :config
+  
+  (defvar gr/blood-sugar "BG:")
 
-(defvar gr/blood-sugar "BG:")
+  (defun gr/blood-sugar ()
+    (interactive)
+    (let* ((inhibit-message t)
+           (data (plz 'get "https://rutaruta.fly.dev/api/v1/entries"))
+           (bg (string-to-number (elt (split-string data) 2)))
+           (bg-final (calc-eval '("$/18" calc-internal-prec 2) nil bg))
+           (trend (elt (split-string data) 3))
+           (arrow (pcase trend
+                    ("\"DoubleUp\"" "⇈")
+                    ("\"SingleUp\"" "↑")
+                    ("\"FortyFiveUp\"" "↗")
+                    ("\"Flat\"" "→")
+                    ("\"FortyFiveDown\"" "↘")
+                    ("\"SingleDown\"" "↓")
+                    ("\"DoubleDown\"" "⇊"))))
+      (setq gr/blood-sugar (concat " BG:" bg-final arrow " "))))
 
-(defun gr/blood-sugar ()
-  (interactive)
-  (let* ((inhibit-message t)
-         (data (plz 'get "https://rutaruta.fly.dev/api/v1/entries"))
-         (bg (string-to-number (elt (split-string data) 2)))
-         (bg-final (calc-eval '("$/18" calc-internal-prec 2) nil bg))
-         (trend (elt (split-string data) 3))
-         (arrow (pcase trend
-                  ("\"DoubleUp\"" "⇈")
-                  ("\"SingleUp\"" "↑")
-                  ("\"FortyFiveUp\"" "↗")
-                  ("\"Flat\"" "→")
-                  ("\"FortyFiveDown\"" "↘")
-                  ("\"SingleDown\"" "↓")
-                  ("\"DoubleDown\"" "⇊"))))
-    (setq gr/blood-sugar (concat " BG:" bg-final arrow " "))))
+  (add-to-list 'global-mode-string '(:eval gr/blood-sugar) t)
 
-(add-to-list 'global-mode-string '(:eval gr/blood-sugar) t)
-
-(run-at-time "10 sec" 300 'gr/blood-sugar)
+  (run-at-time "10 sec" 300 'gr/blood-sugar))
 
 ;;;; Faces / Themes Setup
 
@@ -200,7 +232,7 @@
 ;;"systemGreenColor"))
 
 ;; (use-package modus-themes
-;;   :straight nil
+;;   :elpaca nil
 ;;   :custom
 ;;   (modus-themes-headings
 ;;    (quote ((1 . (underline (height 1)))
@@ -391,7 +423,7 @@
 ;;;; gr-functions and gr-map
 
 (use-package gr-functions
-  :straight nil)
+  :elpaca nil)
 
 (define-prefix-command 'gr-map)
 
@@ -464,9 +496,9 @@
 ;;;; define-repeat-map
 
 (use-package define-repeat-map
-  :straight (define-repeat-map
-             :host nil
-             :repo "https://tildegit.org/acdw/define-repeat-map.el")
+  :elpaca (define-repeat-map
+              :host nil
+              :repo "https://tildegit.org/acdw/define-repeat-map.el")
   :defer 1
   :config
 
@@ -484,7 +516,7 @@
 ;;;; init-lock
 
 (use-package init-lock
-  :straight nil
+  :elpaca nil
   ;; :config
   ;; (init-lock-enable)
   :custom
@@ -498,7 +530,7 @@
   (link-hint-message nil))
 
 (use-package link-hint-aw-select
-  :straight (link-hint-aw-select :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-aw-select")
+  :elpaca (link-hint-aw-select :repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-aw-select")
   :bind
   (:map gr-map
         ("o" . link-hint-aw-select))
@@ -509,7 +541,7 @@
     (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)))
 
 (use-package link-hint-preview
-  :straight (link-hint-preview :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-preview")
+  :elpaca (link-hint-preview :repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-preview")
   :bind
   (:map gr-map
         ("p" . link-hint-preview))
@@ -525,7 +557,7 @@
 ;;;; recentf
 
 (use-package recentf
-  :defer 1
+  :elpaca nil
   :config
   (recentf-mode))
 
@@ -565,26 +597,26 @@
         ;; ("C-c *" . org-toggle-item)
         ;; ("C-x *" . org-toggle-item)
         ("C-c ;" . nil)
-        ("<tab>" . org-cycle)
-        ("C-c C-<tab>" . org-force-cycle-archived)
-        ("<M-S-left>" . nil)
-        ("<M-S-right>" . nil)
-        ("<M-left>" . nil)
-        ("<M-right>" . nil)
-        ("C-<left>" . org-metaleft)
-        ("C-<right>" . org-metaright)
-        ("M-<up>" . backward-paragraph)
-        ("M-<down>" . forward-paragraph)
-        ("C-S-<up>" . org-metaup)
-        ("C-S-<down>" . org-metadown)
-        ("C-S-<left>" . org-shiftmetaleft)
-        ("C-S-<right>" . org-shiftmetaright)
-        ;; ("C-<up>" . move-line-up)
-        ;; ("C-<down>" . move-line-down)
-        ("C-<return>" . org-meta-return)
-        ("M-<return>" . org-insert-heading-respect-content)
-        ("C-c $" . gr/org-mark-done-and-archive-datetree)
-        ("" . org-cycle-agenda-files))
+ ("<tab>" . org-cycle)
+ ("C-c C-<tab>" . org-force-cycle-archived)
+ ("<M-S-left>" . nil)
+ ("<M-S-right>" . nil)
+ ("<M-left>" . nil)
+ ("<M-right>" . nil)
+ ("C-<left>" . org-metaleft)
+ ("C-<right>" . org-metaright)
+ ("M-<up>" . backward-paragraph)
+ ("M-<down>" . forward-paragraph)
+ ("C-S-<up>" . org-metaup)
+ ("C-S-<down>" . org-metadown)
+ ("C-S-<left>" . org-shiftmetaleft)
+ ("C-S-<right>" . org-shiftmetaright)
+ ;; ("C-<up>" . move-line-up)
+ ;; ("C-<down>" . move-line-down)
+ ("C-<return>" . org-meta-return)
+ ("M-<return>" . org-insert-heading-respect-content)
+ ("C-c $" . gr/org-mark-done-and-archive-datetree)
+ ("" . org-cycle-agenda-files))
   :mode (("\\.org$" . org-mode))
   :init
   (with-eval-after-load "org"
@@ -661,21 +693,20 @@
 ;;   (org-mode-hook))
 
 (use-package org-agenda-setup
-  :straight nil
+  :elpaca nil
   :defer 1
   :after org)
 
 (use-package org-capture-setup
-  :straight nil
+  :elpaca nil
   :after org
   :defer 1)
 
 (use-package org-gcal-setup
-  :straight nil
-  :defer 1)
+  :elpaca nil)
 
 (use-package gr-org-extras
-  :straight nil
+  :elpaca nil
   :defer 1)
 
 ;;;; org-superstar
@@ -712,10 +743,10 @@
 ;;;; org-contrib
 
 (use-package org-contrib
-  :straight (org-contrib :files ("lisp/org-contrib.el" "lisp/ox-extra.el")))
+  :elpaca (org-contrib :files ("lisp/org-contrib.el" "lisp/ox-extra.el")))
 
 (use-package ox-extra
-  :straight nil
+  :elpaca nil
   :defer 1
   :config
   ;;(require 'ox-extra)
@@ -786,7 +817,7 @@ parent."
 ;;;; embark
 
 (use-package embark
-  :straight (:files (:defaults "embark-org.el"))
+  :elpaca (:files (:defaults "embark-org.el"))
   :bind
   ("C-," . embark-act)
   ("C->" . embark-act-noquit)
@@ -927,7 +958,7 @@ there, otherwise you are prompted for a message buffer."
   )
 
 (use-package embark-org
-  :straight nil
+  :elpaca nil
   :after embark
   :bind
   (:map embark-org-link-map
@@ -1047,37 +1078,37 @@ there, otherwise you are prompted for a message buffer."
 ;;;; consult-dir
 
 (use-package consult-dir
-  :straight (consult-dir :host github :repo "karthink/consult-dir")
+  :elpaca (consult-dir :host github :repo "karthink/consult-dir")
   :bind ("C-x C-d" . consult-dir)
   (:map vertico-map
         ("C-x C-j" . consult-dir-jump-file))
   :custom
   (consult-dir-sources '(consult-dir--source-bookmark
                          consult-dir--source-recentf
-                         consult-dir--source-straight-repos))
+                         ))
   :config
 
-  (defvar consult-dir--source-straight-repos
-    `(:name "Straight repos"
-            :narrow ?s
-            :hidden t
-            :category file
-            :face consult-file
-            :history file-name-history
-            :items ,#'consult-dir-straight-repos)
-    "Straight repos directory source for `consult-dir--pick'.")
+  ;; (defvar consult-dir--source-straight-repos
+  ;;   `(:name "Straight repos"
+  ;;           :narrow ?s
+  ;;           :hidden t
+  ;;           :category file
+  ;;           :face consult-file
+  ;;           :history file-name-history
+  ;;           :items ,#'consult-dir-straight-repos)
+  ;;   "Straight repos directory source for `consult-dir--pick'.")
 
-  (defun consult-dir-straight-repos ()
-    "Return a list of the straight repos directories."
-    (mapcar
-     (lambda (x)
-       (concat (abbreviate-file-name x) "/"))
-     (directory-files
-      (concat
-       straight-base-dir
-       "straight/repos/")
-      t
-      "^\\([^.]\\|\\.[^.]\\|\\.\\..\\)")))
+  ;; (defun consult-dir-straight-repos ()
+  ;;   "Return a list of the straight repos directories."
+  ;;   (mapcar
+  ;;    (lambda (x)
+  ;;      (concat (abbreviate-file-name x) "/"))
+  ;;    (directory-files
+  ;;     (concat
+  ;;      straight-base-dir
+  ;;      "straight/repos/")
+  ;;     t
+  ;;     "^\\([^.]\\|\\.[^.]\\|\\.\\..\\)")))
   )
 
 (defun recentd-track-opened-file ()
@@ -1100,7 +1131,7 @@ That is, remove a non kept dired from the recent list."
 ;;;; bookmark-view
 
 (use-package bookmark-view
-  :straight (bookmark-view :host github :repo "minad/bookmark-view")
+  :elpaca (bookmark-view :host github :repo "minad/bookmark-view")
   :defer 1)
 
 ;;;; marginalia
@@ -1147,93 +1178,16 @@ parses its input."
 ;;;; savehist
 
 (use-package savehist
-  :defer 1
+  :elpaca nil
   :config
   (savehist-mode 1)
   (setq savehist-additional-variables
         '(citar-history search-ring regexp-search-ring))
   )
 
-;;;; company
-
-(use-package company
-  :disabled
-  :diminish
-  :bind
-  (:map company-active-map
-        ("<return>" . nil)
-        ("RET" . nil)
-        ("<tab>" . 'company-complete-selection)
-        ("TAB" . 'company-complete-selection)
-        ("S-<tab>" . 'company-complete-common)
-        ("S-TAB" . 'company-complete-common)
-        ("C-n" . 'company-select-next-or-abort)
-        ("C-p" . 'company-select-previous-or-abort)
-        ("C-<return>" . 'company-complete-common)
-        ("C-RET" . 'company-complete-common)
-        ("C-e" . 'company-other-backend)
-        ("C-s" . 'company-filter-candidates))
-  :custom
-  (company-require-match nil)
-  (company-minimum-prefix-length 1)
-  (company-selection-wrap-around t)
-  (company-tooltip-limit 12)
-  (company-idle-delay 0.2)
-  (company-echo-delay 0)
-  (company-dabbrev-downcase nil)
-  (company-dabbrev-ignore-case 'keep-prefix)
-  (company-sort-prefer-same-case-prefix t)
-  (company-format-margin-function nil)
-  (company-dabbrev-other-buffers t)
-
-  ;; interfers with Luhmann, zk sort order
-  (company-transformers '(company-sort-by-occurrence))
-  :config
-  (global-company-mode 1)
-  ;; use TAB for completion-at-point
-  (setq tab-always-indent nil)
-  (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
-  (setq company-backends '((company-capf
-                            ;;company-elisp
-                            company-dabbrev-code
-                            ;;company-gtags
-                            ;;company-etags
-                            ;;company-keywords
-                            )
-                           company-bbdb
-                           company-files
-                           company-dabbrev
-                           company-yasnippet))
-  (setq company-files-exclusions '(".git/" ".DS_Store")))
-
-(use-package company-posframe
-  :disabled
-  :diminish
-  :bind
-  (:map company-posframe-active-map
-        ([mouse-1] . company-abort)
-        ([?\e] . company-abort))
-  ;; :config
-  ;; (company-posframe-mode 1)
-  :hook
-  (buffer-face-mode-hook)
-  :custom
-  (company-posframe-show-indicator t)
-  (company-posframe-show-metadata nil)
-  (company-posframe-quickhelp-delay nil)
-  )
-
-;; kills company buffer after completion, to prevent it from showing up when
-;; new window is created, like elfeed or mu4e
-;; (add-hook 'company-after-completion-hook
-;;           (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
-;; (kill-buffer " *company-posframe-buffer*"))))
-
-
 ;;;; corfu / cape
 
 (use-package corfu
-  ;;:disabled
   :init (global-corfu-mode 1)
   :hook
   (emacs-lisp-mode-hook)
@@ -1261,7 +1215,6 @@ parses its input."
 (setq tab-always-indent 'complete)
 
 (use-package cape
-  ;;:disabled
   :init
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
@@ -1287,11 +1240,6 @@ parses its input."
   :config
   (vertico-prescient-mode))
 
-(use-package company-prescient
-  :disabled
-  ;; interferes with Luhmann, zk sort order
-  :config
-  (company-prescient-mode -1))
 
 ;;;; tempel
 
@@ -1420,7 +1368,7 @@ following the key as group 3."
 ;;;; org-cite
 
 (use-package oc
-  :straight nil
+  :elpaca nil
   :defer 1
   :init
   (setq org-cite-csl-styles-dir "~/.csl"
@@ -1434,7 +1382,7 @@ following the key as group 3."
         org-cite-export-processors '((t csl "~/.csl/chicago-fullnote-bibliography-short-title-subsequent.csl"))))
 
 (use-package oc-csl
-  :straight nil
+  :elpaca nil
   :defer t)
 
 ;;;; citeproc / parsebib
@@ -1443,7 +1391,7 @@ following the key as group 3."
   :defer t)
 
 (use-package parsebib
-  :straight (parsebib :host github :repo "joostkremers/parsebib")
+  :elpaca (parsebib :host github :repo "joostkremers/parsebib")
   :defer t)
 
 ;;;; ebib
@@ -1498,7 +1446,7 @@ following the key as group 3."
 
 
 (use-package ebib-extras
-  :straight nil
+  :elpaca nil
   :commands ebib-open
   :bind
   (:map ebib-index-mode-map
@@ -1532,7 +1480,7 @@ following the key as group 3."
     ("q" nil)))
 
 (use-package ebib-zotero
-  :straight nil
+  :elpaca nil
   :commands ebib-auto-import
   :bind
   (:map ebib-index-mode-map
@@ -1540,7 +1488,7 @@ following the key as group 3."
 
 
 (use-package pdf-drop-mode
-  :straight (:host github :repo "rougier/pdf-drop-mode")
+  :elpaca (:host github :repo "rougier/pdf-drop-mode")
   :defer 1
   :config
   (pdf-drop-mode)
@@ -1554,7 +1502,7 @@ following the key as group 3."
 ;;;; biblio / sci-hub
 
 (use-package scihub
-  :straight (:host github :repo "emacs-pe/scihub.el")
+  :elpaca (:host github :repo "emacs-pe/scihub.el")
   :defer 1
   :custom
   (scihub-download-directory (expand-file-name "~/DT3 Inbox")))
@@ -1611,7 +1559,7 @@ following the key as group 3."
   )
 
 (use-package ebib-biblio
-  :straight nil
+  :elpaca nil
   :after (ebib biblio)
   :bind (:map biblio-selection-mode-map
               ("e" . ebib-biblio-selection-import)))
@@ -1620,7 +1568,7 @@ following the key as group 3."
 
 (use-package oc-csl-activate
   :disabled
-  :straight (oc-csl-activate :host github :repo "andras-simonyi/org-cite-csl-activate")
+  :elpaca (oc-csl-activate :host github :repo "andras-simonyi/org-cite-csl-activate")
   :after citeproc
   :config
   ;; not quite ready for primetime
@@ -1632,7 +1580,7 @@ following the key as group 3."
 ;;;; mmd-citation-support
 
 (use-package mmd-citation-support
-  :straight nil
+  :elpaca nil
   :defer 1
   :hook
   (completion-at-point-functions . gr/mmd-citation-completion-at-point))
@@ -1642,7 +1590,7 @@ following the key as group 3."
 ;;;; zk
 
 (use-package zk-setup
-  :straight nil
+  :elpaca nil
   :bind
   ("C-z" . hydra-zk/body))
 
@@ -1650,7 +1598,7 @@ following the key as group 3."
 
 (use-package sdcv-mode
   :disabled
-  :straight (sdcv-mode :host github :repo "gucong/emacs-sdcv")
+  :elpaca (sdcv-mode :host github :repo "gucong/emacs-sdcv")
   :defer 1)
 
 ;;;; autocorrect with abbrev
@@ -1701,21 +1649,6 @@ don't want to fix with `SPC', and you can abort completely with
 (setq-default abbrev-mode t)
 
 
-;;;; yasnippet
-
-(use-package yasnippet
-  :disabled
-  :defer 2
-  :diminish (yas-minor-mode)
-  :config
-  (yas-global-mode 1)
-  (yas-reload-all)
-  :custom
-  (yas-indent-line 'fixed)) ;; prevents error with invoice snippet
-
-;; (use-package yasnippet-multiple-key
-;;   :defer 1
-;;   :straight (yasnippet-multiple-key :host github :repo "ShuguangSun/yasnippet-multiple-key"))
 
 ;;;; org-reveal
 
@@ -1746,8 +1679,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; pdf-tools
 
 (use-package pdf-tools
-  :straight (pdf-tools :host github :repo "vedang/pdf-tools" :fork "localauthor/pdf-tools")
-  ;; :straight (pdf-tools :host github :repo "dalanicolai/pdf-tools"
+  :elpaca (pdf-tools :host github :repo "vedang/pdf-tools" :fork "localauthor/pdf-tools")
+  ;; :elpaca (pdf-tools :host github :repo "dalanicolai/pdf-tools"
   ;;                      :files (:defaults "lisp/*.el"
   ;;                                        "README"
   ;;                                        "vimura-server/*.py"
@@ -1828,7 +1761,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; LaTeX / AUCTeX
 
 (use-package tex
-  :straight auctex
+  :elpaca auctex
   :defer t
   :config
   (setq TeX-auto-save t)
@@ -1910,33 +1843,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
     (browse-url "http://localhost:1313/")))
 
 
-;;;; annotate.el
 
-(use-package annotate
-  ;; :hook (after-save-hook . annotate-save-annotations)
-  :disabled
-  :custom
-  (annotate-summary-ask-query nil)
-  (annotate-annotation-position-policy :by-length)
-  :config
-  (eval-and-compile
-    (defhydra hydra-annotate (:hint nil
-                                    :color blue)
-      "
-     ,*Annotate Mode*   _A_: Mode On/Off
-  : next    _n_: new        _l_: load
-  : prev    _s_: show all   _S_: save all
-           "
-      ("A" annotate-mode)
-      ("a" annotate-annotate)
-      ("n" annotate-annotate)
-      ("s" annotate-show-annotation-summary)
-      ("S" annotate-save-annotations)
-      ("l" annotate-load-annotations)
-      ("" annotate-goto-next-annotation :color red)
-      ("" annotate-goto-previous-annotation :color red)
-      ("q" nil)
-      )))
 
 ;;;; org-wc
 
@@ -1956,32 +1863,31 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;; my-lisp
 
 (use-package elfeed-setup
-  :straight nil
+  :elpaca nil
   :defer t
   :commands gr/elfeed-open-new-window)
 
 (use-package misc-file-handling
-  :straight nil
+  :elpaca nil
   :defer t)
 
 (use-package text-to-speech
-  :straight nil
+  :elpaca nil
   :defer t
   :commands hydra-mac-speak/body)
 
 (use-package devonthink-dir
-  :straight nil
+  :elpaca nil
   :defer 1)
 
 ;; priv-lisp
 
 (use-package dickinson
-  :straight nil
+  :elpaca nil
   :defer 1)
 
 (use-package mu4e-setup
-  :straight nil
-  :defer 1)
+  :elpaca nil)
 
 ;;; Packages
 ;;;; magit
@@ -2011,7 +1917,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; ibuffer
 
 (use-package ibuffer
-  :straight (:type built-in)
+  :elpaca nil
   :bind
   (:map ctl-x-map
         ("C-b" . ibuffer))
@@ -2046,6 +1952,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                                       (not (name . "magit")))))
                   ("Autumn 2022" (or (and (filename . "/Autumn 2022/*")
                                           (not (name . "magit")))))
+                  ("Spring 2023" (or (and (filename . "/Spring 2023/*")
+                                          (not (name . "magit")))))
                   ("Writing" (or (and (filename . "/Writings/*")
                                       (not (name . "magit")))))
                   ("ZK" (or (name . "*ZK")
@@ -2054,6 +1962,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                   ("ORG" (or (and (filename . "/org/")
                                   (name . "\\.org$")
                                   (not (name . "gcal")))
+                             (name . "blueoceans.org")
+                             (name . "localauthor.org")
                              (name . "proofreading.org")
                              (name . "^\\*calfw-calendar")))
                   ("PDF" (or (mode . pdf-view-mode)
@@ -2092,7 +2002,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; dired
 
 (use-package dired
-  :straight (:type built-in)
+  :elpaca nil
   :bind
   ("C-x C-j" . dired-jump)
   ("C-x d" . dired-jump)
@@ -2120,11 +2030,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (setq insert-directory-program "/usr/local/bin/gls" dired-use-ls-dired t)
 
 
-(use-package all-the-icons-dired
-  :disabled
-  :defer t
-  :hook (dired-mode-hook)
-  :diminish)
 
 ;;;; avy
 
@@ -2287,7 +2192,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; web browsing / eww / xwidget webkit /xwwp
 
 (use-package eww
-  :straight (:type built-in)
+  :elpaca nil
   :bind
   (:map eww-mode-map
         ("o" . link-hint-open-link))
@@ -2299,7 +2204,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package prot-eww
   ;;located in ~/.emacs.d/lisp/prot-eww.el
-  :straight nil
+  :elpaca nil
   :defer 1
   :config
   (setq prot-eww-save-history-file
@@ -2386,6 +2291,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (global-set-key (kbd "C-. q") ' gr/open-url-select-browser)
 
 (use-package xwidget
+  :elpaca nil
   :defer t
   :config
   ;; causes problems if this variable is not defined
@@ -2397,9 +2303,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package xwwp-full
   :after xwidget
   :init (require 'xwwp-full)
-  :straight (xwwp-full :host github
-                       :repo "BlueFlo0d/xwwp"
-                       :files (:defaults "*.js" "*.css"))
+  :elpaca (xwwp-full :host github
+                     :repo "BlueFlo0d/xwwp"
+                     :files (:defaults "*.js" "*.css"))
   :custom
   (xwwp-follow-link-completion-system 'default)
   :bind (:map xwidget-webkit-mode-map
@@ -2461,7 +2367,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :defer 1)
 
 (use-package ace-window
-  ;; :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
+  ;; :elpaca (ace-window :host github :repo "fbuether/ace-window" :fork t
   ;;                       :files (:defaults "ace-window-posframe.el"))
   :bind
   ("C-x o" . ace-window)
@@ -2558,6 +2464,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; bookmark
 
 (use-package bookmark
+  :elpaca nil
   :defer t
   :init
   (setq bookmark-bmenu-toggle-filenames nil
@@ -2574,7 +2481,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   )
 
 (use-package google-translate-smooth-ui
-  :straight nil
+  :elpaca nil
   :defer t
   :config
   (setq google-translate-backend-method 'curl)
@@ -2594,7 +2501,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; outshine-mode
 
 (use-package outline-mode
-  :straight nil
+  :elpaca nil
   :diminish
   :bind
   ("C-S-<right>" . outline-demote)
@@ -2623,6 +2530,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; whitespace-mode
 
 (use-package whitespace
+  :elpaca nil
   :defer 1
   ;; :hook
   ;; (emacs-lisp-mode-hook)
@@ -2652,8 +2560,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; melpazoid
 
 (use-package melpazoid
-  :straight (melpazoid :host github :repo "riscy/melpazoid"
-                       :files ("melpazoid/melpazoid.el"))
+  :elpaca (melpazoid :host github :repo "riscy/melpazoid"
+                     :files ("melpazoid/melpazoid.el"))
   :defer 1)
 
 (defun gr/elisp-check-buffer ()
@@ -2755,18 +2663,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
      :join-separator  ", "))
   )
 
-;;;; notmuch
-
-(use-package notmuch
-  :disabled
-  :defer t
-  :custom
-  (notmuch-search-oldest-first . nil))
-
-(defun gr/notmuch-refresh ()
-  (interactive)
-  (async-shell-command "mbsync -a && notmuch new"))
-
 ;;;; ledger-mode
 
 (use-package ledger-mode
@@ -2789,6 +2685,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 
 ;;;; disabled
+
 ;;;;; ctrlf
 
 (use-package ctrlf
@@ -2803,7 +2700,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package nxml-mode
   :disabled
-  :straight nil
+  :elpaca nil
   :bind
   (:map nxml-mode-map
         ("C-<return>" . completion-at-point))
@@ -2816,7 +2713,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package explain-pause-mode
   :disabled
   :defer t
-  :straight (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
+  :elpaca (explain-pause-mode :type git :host github :repo "lastquestion/explain-pause-mode")
   :diminish
   :config
   (explain-pause-mode))
@@ -2857,7 +2754,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package python-mode
   :disabled
   :defer 1
-  :straight nil
+  :elpaca nil
   :config
   (setq python-shell-interpreter (format "%s/.pyenv/shims/python" home-dir))
   (org-babel-do-load-languages
@@ -2895,6 +2792,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;;; re-builder
 
 (use-package re-builder
+  :elpaca nil
   :defer 1
   :init
   (setq reb-re-syntax 'string))
@@ -2910,7 +2808,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package org-mind-map
   :disabled
-  :straight (:host github :repo "the-ted/org-mind-map")
+  :elpaca (:host github :repo "the-ted/org-mind-map")
   :defer t
   :config
   (setq org-mind-map-engine "dot")
@@ -2932,6 +2830,132 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :disabled
   :defer t)
 
+;;;;; company
+
+(use-package company
+  :disabled
+  :diminish
+  :bind
+  (:map company-active-map
+        ("<return>" . nil)
+        ("RET" . nil)
+        ("<tab>" . 'company-complete-selection)
+        ("TAB" . 'company-complete-selection)
+        ("S-<tab>" . 'company-complete-common)
+        ("S-TAB" . 'company-complete-common)
+        ("C-n" . 'company-select-next-or-abort)
+        ("C-p" . 'company-select-previous-or-abort)
+        ("C-<return>" . 'company-complete-common)
+        ("C-RET" . 'company-complete-common)
+        ("C-e" . 'company-other-backend)
+        ("C-s" . 'company-filter-candidates))
+  :custom
+  (company-require-match nil)
+  (company-minimum-prefix-length 1)
+  (company-selection-wrap-around t)
+  (company-tooltip-limit 12)
+  (company-idle-delay 0.2)
+  (company-echo-delay 0)
+  (company-dabbrev-downcase nil)
+  (company-dabbrev-ignore-case 'keep-prefix)
+  (company-sort-prefer-same-case-prefix t)
+  (company-format-margin-function nil)
+  (company-dabbrev-other-buffers t)
+
+  ;; interfers with Luhmann, zk sort order
+  (company-transformers '(company-sort-by-occurrence))
+  :config
+  (global-company-mode 1)
+  ;; use TAB for completion-at-point
+  (setq tab-always-indent nil)
+  (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
+  (setq company-backends '((company-capf
+                            ;;company-elisp
+                            company-dabbrev-code
+                            ;;company-gtags
+                            ;;company-etags
+                            ;;company-keywords
+                            )
+                           company-bbdb
+                           company-files
+                           company-dabbrev
+                           company-yasnippet))
+  (setq company-files-exclusions '(".git/" ".DS_Store")))
+
+(use-package company-posframe
+  :disabled
+  :diminish
+  :bind
+  (:map company-posframe-active-map
+        ([mouse-1] . company-abort)
+        ([?\e] . company-abort))
+  ;; :config
+  ;; (company-posframe-mode 1)
+  :hook
+  (buffer-face-mode-hook)
+  :custom
+  (company-posframe-show-indicator t)
+  (company-posframe-show-metadata nil)
+  (company-posframe-quickhelp-delay nil)
+  )
+
+;; kills company buffer after completion, to prevent it from showing up when
+;; new window is created, like elfeed or mu4e
+;; (add-hook 'company-after-completion-hook
+;;           (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
+;; (kill-buffer " *company-posframe-buffer*"))))
+
+
+(use-package company-prescient
+  :disabled
+  ;; interferes with Luhmann, zk sort order
+  :config
+  (company-prescient-mode -1))
+
+
+;;;;; annotate.el
+
+(use-package annotate
+  ;; :hook (after-save-hook . annotate-save-annotations)
+  :disabled
+  :custom
+  (annotate-summary-ask-query nil)
+  (annotate-annotation-position-policy :by-length)
+  :config
+  (eval-and-compile
+    (defhydra hydra-annotate (:hint nil
+                                    :color blue)
+      "
+     ,*Annotate Mode*   _A_: Mode On/Off
+  : next    _n_: new        _l_: load
+  : prev    _s_: show all   _S_: save all
+           "
+      ("A" annotate-mode)
+      ("a" annotate-annotate)
+      ("n" annotate-annotate)
+      ("s" annotate-show-annotation-summary)
+      ("S" annotate-save-annotations)
+      ("l" annotate-load-annotations)
+      ("" annotate-goto-next-annotation :color red)
+      ("" annotate-goto-previous-annotation :color red)
+      ("q" nil)
+      )))
+
+;;;;; yasnippet
+
+(use-package yasnippet
+  :disabled
+  :defer 2
+  :diminish (yas-minor-mode)
+  :config
+  (yas-global-mode 1)
+  (yas-reload-all)
+  :custom
+  (yas-indent-line 'fixed)) ;; prevents error with invoice snippet
+
+;; (use-package yasnippet-multiple-key
+;;   :defer 1
+;;   :elpaca (yasnippet-multiple-key :host github :repo "ShuguangSun/yasnippet-multiple-key"))
 
 
 ;;; variable resets

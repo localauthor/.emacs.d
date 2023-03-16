@@ -1,0 +1,1 @@
+/Users/grantrosson/.dotfiles/.emacs.d/elpaca/repos/string-inflection/string-inflection.el

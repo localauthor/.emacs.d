@@ -1,0 +1,1 @@
+/Users/grantrosson/.dotfiles/.emacs.d/elpaca/repos/org-wc/org-wc.el
