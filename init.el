@@ -279,8 +279,8 @@
  ("s-<right>" . move-end-of-line)
  ("s-<up>" . beginning-of-buffer)
  ("s-<down>" . end-of-buffer))
- ;; ("C-<up>" . move-line-up)
- ;; ("C-<down>" . move-line-down))
+;; ("C-<up>" . move-line-up)
+;; ("C-<down>" . move-line-down))
 
 
 ;; Bold, italics, underline functions
@@ -597,26 +597,26 @@
         ;; ("C-c *" . org-toggle-item)
         ;; ("C-x *" . org-toggle-item)
         ("C-c ;" . nil)
- ("<tab>" . org-cycle)
- ("C-c C-<tab>" . org-force-cycle-archived)
- ("<M-S-left>" . nil)
- ("<M-S-right>" . nil)
- ("<M-left>" . nil)
- ("<M-right>" . nil)
- ("C-<left>" . org-metaleft)
- ("C-<right>" . org-metaright)
- ("M-<up>" . backward-paragraph)
- ("M-<down>" . forward-paragraph)
- ("C-S-<up>" . org-metaup)
- ("C-S-<down>" . org-metadown)
- ("C-S-<left>" . org-shiftmetaleft)
- ("C-S-<right>" . org-shiftmetaright)
- ;; ("C-<up>" . move-line-up)
- ;; ("C-<down>" . move-line-down)
- ("C-<return>" . org-meta-return)
- ("M-<return>" . org-insert-heading-respect-content)
- ("C-c $" . gr/org-mark-done-and-archive-datetree)
- ("" . org-cycle-agenda-files))
+        ("<tab>" . org-cycle)
+        ("C-c C-<tab>" . org-force-cycle-archived)
+        ("<M-S-left>" . nil)
+        ("<M-S-right>" . nil)
+        ("<M-left>" . nil)
+        ("<M-right>" . nil)
+        ("C-<left>" . org-metaleft)
+        ("C-<right>" . org-metaright)
+        ("M-<up>" . backward-paragraph)
+        ("M-<down>" . forward-paragraph)
+        ("C-S-<up>" . org-metaup)
+        ("C-S-<down>" . org-metadown)
+        ("C-S-<left>" . org-shiftmetaleft)
+        ("C-S-<right>" . org-shiftmetaright)
+        ;; ("C-<up>" . move-line-up)
+        ;; ("C-<down>" . move-line-down)
+        ("C-<return>" . org-meta-return)
+        ("M-<return>" . org-insert-heading-respect-content)
+        ("C-c $" . gr/org-mark-done-and-archive-datetree)
+        ("" . org-cycle-agenda-files))
   :mode (("\\.org$" . org-mode))
   :init
   (with-eval-after-load "org"
@@ -1156,24 +1156,24 @@ That is, remove a non kept dired from the recent list."
         completion-category-overrides
         '((file (styles . (partial-completion initials)))))
   (setq orderless-style-dispatchers
-          '(orderless-literal-dispatcher
-            orderless-initialism-dispatcher))
+        '(orderless-literal-dispatcher
+          orderless-initialism-dispatcher))
   (setq orderless-component-separator "[ +]")
   :config
   (defun orderless-literal-dispatcher (pattern _index _total)
-  "Literal style dispatcher using the equals sign as a suffix.
+    "Literal style dispatcher using the equals sign as a suffix.
 It matches PATTERN _INDEX and _TOTAL according to how Orderless
 parses its input."
-  (when (string-suffix-p "=" pattern)
-    `(orderless-literal . ,(substring pattern 0 -1))))
+    (when (string-suffix-p "=" pattern)
+      `(orderless-literal . ,(substring pattern 0 -1))))
 
-(defun orderless-initialism-dispatcher (pattern _index _total)
-  "Leading initialism dispatcher using the comma suffix.
+  (defun orderless-initialism-dispatcher (pattern _index _total)
+    "Leading initialism dispatcher using the comma suffix.
 It matches PATTERN _INDEX and _TOTAL according to how Orderless
 parses its input."
-  (when (string-suffix-p "~" pattern)
-    `(orderless-initialism . ,(substring pattern 0 -1))))
-)
+    (when (string-suffix-p "~" pattern)
+      `(orderless-initialism . ,(substring pattern 0 -1))))
+  )
 
 ;;;; savehist
 
@@ -1608,7 +1608,7 @@ following the key as group 3."
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
 
 (define-key ctl-x-map "\C-i"
-  #'endless/ispell-word-then-abbrev)
+            #'endless/ispell-word-then-abbrev)
 
 (defun endless/simple-get-word ()
   (car-safe (save-excursion (ispell-get-word nil))))
@@ -1956,15 +1956,13 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                                           (not (name . "magit")))))
                   ("Writing" (or (and (filename . "/Writings/*")
                                       (not (name . "magit")))))
+                  ("Blue Oceans" (or (and (filename . "/Blue Oceans PR/*")
+                                          (not (name . "magit")))))
                   ("ZK" (or (name . "*ZK")
                             (and (filename . "/Zettels/")
                                  (not (name . "magit")))))
-                  ("ORG" (or (and (filename . "/org/")
-                                  (name . "\\.org$")
+                  ("ORG" (or (and (filename . "\\.org$")
                                   (not (name . "gcal")))
-                             (name . "blueoceans.org")
-                             (name . "localauthor.org")
-                             (name . "proofreading.org")
                              (name . "^\\*calfw-calendar")))
                   ("PDF" (or (mode . pdf-view-mode)
                              (mode . pdf-occur-buffer-mode)
@@ -2263,13 +2261,13 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (defun gr/switch-browser (choice)
   (interactive (list (completing-read "Choose: " '(safari eww xwidget) nil t)))
-   (let ((completion-ignore-case  t))
-     (setq browse-url-browser-function
-           (pcase choice
-             ("safari" 'browse-url-default-browser)
-             ("eww" 'eww)
-             ("xwidget" 'xwwp-browse-url-other-window)))
-     (message (format "browse-url set to `%s'" choice))))
+  (let ((completion-ignore-case  t))
+    (setq browse-url-browser-function
+          (pcase choice
+            ("safari" 'browse-url-default-browser)
+            ("eww" 'eww)
+            ("xwidget" 'xwwp-browse-url-other-window)))
+    (message (format "browse-url set to `%s'" choice))))
 
 (setq browse-url-generic-program "/usr/bin/open")
 (setq browse-url-browser-function #'browse-url-default-browser)
@@ -2569,9 +2567,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (if (or flycheck-mode
           flymake-mode)
       (progn
-          (flycheck-mode -1)
-          (flymake-mode -1)
-          (message "Elisp checks off"))
+        (flycheck-mode -1)
+        (flymake-mode -1)
+        (message "Elisp checks off"))
     (progn
       (flycheck-mode)
       (flycheck-list-errors)
