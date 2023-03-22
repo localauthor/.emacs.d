@@ -1587,6 +1587,36 @@ following the key as group 3."
 
 ;;; Writing
 
+;;;; visual-fill-column
+
+(use-package visual-fill-column
+  :disabled ;; incompatible with olivetti
+  ;;nonly used in zk, as dir-local
+  ;;because it doesn't work with git-gutter
+  :hook
+  (org-mode-hook)
+  :config
+  (setq-default visual-fill-column-center-text t)
+  :custom
+  (visual-fill-column-width 90))
+
+;;;; olivetti mode
+
+(use-package olivetti
+  :diminish
+  :hook
+  (text-mode-hook)
+  (prog-mode-hook)
+  ;; (olivetti-mode-on-hook . (lambda () (visual-fill-column-mode -1)))
+  ;; (olivetti-mode-off-hook . (lambda () (visual-fill-column-mode)))
+  :config
+  (setq-default olivetti-body-width 0.7)
+  (setq olivetti-minimum-body-width 72)
+  (setq olivetti-recall-visual-line-mode-entry-state t)
+  (set-fringe-mode 2))
+
+
+
 ;;;; zk
 
 (use-package zk-setup
@@ -2419,8 +2449,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
          ("C-M-\\" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
-        '("^dailynotes.org"
-          "^magit\\:"
+        '("^magit\\:"
           "Output"
           "^\\*Messages\\*"
           "^\\*Warnings\\*"
@@ -2544,16 +2573,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package package-lint
   :defer t)
-
-;;;; visual-fill-column
-
-(use-package visual-fill-column
-  ;;only used in zk, as dir-local
-  ;;because it doesn't work with git-gutter
-  :hook
-  (org-mode-hook)
-  :custom
-  (visual-fill-column-width 90))
 
 ;;;; melpazoid
 
@@ -2681,6 +2700,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (mastodon-instance-url "https://zirk.us")
   (mastodon-active-user "grantrosson"))
 
+
+;;;; gptel
+
+;; (use-package gptel
+;;   :custom (setq gptel-api-key gr/gptel-api-key))
 
 ;;;; disabled
 
