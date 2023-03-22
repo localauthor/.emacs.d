@@ -1,1 +1,0 @@
-/Users/grantrosson/.dotfiles/.emacs.d/elpaca/repos/ox-hugo/org-hugo-auto-export-mode.el

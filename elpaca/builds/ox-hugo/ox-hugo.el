@@ -1,1 +1,0 @@
-/Users/grantrosson/.dotfiles/.emacs.d/elpaca/repos/ox-hugo/ox-hugo.el

@@ -1,1 +1,0 @@
-/Users/grantrosson/.dotfiles/.emacs.d/elpaca/repos/bookmark-view/bookmark-view.el

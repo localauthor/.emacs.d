@@ -1,1 +1,0 @@
-/Users/grantrosson/.dotfiles/.emacs.d/elpaca/repos/link-hint-preview/link-hint-preview.el

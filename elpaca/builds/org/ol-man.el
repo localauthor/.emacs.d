@@ -1,1 +1,0 @@
-/Users/grantrosson/.dotfiles/.emacs.d/elpaca/repos/org/lisp/ol-man.el
