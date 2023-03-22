@@ -355,8 +355,7 @@ direct children of this heading."
     (if (looking-at "^[ \t]*$")
         (outline-next-visible-heading 1))))
 
-;; (use-package dash
-;;   :elpaca nil)
+(use-package dash :defer t)
 
 (defadvice gr/org-archive-subtree-hierarchy (around fix-hierarchy activate)
   (let* ((fix-archive-p (and (not current-prefix-arg)

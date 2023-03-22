@@ -4,7 +4,7 @@
 
 (use-package zk
   :load-path "my-lisp/zk"
-  :elpaca nil
+  :straight nil
   :defer 1
   :after consult
   :mode (("\\.md$" . org-mode))
@@ -61,7 +61,7 @@ Optional ARG."
 (use-package zk-index
   :load-path "my-lisp/zk"
   :after zk
-  :elpaca nil
+  :straight nil
   :bind
   (:map zk-index-mode-map
         ("o" . zk-index-aw-select)
@@ -82,7 +82,7 @@ Optional ARG."
 
 (use-package zk-desktop
   :load-path "my-lisp/zk"
-  :elpaca nil
+  :straight nil
   :commands zk-desktop
   :bind
   (:map zk-desktop-button-map
@@ -107,7 +107,7 @@ Optional ARG."
 (use-package zk-luhmann
   :load-path "my-lisp/zk-luhmann"
   :after zk-index
-  :elpaca nil
+  :straight nil
   :bind (:map zk-index-mode-map
               ("l" . zk-luhmann-index-top)
               ("C-f" . zk-luhmann-index-forward)
@@ -123,7 +123,7 @@ Optional ARG."
 ;;;; zk-extras
 
 (use-package zk-consult
-  :elpaca nil
+  :straight nil
   :load-path "my-lisp/zk"
   :after zk
   :defer 1
@@ -131,7 +131,7 @@ Optional ARG."
   (zk-select-file-function 'zk-consult-select-file))
 
 (use-package zk-citar
-  :elpaca nil
+  :straight nil
   :load-path "my-lisp/zk"
   :after zk
   :defer 1
@@ -141,7 +141,7 @@ Optional ARG."
   (zk-citar-citekey-regexp "[a-z]+[0-9]\\{4\\}[a-z]?"))
 
 (use-package zk-link-hint
-  :elpaca nil
+  :straight nil
   :load-path "my-lisp/zk"
   :after zk
   :defer 1
@@ -164,7 +164,7 @@ Optional ARG."
 ;;;; zk hydras
 
 (use-package zk-extras
-  :elpaca nil
+  :straight nil
   :load-path "my-lisp/zk"
   :after zk zk-luhmann
   :bind (:map zk-index-mode-map

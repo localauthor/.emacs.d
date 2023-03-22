@@ -76,7 +76,7 @@ _a_: AmLit  _j_: Journals  _l_: lit  _g_: geog  _k_: knowledge  _s_: starred"
     (delete-windows-on "*elfeed-entry*")))
 
 (use-package elfeed-db
-  :elpaca nil)
+  :straight nil)
 
 (use-package elfeed-goodies
   :after elfeed
