@@ -71,10 +71,12 @@ Optional ARG."
         ("?" . hydra-zk-index/body))
   (:map zk-index-view-mode-map
         ("RET" . zk-index-view-mode))
+  :hook
+  (zk-index-mode-hook . (lambda () (setq-local line-spacing 1)))
   :config
   (zk-index-setup-embark)
   :custom
-  (zk-index-prefix nil))
+  (zk-index-prefix " "))
 
 ;;;; zk-desktop
 
