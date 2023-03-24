@@ -23,6 +23,7 @@
   (zk-directory "~/Dropbox/ZK/Zettels")
   (zk-file-extension "md")
   (zk-tag-regexp "\\s#[a-zA-Z0-9]\\+")
+  (zk-new-note-header-function #'gr/zk-new-note-header)
   (zk-link-and-title 'ask)
   (zk-new-note-link-insert 'ask)
   (zk-link-format "[[%s]]")
@@ -45,14 +46,27 @@
    zk-find-file zk-find-file-by-full-text-search zk-network zk-backlinks zk-links-in-note
    :preview-key '("C-{")))
 
-  (defun zk-org-try-to-follow-link (fn &optional arg)
-    "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.
+(defun gr/zk-new-note-header (title new-id &optional orig-id)
+  "Insert header in new notes with args TITLE and NEW-ID.
+Optionally use ORIG-ID for backlink."
+  (insert (format "#+TITLE: %s %s\n#+TAGS: \n" new-id title))
+  (when (ignore-errors (zk--parse-id 'title orig-id)) ;; check for file
+    (progn
+      (insert "===\n<- ")
+      (zk--insert-link-and-title orig-id (zk--parse-id 'title orig-id))
+      (newline)))
+  (insert "===\n\n"))
+
+
+
+(defun zk-org-try-to-follow-link (fn &optional arg)
+  "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.
 Optional ARG."
-    (let ((org-link-search-must-match-exact-headline t))
-      (condition-case nil
-	  (apply fn arg)
-        (error (unless (ignore-errors (zk-follow-link-at-point))
-                 (message "Invalid org-link type"))))))
+  (let ((org-link-search-must-match-exact-headline t))
+    (condition-case nil
+	(apply fn arg)
+      (error (unless (ignore-errors (zk-follow-link-at-point))
+               (message "Invalid org-link type"))))))
 
 (advice-add 'org-open-at-point :around #'zk-org-try-to-follow-link)
 
