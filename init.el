@@ -3,7 +3,7 @@
 ;;; Straight setup
 
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
-(setq straight-repository-branch "rr-fix-renamed-variable")
+(setq straight-repository-branch "develop")
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -2809,8 +2809,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; gptel
 
-;; (use-package gptel
-;;   :custom (setq gptel-api-key gr/gptel-api-key))
+(use-package gptel
+  :defer t)
 
 ;;;; disabled
 ;;;;; ctrlf
