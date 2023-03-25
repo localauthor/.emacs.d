@@ -92,6 +92,7 @@
   :init
   (setq exec-path-from-shell-arguments '("-l"))
   ;; (setq exec-path-from-shell-warn-duration-millis 999)
+  (exec-path-from-shell-copy-env "PKG_CONFIG_PATH")
   :config
   (exec-path-from-shell-initialize))
 
