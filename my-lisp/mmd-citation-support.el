@@ -121,6 +121,8 @@
       (setq gr/last-mmd-citation mmd)
       (kill-new mmd))))
 
+(defvar-local gr/mmd-citation-use nil)
+
 ;;;###autoload
 (defun gr/citar-insert-citation ()
   "Insert cite-key, format depending on context.

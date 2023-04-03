@@ -22,6 +22,31 @@ Opens search results in an `xref' buffer."
 
 ;; (setq xref-show-xrefs-function 'consult-xref)
 
+;;; clickable tags
+
+(defun zk-tag-font-lock (limit)
+  "Activate font-lock on zk-tags up to LIMIT."
+  (when (re-search-forward "[[:space:]]\\(#[a-zA-Z0-9]+\\)" limit t)
+    (let ((beg (match-beginning 1)) ;; -1 to match the #
+          (end (match-end 1))
+          (tag (match-string 1))
+          (map (make-sparse-keymap)))
+      (define-key map [mouse-1] `(lambda () (interactive) (zk-tag-search ,tag)))
+      (define-key map (kbd "RET") `(lambda () (interactive) (zk-tag-search ,tag)))
+      (funcall 'zk-tag-fontify tag beg end map)
+      t)))
+
+(defun zk-tag-fontify (tag beg end map)
+  (add-text-properties beg end
+                       `(face link
+                              mouse-face highlight
+                              help-echo "Click to search tag"
+                              keymap ,map)))
+
+(font-lock-add-keywords 'org-mode
+                        '((zk-tag-font-lock)))
+
+
 ;;; General Utilities
 
 (defun link-hint-other-tab ()

@@ -30,7 +30,7 @@
   (zk-link-and-title-format "%t [[%i]]")
   (zk-completion-at-point-format "%t [[%i]]")
   (zk-search-function #'zk-xref) ;; #'zk-consult-grep) ;; #'zk-grep ;;
-  (zk-tag-search-function #'zk-xref) ;; #'zk-consult-grep-tag-search) ;; #'zk-grep
+  (zk-tag-search-function #'zk-consult-grep-tag-search) ;; #'zk-grep #'zk-xref
   (zk-current-notes-function nil)
   (zk-consult-preview-functions
    '(zk-current-notes
@@ -49,15 +49,13 @@
 (defun gr/zk-new-note-header (title new-id &optional orig-id)
   "Insert header in new notes with args TITLE and NEW-ID.
 Optionally use ORIG-ID for backlink."
-  (insert (format "#+TITLE: %s %s\n#+TAGS: \n" new-id title))
+  (insert (format "#+TITLE: %s %s\n===\n#+tags: \n" new-id title))
   (when (ignore-errors (zk--parse-id 'title orig-id)) ;; check for file
     (progn
       (insert "===\n<- ")
       (zk--insert-link-and-title orig-id (zk--parse-id 'title orig-id))
       (newline)))
-  (insert "===\n\n"))
-
-
+  (insert "===\n\n\n"))
 
 (defun zk-org-try-to-follow-link (fn &optional arg)
   "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.
@@ -114,7 +112,7 @@ Optional ARG."
   (zk-desktop-add-pos 'at-point)
   (zk-desktop-directory "~/Dropbox/ZK/ZK-Desktops")
   :custom-face
-  (zk-desktop-button ((t (:background "gray95" :height .9)))))
+  (zk-desktop-button ((t (:background "gray85" :height .9)))))
 
 ;;;; zk-luhmann
 
@@ -187,13 +185,14 @@ Optional ARG."
 (eval-and-compile
   (defhydra hydra-zk (:hint nil
                             :pre (require 'zk-extras)
-                            :color blue)
+                            :color blue
+                            :idle 1.0)
     "
     _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: to desktop
     _h s_: Strct Nts  _c_: Insert Cite   _r_: Rename Note    _z_: zk grep
     _h i_: Index      _f_: Find File     _o_: Open Link      _e_: ebib-open
-                    _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz
-    [Luhmann: %(zk-luhmann-notes-count) | Lit: %(zk-lit-notes-count)]"
+                    _b_: Backlinks     _C_: Current Notes  _B_: Biblio.biz"
+    ;;  [Luhmann: %(zk-luhmann-notes-count) | Lit: %(zk-lit-notes-count)]"
     ("h h" (zk-find-file-by-id "201801190001"))
     ("h i" (zk-find-file-by-id "201801180001"))
     ("h s" (zk-find-file-by-id "201801180002"))
