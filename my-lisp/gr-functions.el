@@ -24,17 +24,17 @@ Symbols and Diacritics
 (defun gr/select-theme ()
   (interactive)
   (let ((theme (intern (completing-read "Select: " '(gr-light ef-bio)))))
-    (mapc #'disable-theme custom-known-themes)
+    (mapc #'disable-theme custom-enabled-themes)
     (load-theme theme :no-confirm)))
 
 (defun gr/toggle-theme ()
   (interactive)
   (if (equal custom-enabled-themes '(gr-light))
       (progn
-        (mapc #'disable-theme '(gr-light))
+        (mapc #'disable-theme custom-enabled-themes)
         (load-theme 'ef-bio :no-confirm))
     (progn
-      (mapc #'disable-theme '(ef-bio))
+      (mapc #'disable-theme custom-enabled-themes)
       (load-theme 'gr-light :no-confirm))))
 
 ;;;###autoload

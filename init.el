@@ -49,6 +49,9 @@
 
 (setq mu4e-mu-binary "/usr/local/bin/mu")
 
+(setq ignored-local-variable-values
+      '((gr/mmd-citation-use . t)))
+
 (setq safe-local-variable-values
       '((eval . (ignore-errors (when (derived-mode-p 'dired-mode)
                                  (setq-local truncate-lines t)
@@ -63,6 +66,8 @@
         (checkdoc-package-keywords-flag)
         (dired-omit-size-limit)
         (org-confirm-babel-evaluate)
+        (zk-link-and-title-format . "+%t [[%i]]+")
+        (gr/mmd-citation-use)
         (eval progn
               (pp-buffer)
               (indent-buffer))
@@ -72,7 +77,6 @@
                 (face-remap-add-relative 'default :family "Monospace" :height 130)))
         (eval face-remap-add-relative 'default :family "Monospace" :height 130)
         (eval remove-from-invisibility-spec '(org-link))))
-
 
 ;;; Basics
 ;;;; Emacs
@@ -92,8 +96,9 @@
   :init
   (setq exec-path-from-shell-arguments '("-l"))
   ;; (setq exec-path-from-shell-warn-duration-millis 999)
-  (exec-path-from-shell-copy-env "PKG_CONFIG_PATH")
   :config
+  (exec-path-from-shell-copy-env "PKG_CONFIG_PATH")
+  (exec-path-from-shell-copy-env "MANPATH")
   (exec-path-from-shell-initialize))
 
 (use-package emacs
@@ -183,7 +188,8 @@
                   ("\"FortyFiveDown\"" "↘")
                   ("\"SingleDown\"" "↓")
                   ("\"DoubleDown\"" "⇊"))))
-    (setq gr/blood-sugar (concat " BG:" bg-final arrow " "))))
+    (setq gr/blood-sugar (concat " BG:" bg-final arrow " "))
+    (kill-buffer "*Calculator*")))
 
 (add-to-list 'global-mode-string '(:eval gr/blood-sugar) t)
 
@@ -438,7 +444,8 @@
            ("W" . gr/word-count-subtree)
 
            ("D" . gr/lookup-word-at-point)
-           ("d" . dictionary-search)
+           ;; ("d" . dictionary-search)
+           ("d" . sdcv-search)
 
            ("L" . toggle-truncate-lines)
 
@@ -466,8 +473,8 @@
 
 (use-package define-repeat-map
   :straight (define-repeat-map
-             :host nil
-             :repo "https://tildegit.org/acdw/define-repeat-map.el")
+                :host nil
+                :repo "https://tildegit.org/acdw/define-repeat-map.el")
   :defer 1
   :config
 
@@ -481,6 +488,13 @@
 
   (setq repeat-echo-function #'ignore)
   (repeat-mode))
+
+;;;; re-builder
+
+(use-package re-builder
+  :defer 1
+  :init
+  (setq reb-re-syntax 'string))
 
 ;;;; init-lock
 
@@ -637,11 +651,8 @@
      ("/" italic)
      ("_" underline)
      ("=" org-verbatim verbatim)
-     ("+"
-      (:strike-through t))
-     ("~"
-      (:overline t)
-      verbatim)))
+     ("+" zk-desktop-button)
+     ("~" verbatim)))
   (org-fold-core-style 'text-properties) ; text-properties don't unfold with ctrlf, only isearch; ctrlf issue #118
   (org-startup-with-latex-preview nil)
   (org-use-fast-todo-selection 'expert)
@@ -796,7 +807,7 @@ parent."
   ("C-h b" . embark-bindings)
   (:map embark-identifier-map
         ("$" . ispell-region)
-        ("d" . dictionary-search)
+        ("d" . sdcv-search)
         ("z" . zk-search))
   (:map embark-symbol-map
         ("h" . helpful-symbol)
@@ -812,6 +823,7 @@ parent."
   (:map embark-file-map
         ("A" . embark-attach-file)
         ;; ("F" . gr/find-file-recursively) doesn't work
+        ("n" . gr/embark-reveal-in-osx-finder)
         ("p" . gr/embark-save-absolute-path)
         ("P" . gr/embark-insert-absolute-path))
   (:map embark-region-map
@@ -913,6 +925,7 @@ there, otherwise you are prompted for a message buffer."
     "x" #'consult-file-externally         ; useful for PDFs
     "c" #'copy-file
     "k" #'kill-buffer
+    "n" #'gr/embark-reveal-in-osx-finder
     "z" #'bury-buffer
     "s" #'embark-eshell
     "|" #'embark-shell-command-on-buffer
@@ -1340,11 +1353,6 @@ parses its input."
 
 (use-package citar
   :after (oc misc-file-handling devonthink-dir)
-  ;; :commands (citar-select-ref
-  ;;            citar-select-refs
-  ;;            gr/citar-insert-citation
-  ;;            citar-format-reference
-  ;;            citar--ensure-entries)
   :bind
   (:map org-mode-map
         ("C-c \\" . gr/citar-insert-citation))
@@ -1372,7 +1380,6 @@ parses its input."
    "chicago-fullnote-bibliography-short-title-subsequent.csl")
   (citar-display-transform-functions nil)
   (citar-select-multiple nil)
-  (citar-symbols '((file "F" . " ")(note "N" . " ")))
   (citar-open-resources '(:files :notes :create-notes))
 
   :config
@@ -1500,7 +1507,7 @@ following the key as group 3."
 
 (use-package ebib-extras
   :straight nil
-  :commands ebib-open
+  :commands (ebib-open ebib-isbn-web-search)
   :bind
   (:map ebib-index-mode-map
         ("o" . ebib-citar-open-resource)
@@ -1538,7 +1545,6 @@ following the key as group 3."
   :bind
   (:map ebib-index-mode-map
         ("I" . ebib-zotero-import-identifier)))
-
 
 (use-package pdf-drop-mode
   :straight (:host github :repo "rougier/pdf-drop-mode")
@@ -1660,14 +1666,14 @@ following the key as group 3."
   :hook
   (text-mode-hook)
   (prog-mode-hook)
+  (nov-mode-hook)
   ;; (olivetti-mode-on-hook . (lambda () (visual-fill-column-mode -1)))
   ;; (olivetti-mode-off-hook . (lambda () (visual-fill-column-mode)))
   :config
-  (setq-default olivetti-body-width 0.7)
+  (setq-default olivetti-body-width 0.75)
   (setq olivetti-minimum-body-width 72)
   (setq olivetti-recall-visual-line-mode-entry-state t)
-  (set-fringe-mode 2))
-
+  (set-fringe-mode 8))
 
 
 ;;;; zk
@@ -1677,12 +1683,22 @@ following the key as group 3."
   :bind
   ("C-z" . hydra-zk/body))
 
-;;;; sdcv-mode
+;;;; sdcv-mode - stardict dictionary
 
 (use-package sdcv-mode
-  :disabled
   :straight (sdcv-mode :host github :repo "gucong/emacs-sdcv")
   :defer 1)
+
+;; note: dictionaries are in ~/.stardic/dic
+
+
+;;;; jinx
+
+(use-package jinx
+  :straight (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
+  :defer 1
+  :bind (([remap ispell-word] . #'jinx-correct)))
+
 
 ;;;; autocorrect with abbrev
 
@@ -1744,10 +1760,6 @@ don't want to fix with `SPC', and you can abort completely with
   :custom
   (yas-indent-line 'fixed)) ;; prevents error with invoice snippet
 
-;; (use-package yasnippet-multiple-key
-;;   :defer 1
-;;   :straight (yasnippet-multiple-key :host github :repo "ShuguangSun/yasnippet-multiple-key"))
-
 ;;;; org-reveal
 
 (use-package ox-reveal
@@ -1755,8 +1767,7 @@ don't want to fix with `SPC', and you can abort completely with
   :config
   (setq org-reveal-root (format "file://%s/.reveal.js" home-dir))
   :custom
-  (org-reveal-hlevel 2)
-  )
+  (org-reveal-hlevel 2))
 
 (defun gr/inliner-create-single-html-file ()
   "Turn webpage into a single html file.
@@ -1771,20 +1782,12 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                       (file-relative-name "~/.reveal.js/dist/theme/moon.css")))
     (if (equal "html" origext)
         (async-shell-command (format "inliner '%s' > '%s'" orig newfile))
-      (error "Must select .html file"))
-    ))
+      (error "Must select .html file"))))
 
 ;;;; pdf-tools
 
 (use-package pdf-tools
   :straight (pdf-tools :host github :repo "vedang/pdf-tools" :fork "localauthor/pdf-tools")
-  ;; :straight (pdf-tools :host github :repo "dalanicolai/pdf-tools"
-  ;;                      :files (:defaults "lisp/*.el"
-  ;;                                        "README"
-  ;;                                        "vimura-server/*.py"
-  ;;                                        ("build" "Makefile")
-  ;;                                        ("build" "server")
-  ;;       		                 (:exclude "lisp/tablist.el" "lisp/tablist-filter.el")))
   :bind
   (:map pdf-view-mode-map
         ("h" . pdf-annot-add-highlight-markup-annotation)
@@ -2103,6 +2106,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                              (name . "init.el")
                              (name . "^\\*Messages")
                              (name . "^\\*mu4e-")
+                             (name . "*Calculator*")
                              (name . "org_archive")
                              (name . "gcal")
                              (name . ".persp")
@@ -2150,12 +2154,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;; to allow --group-directories-first to work on osx
 (setq insert-directory-program "/usr/local/bin/gls" dired-use-ls-dired t)
 
-
-(use-package all-the-icons-dired
-  :disabled
-  :defer t
-  :hook (dired-mode-hook)
-  :diminish)
 
 ;;;; avy
 
@@ -2479,12 +2477,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;;          (complete-with-action action passwords string pred))))))
   )
 
-(use-package password-generator
-  :custom
-  (password-generator-custom-alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()+?")
-  (password-generator-custom-length 12)
-  )
-
 
 ;;;; ace-window
 
@@ -2558,6 +2550,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*ZK-Index\\*"
           "^\\*Apropos\\*"
           "^\\*eshell\\*"
+          "^\\*PDF-Occur\\*"
           "^\\*Org Agenda"
           "^\\*compilation"
           "^\\*elfeed-entry\\*"
@@ -2595,7 +2588,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         bookmark-set-fringe-mark nil)
   :custom-face
   (bookmark-face ((t nil))))
-
 
 ;;;; google-translate
 
@@ -2756,37 +2748,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-<up>" . move-text-up)
   ("C-<down>" . move-text-down))
 
-;;;; dwim-shell-commands
-
-(use-package dwim-shell-command
-  :bind
-  (:map gr-map
-        ("x" . gr/reveal-in-finder))
-  :config
-  (defun gr/reveal-in-finder ()
-    "Reveal selected files in macOS Finder."
-    (interactive)
-    (dwim-shell-command-on-marked-files
-     "Reveal in Finder"
-     "import AppKit
-     NSWorkspace.shared.activateFileViewerSelecting([\"<<*>>\"].map{URL(fileURLWithPath:$0)})"
-     :silent-success t
-     :shell-pipe  "swift -"
-     :join-separator  ", "))
-  )
-
-;;;; notmuch
-
-(use-package notmuch
-  :disabled
-  :defer t
-  :custom
-  (notmuch-search-oldest-first . nil))
-
-(defun gr/notmuch-refresh ()
-  (interactive)
-  (async-shell-command "mbsync -a && notmuch new"))
-
 ;;;; ledger-mode
 
 (use-package ledger-mode
@@ -2794,10 +2755,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (ledger-clear-whole-transactions t))
 
-;;;; vterm
-
-(use-package vterm
-  :defer t)
 
 ;;;; mastodon
 
@@ -2807,13 +2764,67 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (mastodon-instance-url "https://zirk.us")
   (mastodon-active-user "grantrosson"))
 
+;;;; golden-ratio-scroll-screen
+
+(use-package golden-ratio-scroll-screen
+  :defer 1
+  :config
+  (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
+  (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
+
+;;;; nov.el
+
+(use-package nov
+  :defer t
+  :mode ("\\.epub\\'" . nov-mode)
+  :bind
+  (:map nov-mode-map
+        ("SPC" . golden-ratio-scroll-screen-up)
+        ("DEL" . golden-ratio-scroll-screen-down))
+  :custom
+  (nov-text-width t))
 
 ;;;; gptel
 
 (use-package gptel
   :defer t)
 
+(use-package chatgpt-shell
+  :defer t
+  :straight (:host github :repo "xenodium/chatgpt-shell")
+  :config
+  (setq chatgpt-shell-openai-key
+        (plist-get (car (auth-source-search :host "openai.com"))
+                   :secret)))
+
+;;;; osx-reveal-in-finder
+
+(use-package reveal-in-osx-finder
+  :defer t
+  :commands reveal-in-osx-finder-as
+  :config
+  (defun gr/embark-reveal-in-osx-finder (file)
+    "Embark action to reveal file or buffer in finder."
+    (interactive "FFile: ")
+    (let ((dir (or (expand-file-name (file-name-directory file))
+                   default-directory))
+          (filename (file-name-nondirectory file)))
+      (reveal-in-osx-finder-as dir filename))))
+
 ;;;; disabled
+
+;;;;; notmuch
+
+(use-package notmuch
+  :disabled
+  :defer t
+  :custom
+  (notmuch-search-oldest-first . nil)
+  :config
+  (defun gr/notmuch-refresh ()
+    (interactive)
+    (async-shell-command "mbsync -a && notmuch new")))
+
 ;;;;; ctrlf
 
 (use-package ctrlf
@@ -2847,13 +2858,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (explain-pause-mode))
 
 
-;;;;; nov.el
-
-(use-package nov
-  :disabled
-  :defer t
-  :mode ("\\.epub\\'" . nov-mode))
-
 ;;;;; paredit
 
 (use-package paredit
@@ -2866,16 +2870,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;; (lisp-mode-hook . enable-paredit-mode)
   ;; (lisp-interaction-mode-hook . enable-paredit-mode)
   )
-
-;;;;; golden-ratio-scroll-screen
-
-(use-package golden-ratio-scroll-screen
-  :disabled
-  :defer 1
-  :config
-  (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
-  (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
-
 
 ;;;;; python
 
@@ -2917,13 +2911,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (set-fringe-mode '(8 . 0))
   )
 
-;;;;; re-builder
-
-(use-package re-builder
-  :defer 1
-  :init
-  (setq reb-re-syntax 'string))
-
 
 ;;;;; markdown mode
 
@@ -2956,7 +2943,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package pandoc-mode
   :disabled
   :defer t)
-
 
 
 ;;; variable resets

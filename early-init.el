@@ -49,7 +49,7 @@
 
 (setq use-dialog-box nil)
 
-(setq recenter-positions '(middle bottom top))
+;;(setq recenter-positions '(middle bottom top))
 
 (add-hook 'after-make-frame-functions
           #'(lambda (frame)

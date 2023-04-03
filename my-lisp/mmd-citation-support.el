@@ -131,7 +131,8 @@ When in zk file, mmd format; when org-mode, org-cite."
   (let ((key (citar-select-ref)))
     (if (or (zk-file-p)
             (file-in-directory-p buffer-file-name
-                                 zk-desktop-directory))
+                                 zk-desktop-directory)
+            gr/mmd-citation-use)
         (gr/format-mmd-citation key)
       (condition-case nil
           (citar-insert-citation (list key))

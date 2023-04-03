@@ -43,9 +43,9 @@ Accepts optional KEY to go to entry."
   "Search 'isbnsearch.org' for ISBN associated with STRING."
   (interactive (list
                 (if (use-region-p)
-                  (buffer-substring
-                   (region-beginning)
-                   (region-end))
+                    (buffer-substring
+                     (region-beginning)
+                     (region-end))
                   (read-string "Search for ISBN: "))))
   (browse-url (format "https://isbnsearch.org/search?s=%s"
                       (url-encode-url string))))
