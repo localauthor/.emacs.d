@@ -97,7 +97,7 @@
   (setq exec-path-from-shell-arguments '("-l"))
   ;; (setq exec-path-from-shell-warn-duration-millis 999)
   :config
-  (exec-path-from-shell-copy-env "PKG_CONFIG_PATH")
+  (exec-path-from-shell-copy-env "PKG_CONFIG_PATH") ;; to build mu from emacs
   (exec-path-from-shell-copy-env "MANPATH")
   (exec-path-from-shell-initialize))
 
@@ -254,9 +254,6 @@
  ("s-<right>" . move-end-of-line)
  ("s-<up>" . beginning-of-buffer)
  ("s-<down>" . end-of-buffer))
-;; ("C-<up>" . move-line-up)
-;; ("C-<down>" . move-line-down))
-
 
 ;; Bold, italics, underline functions
 
@@ -405,7 +402,7 @@
 (bind-keys :map global-map
            :prefix-map gr-map
            :prefix "C-."
-           ;;("C-." . execute-extended-command)
+
            ("C-." . avy-goto-char-timer)
 
            ("/" . switch-to-minibuffer-window)
@@ -419,7 +416,6 @@
            ("i" . gr/open-init-file)
 
            ("C-t" . gr/open-tasks-file)
-           ;;("t" . gr/open-tasks-upcoming-agenda-other-frame)
 
            ("T" . gr/toggle-theme)
 
@@ -441,26 +437,19 @@
            ("e" . gr/elfeed-open-new-window)
            ("C-e" . gr/elfeed-open)
 
-           ("W" . gr/word-count-subtree)
+           ;;("W" . gr/word-count-subtree)
+           ("W" . org-wc-display)
 
            ("D" . gr/lookup-word-at-point)
-           ;; ("d" . dictionary-search)
            ("d" . sdcv-search)
 
            ("L" . toggle-truncate-lines)
 
            ("t" . google-translate-smooth-translate)
 
-           ;;("T" . gr/google-translate-lt-en)
-           ;; ("T" . go-translate-popup-current)
-
-           ;;("p" . hydra-persp/body)
-           ;;("n" . hydra-annotate/body)
            ("s" . hydra-mac-speak/body)
 
-           ("P" . password-store-copy-field)
-           ;; ("C-c" . 'flyspell-popup-correct)
-           ;;("C-c" . 'flyspell-auto-correct-previous-word)
+           ("P" . password-store-copy)
            )
 
 ;;;;; C-s map
@@ -500,8 +489,6 @@
 
 (use-package init-lock
   :straight nil
-  ;; :config
-  ;; (init-lock-enable)
   :custom
   (init-lock-files '("~/.dotfiles/.emacs.d/init.el")))
 
@@ -565,10 +552,6 @@
 
 ;;;; org-mode
 
-;; t causes errors
-(setq org-element-use-cache nil)
-;;(setq org-element-use-cache t)
-
 (use-package org
   :bind
   ("C-c c" . org-capture)
@@ -577,8 +560,6 @@
   ("C-c C" . org-clock-goto)
   (:map org-mode-map
         ("RET" . scimax/org-return)
-        ;; ("C-c *" . org-toggle-item)
-        ;; ("C-x *" . org-toggle-item)
         ("C-c ;" . nil)
         ("<tab>" . org-cycle)
         ("C-c C-<tab>" . org-force-cycle-archived)
@@ -594,8 +575,6 @@
         ("C-S-<down>" . org-metadown)
         ("C-S-<left>" . org-shiftmetaleft)
         ("C-S-<right>" . org-shiftmetaright)
-        ;; ("C-<up>" . move-line-up)
-        ;; ("C-<down>" . move-line-down)
         ("C-<return>" . org-meta-return)
         ("M-<return>" . org-insert-heading-respect-content)
         ("C-c $" . gr/org-mark-done-and-archive-datetree)
@@ -629,17 +608,17 @@
   (org-startup-indented t)
   (org-table-use-standard-references 'from)
   (org-catch-invisible-edits 'smart)
-  (org-tags-column -77)
+  (org-tags-column -67)
   (org-tag-alist '(("export")("noexport") ("noheadline")))
   (org-goto-interface 'outline-path-completion)
   (org-outline-path-complete-in-steps nil)
-  (org-hide-leading-stars nil)
+  (org-hide-leading-stars t)
   (org-hide-emphasis-markers nil)
   (org-link-keep-stored-after-insertion t)
   (org-link-search-must-match-exact-headline t)
   (org-support-shift-select nil)
   (org-return-follows-link t)
-  (org-export-backends '(ascii html latex md odt org))
+  (org-export-backends '(reveal ascii html latex md odt org))
   (org-log-done nil)
   ;; Sets spacing between headings in org-mode
   (org-cycle-separator-lines -1)
@@ -651,7 +630,7 @@
      ("/" italic)
      ("_" underline)
      ("=" org-verbatim verbatim)
-     ("+" zk-desktop-button)
+     ("+" (t (:background "gray85" :height .9)))
      ("~" verbatim)))
   (org-fold-core-style 'text-properties) ; text-properties don't unfold with ctrlf, only isearch; ctrlf issue #118
   (org-startup-with-latex-preview nil)
@@ -821,8 +800,7 @@ parent."
         ("f" . helpful-callable)
         ("h" . helpful-symbol))
   (:map embark-file-map
-        ("A" . embark-attach-file)
-        ;; ("F" . gr/find-file-recursively) doesn't work
+        ("M" . embark-attach-file)
         ("n" . gr/embark-reveal-in-osx-finder)
         ("p" . gr/embark-save-absolute-path)
         ("P" . gr/embark-insert-absolute-path))
@@ -975,8 +953,8 @@ there, otherwise you are prompted for a message buffer."
         ("?" . consult-narrow-help))
   :bind*
   ("C-c [" . consult-global-mark)
-  ("C-;" . consult-imenu-all)
-  ("C-:" . consult-outline)
+  ("C-:" . consult-imenu-all)
+  ("C-;" . consult-outline)
   :hook
   (embark-collect-mode-hook . consult-preview-at-point-mode)
   :custom
@@ -1111,12 +1089,6 @@ That is, remove a non kept dired from the recent list."
 (add-hook 'kill-buffer-hook 'recentd-track-closed-file)
 
 
-;;;; bookmark-view
-
-(use-package bookmark-view
-  :straight (bookmark-view :host github :repo "minad/bookmark-view")
-  :defer 1)
-
 ;;;; marginalia
 
 (use-package marginalia
@@ -1168,86 +1140,9 @@ parses its input."
         '(citar-history search-ring regexp-search-ring))
   )
 
-;;;; company
-
-(use-package company
-  :disabled
-  :diminish
-  :bind
-  (:map company-active-map
-        ("<return>" . nil)
-        ("RET" . nil)
-        ("<tab>" . 'company-complete-selection)
-        ("TAB" . 'company-complete-selection)
-        ("S-<tab>" . 'company-complete-common)
-        ("S-TAB" . 'company-complete-common)
-        ("C-n" . 'company-select-next-or-abort)
-        ("C-p" . 'company-select-previous-or-abort)
-        ("C-<return>" . 'company-complete-common)
-        ("C-RET" . 'company-complete-common)
-        ("C-e" . 'company-other-backend)
-        ("C-s" . 'company-filter-candidates))
-  :custom
-  (company-require-match nil)
-  (company-minimum-prefix-length 1)
-  (company-selection-wrap-around t)
-  (company-tooltip-limit 12)
-  (company-idle-delay 0.2)
-  (company-echo-delay 0)
-  (company-dabbrev-downcase nil)
-  (company-dabbrev-ignore-case 'keep-prefix)
-  (company-sort-prefer-same-case-prefix t)
-  (company-format-margin-function nil)
-  (company-dabbrev-other-buffers t)
-
-  ;; interfers with Luhmann, zk sort order
-  (company-transformers '(company-sort-by-occurrence))
-  :config
-  (global-company-mode 1)
-  ;; use TAB for completion-at-point
-  (setq tab-always-indent nil)
-  (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
-  (setq company-backends '((company-capf
-                            ;;company-elisp
-                            company-dabbrev-code
-                            ;;company-gtags
-                            ;;company-etags
-                            ;;company-keywords
-                            )
-                           company-bbdb
-                           company-files
-                           company-dabbrev
-                           company-yasnippet))
-  (setq company-files-exclusions '(".git/" ".DS_Store")))
-
-(use-package company-posframe
-  :disabled
-  :diminish
-  :bind
-  (:map company-posframe-active-map
-        ([mouse-1] . company-abort)
-        ([?\e] . company-abort))
-  ;; :config
-  ;; (company-posframe-mode 1)
-  :hook
-  (buffer-face-mode-hook)
-  :custom
-  (company-posframe-show-indicator t)
-  (company-posframe-show-metadata nil)
-  (company-posframe-quickhelp-delay nil)
-  )
-
-;; kills company buffer after completion, to prevent it from showing up when
-;; new window is created, like elfeed or mu4e
-;; (add-hook 'company-after-completion-hook
-;;           (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
-;; (kill-buffer " *company-posframe-buffer*"))))
-
-
 ;;;; corfu / cape
 
 (use-package corfu
-  ;;:disabled
   :init (global-corfu-mode 1)
   :hook
   (emacs-lisp-mode-hook)
@@ -1275,7 +1170,6 @@ parses its input."
 (setq tab-always-indent 'complete)
 
 (use-package cape
-  ;;:disabled
   :init
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
@@ -1300,12 +1194,6 @@ parses its input."
   :defer t
   :config
   (vertico-prescient-mode))
-
-(use-package company-prescient
-  :disabled
-  ;; interferes with Luhmann, zk sort order
-  :config
-  (company-prescient-mode -1))
 
 ;;;; tempel
 
@@ -1373,11 +1261,8 @@ parses its input."
   (citar-file-open-function 'citar-file-open-external)
   (citar-file-additional-files-separator " ")
   (citar-open-prompt t)
-  (citar-citeproc-csl-styles-dir "~/.csl")
-  (citar-citeproc-csl-locales-dir "~/.csl/locales")
+
   (citar-format-reference-function 'citar-citeproc-format-reference)
-  (citar-citeproc-csl-style
-   "chicago-fullnote-bibliography-short-title-subsequent.csl")
   (citar-display-transform-functions nil)
   (citar-select-multiple nil)
   (citar-open-resources '(:files :notes :create-notes))
@@ -1418,6 +1303,15 @@ following the key as group 3."
   (advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp)
 
   )
+
+(use-package citar-citeproc
+  :straight nil
+  :after (citar)
+  :custom
+  (citar-citeproc-csl-styles-dir "~/.csl")
+  (citar-citeproc-csl-locales-dir "~/.csl/locales")
+  (citar-citeproc-csl-style
+   "chicago-fullnote-bibliography-short-title-subsequent.csl"))
 
 (use-package citar-embark
   :after (citar)
@@ -1687,7 +1581,9 @@ following the key as group 3."
 
 (use-package sdcv-mode
   :straight (sdcv-mode :host github :repo "gucong/emacs-sdcv")
-  :defer 1)
+  :defer 1
+  :custom
+  (sdcv-buffer-name "*Dictionary*"))
 
 ;; note: dictionaries are in ~/.stardic/dic
 
@@ -1747,23 +1643,9 @@ don't want to fix with `SPC', and you can abort completely with
 (setq save-abbrevs 'silently)
 (setq-default abbrev-mode t)
 
-
-;;;; yasnippet
-
-(use-package yasnippet
-  :disabled
-  :defer 2
-  :diminish (yas-minor-mode)
-  :config
-  (yas-global-mode 1)
-  (yas-reload-all)
-  :custom
-  (yas-indent-line 'fixed)) ;; prevents error with invoice snippet
-
 ;;;; org-reveal
 
 (use-package ox-reveal
-  :defer 1
   :config
   (setq org-reveal-root (format "file://%s/.reveal.js" home-dir))
   :custom
@@ -1787,7 +1669,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; pdf-tools
 
 (use-package pdf-tools
-  :straight (pdf-tools :host github :repo "vedang/pdf-tools" :fork "localauthor/pdf-tools")
+  :straight (pdf-tools :host github :repo "vedang/pdf-tools")
   :bind
   (:map pdf-view-mode-map
         ("h" . pdf-annot-add-highlight-markup-annotation)
@@ -1943,34 +1825,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
       nil)
     (browse-url "http://localhost:1313/")))
 
-
-;;;; annotate.el
-
-(use-package annotate
-  ;; :hook (after-save-hook . annotate-save-annotations)
-  :disabled
-  :custom
-  (annotate-summary-ask-query nil)
-  (annotate-annotation-position-policy :by-length)
-  :config
-  (eval-and-compile
-    (defhydra hydra-annotate (:hint nil
-                                    :color blue)
-      "
-     ,*Annotate Mode*   _A_: Mode On/Off
-  : next    _n_: new        _l_: load
-  : prev    _s_: show all   _S_: save all
-           "
-      ("A" annotate-mode)
-      ("a" annotate-annotate)
-      ("n" annotate-annotate)
-      ("s" annotate-show-annotation-summary)
-      ("S" annotate-save-annotations)
-      ("l" annotate-load-annotations)
-      ("" annotate-goto-next-annotation :color red)
-      ("" annotate-goto-previous-annotation :color red)
-      ("q" nil)
-      )))
 
 ;;;; org-wc
 
@@ -2543,6 +2397,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           "^\\*Messages\\*"
           "^\\*Warnings\\*"
           "^\\*Dictionary\\*"
+          "^\\*Outline"
+          "^\\*Occur"
           "^\\*sdcv\\*"
           "^\\*vterm\\*"
           "^\\*xref\\*"
@@ -2584,16 +2440,12 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :defer t
   :init
   (setq bookmark-bmenu-toggle-filenames nil
-        bookmark-save-flag 1
-        bookmark-set-fringe-mark nil)
-  :custom-face
-  (bookmark-face ((t nil))))
+        bookmark-save-flag 1))
 
 ;;;; google-translate
 
 (use-package google-translate
-  :bind ("C-c t" . google-translate-smooth-translate)
-  )
+  :bind ("C-c t" . google-translate-smooth-translate))
 
 (use-package google-translate-smooth-ui
   :straight nil
@@ -2784,18 +2636,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (nov-text-width t))
 
-;;;; gptel
-
-(use-package gptel
-  :defer t)
-
-(use-package chatgpt-shell
-  :defer t
-  :straight (:host github :repo "xenodium/chatgpt-shell")
-  :config
-  (setq chatgpt-shell-openai-key
-        (plist-get (car (auth-source-search :host "openai.com"))
-                   :secret)))
 
 ;;;; osx-reveal-in-finder
 
@@ -2811,7 +2651,137 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           (filename (file-name-nondirectory file)))
       (reveal-in-osx-finder-as dir filename))))
 
+
 ;;;; disabled
+
+;;;;; annotate.el
+
+(use-package annotate
+  ;; :hook (after-save-hook . annotate-save-annotations)
+  :disabled
+  :custom
+  (annotate-summary-ask-query nil)
+  (annotate-annotation-position-policy :by-length)
+  :config
+  (eval-and-compile
+    (defhydra hydra-annotate (:hint nil
+                                    :color blue)
+      "
+     ,*Annotate Mode*   _A_: Mode On/Off
+  : next    _n_: new        _l_: load
+  : prev    _s_: show all   _S_: save all
+           "
+      ("A" annotate-mode)
+      ("a" annotate-annotate)
+      ("n" annotate-annotate)
+      ("s" annotate-show-annotation-summary)
+      ("S" annotate-save-annotations)
+      ("l" annotate-load-annotations)
+      ("" annotate-goto-next-annotation :color red)
+      ("" annotate-goto-previous-annotation :color red)
+      ("q" nil)
+      )))
+
+;;;;; company
+
+(use-package company
+  :disabled
+  :diminish
+  :bind
+  (:map company-active-map
+        ("<return>" . nil)
+        ("RET" . nil)
+        ("<tab>" . 'company-complete-selection)
+        ("TAB" . 'company-complete-selection)
+        ("S-<tab>" . 'company-complete-common)
+        ("S-TAB" . 'company-complete-common)
+        ("C-n" . 'company-select-next-or-abort)
+        ("C-p" . 'company-select-previous-or-abort)
+        ("C-<return>" . 'company-complete-common)
+        ("C-RET" . 'company-complete-common)
+        ("C-e" . 'company-other-backend)
+        ("C-s" . 'company-filter-candidates))
+  :custom
+  (company-require-match nil)
+  (company-minimum-prefix-length 1)
+  (company-selection-wrap-around t)
+  (company-tooltip-limit 12)
+  (company-idle-delay 0.2)
+  (company-echo-delay 0)
+  (company-dabbrev-downcase nil)
+  (company-dabbrev-ignore-case 'keep-prefix)
+  (company-sort-prefer-same-case-prefix t)
+  (company-format-margin-function nil)
+  (company-dabbrev-other-buffers t)
+
+  ;; interfers with Luhmann, zk sort order
+  (company-transformers '(company-sort-by-occurrence))
+  :config
+  (global-company-mode 1)
+  ;; use TAB for completion-at-point
+  (setq tab-always-indent nil)
+  (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
+  (setq company-backends '((company-capf
+                            ;;company-elisp
+                            company-dabbrev-code
+                            ;;company-gtags
+                            ;;company-etags
+                            ;;company-keywords
+                            )
+                           company-bbdb
+                           company-files
+                           company-dabbrev
+                           company-yasnippet))
+  (setq company-files-exclusions '(".git/" ".DS_Store")))
+
+(use-package company-posframe
+  :disabled
+  :diminish
+  :bind
+  (:map company-posframe-active-map
+        ([mouse-1] . company-abort)
+        ([?\e] . company-abort))
+  ;; :config
+  ;; (company-posframe-mode 1)
+  :hook
+  (buffer-face-mode-hook)
+  :custom
+  (company-posframe-show-indicator t)
+  (company-posframe-show-metadata nil)
+  (company-posframe-quickhelp-delay nil)
+  )
+
+;; kills company buffer after completion, to prevent it from showing up when
+;; new window is created, like elfeed or mu4e
+;; (add-hook 'company-after-completion-hook
+;;           (lambda (arg) (when (get-buffer " *company-posframe-buffer*")
+;; (kill-buffer " *company-posframe-buffer*"))))
+
+
+(use-package company-prescient
+  :disabled
+  ;; interferes with Luhmann, zk sort order
+  :config
+  (company-prescient-mode -1))
+
+;;;;; bookmark-view
+
+(use-package bookmark-view
+  :disabled
+  :straight (bookmark-view :host github :repo "minad/bookmark-view")
+  :defer 1)
+
+;;;;; yasnippet
+
+(use-package yasnippet
+  :disabled
+  :defer 2
+  :diminish (yas-minor-mode)
+  :config
+  (yas-global-mode 1)
+  (yas-reload-all)
+  :custom
+  (yas-indent-line 'fixed)) ;; prevents error with invoice snippet
 
 ;;;;; notmuch
 

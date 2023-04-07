@@ -96,6 +96,7 @@
 ;; NOTE: If a heading isn't found, either the file is not listed in the variable 'org-refile-targets', or the filelist cache needs to be updated ('org-refile-get-targets')
 
 (defun +org-search ()
+  "Go to seleted heading in org agenda file."
   (interactive)
   (org-refile '(4)))
 
