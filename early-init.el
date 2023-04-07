@@ -81,7 +81,9 @@
 (setq isearch-lazy-count t)
 
 (setq ad-redefinition-action 'accept)
-(setq warning-suppress-types '((bytecomp) (emacs) (comp) (:warning) comp))
+(setq warning-suppress-types (quote (bytecomp comp)))
+(setq native-comp-async-report-warnings-errors nil)
+(setq warning-minimum-level ':error)
 (setq ring-bell-function 'ignore)
 
 (setq vc-follow-symlinks t)
