@@ -218,10 +218,11 @@ Also excludes, journal, poem, Dickinson, and literature notes."
                    x))
                all-notes))))
 
+;; these take too long
+;; (defvar zk-luhmann-notes-count (length (zk-luhmann-files)))
+;; (defvar zk-lit-notes-count (length (zk-lit-notes-list)))
+;; (defvar zk-core-notes-count (length (zk-non-luhmann-list)))
 
-(defvar zk-luhmann-notes-count (length (zk-luhmann-files)))
-(defvar zk-lit-notes-count (length (zk-lit-notes-list)))
-(defvar zk-core-notes-count (length (zk-non-luhmann-list)))
 (defvar gr/dickinson-ref-regexp "\\(Fr[0-9]\\{1,4\\}\\)")
 
 ;;;###autoload
