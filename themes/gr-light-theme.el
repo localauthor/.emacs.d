@@ -51,7 +51,7 @@
                           :background "#FAFAFA"
                           :stipple nil
                           :inherit nil))))
-   '(fixed-pitch ((t (:family "Monospace" :height .9 :foreground "#212121" :background "#FAFAFA"))))
+   '(fixed-pitch ((t (:family "Monospace" :foreground "#212121" :background "#FAFAFA"))))
    '(variable-pitch ((t (:family "Times New Roman" ;;  "Cardo" ;; "Bembo Book MT std" ;; "ET Bembo" ;;
                                  :height 1.3 :foreground "#212121" :background "#FAFAFA"))))
 
@@ -124,25 +124,25 @@
    '(query-replace ((t (:inherit (isearch)))))
 
 
-   `(org-hide ((,class (:foreground "white"))))
-   `(org-meta-line ((,class (:inherit fixed-pitch :height 1 :foreground "Firebrick"))))
+   ;;`(org-hide ((,class (:foreground "white"))))
+   `(org-meta-line ((,class (:inherit fixed-pitch :foreground "Firebrick"))))
    `(org-block ((,class (:inherit fixed-pitch))))
-   `(org-document-info-keyword ((,class (:inherit fixed-pitch :foreground "grey50" :height 1))))
-   `(org-table ((,class (:inherit fixed-pitch :height .8))))
-   `(org-tag ((,class (:foreground "grey50" :weight regular :height .8))))
+   `(org-document-info-keyword ((,class (:inherit fixed-pitch :foreground "grey50"))))
+   `(org-table ((,class (:inherit fixed-pitch))))
+   `(org-tag ((,class (:foreground "grey50" :weight regular))))
    `(org-code ((,class (:inherit fixed-pitch))))
    `(org-block ((,class (:inherit fixed-pitch))))
-   `(org-ellipsis ((,class (:inherit fixed-pitch :foreground "grey50" :underline nil :height 1.1))))
-   `(org-todo ((,class (:family "Menlo" :weight bold :height 1 :foreground "Red1"))))
-   `(org-done ((,class (:family "Menlo" :weight bold :height 1 :foreground "ForestGreen"))))
+   `(org-ellipsis ((,class (:inherit fixed-pitch :foreground "grey50" :underline nil))))
+   `(org-todo ((,class (:family "Menlo" :weight bold :foreground "Red1"))))
+   `(org-done ((,class (:family "Menlo" :weight bold :foreground "ForestGreen"))))
 
-   `(outline-1 ((, class (:foreground "blue3" :weight bold :underline t))))
-   `(outline-2 ((, class (:foreground "black" :weight bold :underline t))))
-   `(outline-3 ((, class (:underline t))))
-   `(outline-4 ((, class (:underline t))))
-   `(outline-5 ((, class (:underline t))))
+   `(outline-1 ((,class (:foreground "blue3" :weight bold :underline t))))
+   `(outline-2 ((,class (:foreground "black" :weight bold :underline t))))
+   `(outline-3 ((,class (:underline t))))
+   `(outline-4 ((,class (:underline t))))
+   `(outline-5 ((,class (:underline t))))
 
-   `(org-level-1 ((,class (:inherit outline-1 :height 130))))
+   `(org-level-1 ((,class (:inherit outline-1))))
    `(org-level-2 ((,class (:inherit outline-2))))
    `(org-level-3 ((,class (:inherit outline-3))))
    `(org-level-4 ((,class (:inherit outline-4))))
