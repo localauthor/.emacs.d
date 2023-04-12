@@ -67,7 +67,7 @@
         (dired-omit-size-limit)
         (org-confirm-babel-evaluate)
         (zk-link-and-title-format . "+%t [[%i]]+")
-        (gr/mmd-citation-use)
+        (eval gr/mmd-citation-use)
         (eval progn
               (pp-buffer)
               (indent-buffer))
@@ -95,10 +95,9 @@
   :defer 1
   :init
   (setq exec-path-from-shell-arguments '("-l"))
-  ;; (setq exec-path-from-shell-warn-duration-millis 999)
+  (setq exec-path-from-shell-warn-duration-millis 800)
   :config
-  (exec-path-from-shell-copy-env "PKG_CONFIG_PATH") ;; to build mu from emacs
-  (exec-path-from-shell-copy-env "MANPATH")
+  (exec-path-from-shell-copy-env "PKG_CONFIG_PATH")
   (exec-path-from-shell-initialize))
 
 (use-package emacs
@@ -113,14 +112,6 @@
         ("o" . link-hint-open-link))
   (:map help-mode-map
         ("o" . link-hint-open-link))
-
-  :custom-face
-  (default ((t (:family "JetBrains Mono"
-                        :foreground "#212121"
-                        :background "#FAFAFA"))))
-  (highlight ((t (:background "darkseagreen2"))))
-  (region ((t (:extend t :background "#a9a9b8"))))
-
   ;; rest of config in early-init.el
   )
 
@@ -166,16 +157,13 @@
   :hook
   (server-after-make-frame-hook . gr/tab-bar-face-setup))
 
-(use-package hydra
-  :defer 1)
+(use-package hydra :defer 1)
 
-(use-package keycast
-  :defer 1)
+(use-package keycast :defer 1)
 
 ;;;; blood-sugar
 
-(use-package plz
-  :defer 1)
+(use-package plz :defer 1)
 
 (defvar gr/blood-sugar "BG:")
 
@@ -201,8 +189,23 @@
 
 (run-at-time "10 sec" 300 'gr/blood-sugar)
 
-(use-package ef-themes
-  :defer 1)
+;;;; themes
+
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
+
+(load-theme 'gr-light t)
+
+(use-package ef-themes :defer 1)
+
+(defun gr/toggle-theme ()
+  (interactive)
+  (if (equal custom-enabled-themes '(gr-light))
+      (progn
+        (mapc #'disable-theme custom-enabled-themes)
+        (load-theme 'ef-bio :no-confirm))
+    (progn
+      (mapc #'disable-theme custom-enabled-themes)
+      (load-theme 'gr-light :no-confirm))))
 
 ;;;; MacOS Keybindings
 
@@ -330,7 +333,6 @@
          (display-buffer-full-frame))
 
         (,(concat
-           ;;"dailynotes.org\\|"
            "\\*\\("
            (string-join
             '("Completions" "Async" "Backups:" "helpful"
@@ -381,8 +383,7 @@
 
 ;;;; gr-functions and gr-map
 
-(use-package gr-functions
-  :straight nil)
+(use-package gr-functions :straight nil)
 
 (define-prefix-command 'gr-map)
 
@@ -623,33 +624,12 @@
   (org-src-preserve-indentation nil)
   (org-log-states-order-reversed nil)
 
-  :custom-face
-  (org-drawer ((t (:foreground "gray60" :height .8))))
-  (org-special-keyword ((t (:foreground "gray50" :height .8))))
-  (org-hide ((t (:foreground "white"))))
-  (org-meta-line ((t (:inherit fixed-pitch :foreground "Firebrick"))))
-  (org-block ((t (:inherit fixed-pitch))))
-  (org-document-info-keyword ((t (:inherit fixed-pitch :foreground "grey50"))))
-  (org-table ((t (:inherit fixed-pitch))))
-  (org-tag ((t (:foreground "grey50" :weight regular))))
-  (org-code ((t (:inherit fixed-pitch))))
-  (org-block ((t (:inherit fixed-pitch))))
-  (org-ellipsis ((t (:inherit fixed-pitch :foreground "grey50" :underline nil))))
-  (org-todo ((t (:family "Menlo" :weight bold :foreground "Red1"))))
-  (org-done ((t (:family "Menlo" :weight bold :foreground "ForestGreen"))))
-
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
      (shell . t)))
   (defun org-babel-execute:yaml (body params) body))
-
-;; (use-package org-appear
-;;   :defer 1
-;;   :after org
-;;   :hook
-;;   (org-mode-hook))
 
 (use-package org-agenda-setup
   :straight nil
@@ -1045,7 +1025,6 @@ there, otherwise you are prompted for a message buffer."
 ;;;; consult-dir
 
 (use-package consult-dir
-  :straight (consult-dir :host github :repo "karthink/consult-dir")
   :bind ("C-x C-d" . consult-dir)
   (:map vertico-map
         ("C-x C-j" . consult-dir-jump-file))
@@ -1162,12 +1141,9 @@ parses its input."
   (corfu-quit-no-match 'separator)
   (corfu-quit-at-boundary 'separator)
   (corfu-preview-current nil)
-  :config
-  (set-face-attribute 'corfu-default nil
-                      :background "cornsilk"
-                      :font "Menlo")
-  (set-face-attribute 'corfu-current nil
-                      :background "light blue"))
+  :custom-face
+  (corfu-default ((t (:background "cornsilk" :font "Menlo"))))
+  (corfu-current ((t (:background "light blue")))))
 
 (setq read-file-name-completion-ignore-case t
       read-buffer-completion-ignore-case t
@@ -1270,22 +1246,29 @@ parses its input."
 
   (citar-format-reference-function 'citar-citeproc-format-reference)
   (citar-display-transform-functions nil)
-  (citar-select-multiple nil)
+  (citar-select-multiple t)
   (citar-open-resources '(:files :notes :create-notes))
 
   :config
 
   (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
 
-  ;; (defun ex/citar-search-pdf-contents ()
-  ;;   ;; from localauthor
-  ;;   "search pdfs."
-  ;;   (interactive)
-  ;;   (let* ((refs (citar-select-refs)
-  ;;          (files (citar-file--files-for-multiple-entries
-  ;;                  refs citar-library-paths '("pdf")))
-  ;;          (string (read-string "search string: ")))
-  ;;     (pdf-occur-search files string t)))
+  (defun ex/search-pdf-contents (keys &optional str)
+    "Search pdfs."
+    (interactive (list (citar-select-refs)))
+    (let* (files
+           (hash (citar-file--directory-files
+                  citar-library-paths
+                  keys
+                  '("pdf")
+                  citar-file-additional-files-separator))
+           (search-str (or str (read-string "Search string: ")))
+           (files (progn (dolist (key keys)
+                           (push (gethash key hash) files))
+                         (flatten-list files))))
+      (pdf-occur-search files search-str t)))
+
+  ;;(add-to-list 'embark-multitarget-actions #'ex/search-pdf-contents)
 
   ;; overrides
   ;; allows for finding files with citekeys anywhere in the file name
@@ -1347,12 +1330,9 @@ following the key as group 3."
 
 ;;;; citeproc / parsebib
 
-(use-package citeproc
-  :defer t)
+(use-package citeproc :defer t)
 
-(use-package parsebib
-  :straight (parsebib :host github :repo "joostkremers/parsebib")
-  :defer t)
+(use-package parsebib :defer t)
 
 ;;;; ebib
 
@@ -1567,8 +1547,6 @@ following the key as group 3."
   (text-mode-hook)
   (prog-mode-hook)
   (nov-mode-hook)
-  ;; (olivetti-mode-on-hook . (lambda () (visual-fill-column-mode -1)))
-  ;; (olivetti-mode-off-hook . (lambda () (visual-fill-column-mode)))
   :config
   (setq-default olivetti-body-width 0.75)
   (setq olivetti-minimum-body-width 72)
@@ -1676,7 +1654,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; pdf-tools
 
 (use-package pdf-tools
-  :straight (pdf-tools :host github :repo "vedang/pdf-tools")
   :bind
   (:map pdf-view-mode-map
         ("h" . pdf-annot-add-highlight-markup-annotation)
@@ -1744,9 +1721,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
     (advice-add 'pdf-annot-edit-contents-commit :after 'bjm/save-buffer-no-args))
   )
-
-;; (use-package org-pdftools
-;;   :hook (org-mode-hook . org-pdftools-setup-link))
 
 ;;;; LaTeX / AUCTeX
 
@@ -1844,8 +1818,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 ;;;; emacs-benchmark
 
-(use-package elisp-benchmarks
-  :defer t)
+(use-package elisp-benchmarks :defer t)
 
 
 ;;; my-lisp
@@ -2172,8 +2145,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; wgrep
 
-(use-package wgrep
-  :defer t)
+(use-package wgrep :defer t)
 
 ;;;; web browsing / eww / xwidget webkit /xwwp
 
@@ -2282,8 +2254,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;; causes problems if this variable is not defined
   (defvar xwidget-webkit-enable-plugins nil))
 
-(use-package ctable
-  :defer t)
+(use-package ctable :defer t)
 
 (use-package xwwp-full
   :after xwidget
@@ -2341,8 +2312,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; ace-window
 
-(use-package posframe
-  :defer 1)
+(use-package posframe :defer 1)
 
 (use-package ace-window
   ;; :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
@@ -2398,34 +2368,20 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
          ("C-M-\\" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
-        '("^magit\\:"
+        `("^magit\\:"
           "Output"
-          "^\\*Messages\\*"
-          "^\\*Warnings\\*"
-          "^\\*Dictionary\\*"
-          "^\\*Outline"
-          "^\\*Occur"
-          "^\\*sdcv\\*"
-          "^\\*vterm\\*"
-          "^\\*xref\\*"
-          "^\\*Backtrace\\*"
-          "^\\*ZK-Index\\*"
-          "^\\*Apropos\\*"
-          "^\\*eshell\\*"
-          "^\\*PDF-Occur\\*"
-          "^\\*Org Agenda"
-          "^\\*compilation"
-          "^\\*elfeed-entry\\*"
-          "^\\*calfw-details\\*"
-          "^\\*Python\\*"
-          "^\\*grep\\*"
-          "^\\*undo-tree\\*"
-          "^\\*Async Shell Command\\*"
-          "^\\*Embark Collect\\*"
-          "^\\*Google Translate\\*"
-          "^\\*annotations\\*"
-          "^\\*Ilist\\*"
-          "^\\*Backups:"
+          ,(concat
+            "\\*\\("
+            (string-join
+             '("Messages" "Warnings" "Dictionary"
+               "Outline" "Occur" "sdcv" "vterm"
+               "xref" "Backtrace" "ZK-Index" "Apropos"
+               "eshell" "PDF-Occur" "Org Agenda"
+               "compilation" "elfeed-entry" "calfw-details"
+               "Python" "grep" "undo-tree" "Async Shell Command"
+               "Embark Collect" "Google Translate" "annotations"
+               "Ilist" "Backups")
+             "\\|") "\\)")
           undo-tree-mode
           helpful-mode
           help-mode
@@ -2483,12 +2439,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-<left>" . outline-promote)
   :hook
   (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode)))
-  :custom-face
-  (outline-1 ((t (:foreground "blue3" :weight bold :underline t))))
-  (outline-2 ((t (:foreground "black" :weight bold :underline t))))
-  (outline-3 ((t (:underline t))))
-  (outline-4 ((t (:underline t))))
-  (outline-5 ((t (:underline t))))
   :custom
   (outline-minor-mode-cycle t))
 
@@ -2504,8 +2454,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package whitespace
   :defer 1
-  ;; :hook
-  ;; (emacs-lisp-mode-hook)
   :custom
   (whitespace-style '(face trailing lines)))
 
@@ -2516,8 +2464,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (flycheck-emacs-lisp-load-path 'inherit))
 
-(use-package package-lint
-  :defer t)
+(use-package package-lint :defer t)
 
 ;;;; melpazoid
 
