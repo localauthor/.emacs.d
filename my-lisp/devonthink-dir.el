@@ -10,7 +10,13 @@
 
 (defvar devonthink-dir)
 
-(setq devonthink-dir "~/Databases/Academic Work.dtBase2/Files.noindex/")
+(setq devonthink-dir "~/Databases/Academic.dtBase2/Files.noindex/")
+
+(defun devonthink-set-dir ()
+  "Set DEVONthink DB."
+  (interactive)
+  (let ((db (completing-read "Choose: " '(Academic Personal) nil t)))
+    (setq devonthink-dir (format "~/Databases/%s.dtBase2/Files.noindex/" db))))
 
 ;; (defun devonthink-dir-find-file (key-entry &optional initial)
 ;;   "Search devonthink archive for file, using `consult-find'."
@@ -23,6 +29,8 @@
 (defun devonthink-dir-find-file (&optional initial)
   "Search devonthink archive for file, using `consult-find'."
   (interactive)
+  (when (equal current-prefix-arg '(4))
+    (devonthink-set-dir))
   (consult-find devonthink-dir initial))
 
 (defun org-devonthink-setup ()
