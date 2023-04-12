@@ -113,9 +113,15 @@
         ("o" . link-hint-open-link))
   (:map help-mode-map
         ("o" . link-hint-open-link))
-  :custom-face (default ((t (:family "JetBrains Mono"))))
-  ;;:custom-face (default ((t (:family "Consolas" :height 130))))
-  ;; config in early-init.el
+
+  :custom-face
+  (default ((t (:family "JetBrains Mono"
+                        :foreground "#212121"
+                        :background "#FAFAFA"))))
+  (highlight ((t (:background "darkseagreen2"))))
+  (region ((t (:extend t :background "#a9a9b8"))))
+
+  ;; rest of config in early-init.el
   )
 
 (use-package tab-bar
@@ -194,25 +200,6 @@
 (add-to-list 'global-mode-string '(:eval gr/blood-sugar) t)
 
 (run-at-time "10 sec" 300 'gr/blood-sugar)
-
-;;;; Faces / Themes Setup
-
-(add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
-
-(load-theme 'gr-light t)
-;;(load-theme 'gr-dark t)
-
-;; (progn (load-theme 'modus-operandi t) (set-face-attribute
-;;'show-paren-match nil :underline nil :foreground "#ffffff" :background
-;;"systemGreenColor"))
-
-;; (use-package modus-themes
-;;   :straight nil
-;;   :custom
-;;   (modus-themes-headings
-;;    (quote ((1 . (underline (height 1)))
-;;            (2 . ((foreground "navy blue"))))))
-;;   )
 
 (use-package ef-themes
   :defer 1)
@@ -595,10 +582,7 @@
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
   (add-to-list 'org-file-apps '("\\.docx\\'" . default) 'append)
-  :custom-face
-  (org-drawer ((t (:foreground "gray60" :height .8))))
-  (org-table ((t (:height 1))))
-  (org-special-keyword ((t (:foreground "gray50" :height .8))))
+
   :custom
   (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
   (default-major-mode 'org-mode)
@@ -618,7 +602,7 @@
   (org-link-search-must-match-exact-headline t)
   (org-support-shift-select nil)
   (org-return-follows-link t)
-  (org-export-backends '(reveal ascii html latex md odt org))
+  (org-export-backends '(ascii html latex md odt org))
   (org-log-done nil)
   ;; Sets spacing between headings in org-mode
   (org-cycle-separator-lines -1)
@@ -638,6 +622,22 @@
   (org-edit-src-content-indentation 0)
   (org-src-preserve-indentation nil)
   (org-log-states-order-reversed nil)
+
+  :custom-face
+  (org-drawer ((t (:foreground "gray60" :height .8))))
+  (org-special-keyword ((t (:foreground "gray50" :height .8))))
+  (org-hide ((t (:foreground "white"))))
+  (org-meta-line ((t (:inherit fixed-pitch :foreground "Firebrick"))))
+  (org-block ((t (:inherit fixed-pitch))))
+  (org-document-info-keyword ((t (:inherit fixed-pitch :foreground "grey50"))))
+  (org-table ((t (:inherit fixed-pitch))))
+  (org-tag ((t (:foreground "grey50" :weight regular))))
+  (org-code ((t (:inherit fixed-pitch))))
+  (org-block ((t (:inherit fixed-pitch))))
+  (org-ellipsis ((t (:inherit fixed-pitch :foreground "grey50" :underline nil))))
+  (org-todo ((t (:family "Menlo" :weight bold :foreground "Red1"))))
+  (org-done ((t (:family "Menlo" :weight bold :foreground "ForestGreen"))))
+
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -761,8 +761,15 @@ parent."
 (setq crm-separator ",")
 
 ;; Add prompt indicator to `completing-read-multiple'.
+
 (defun crm-indicator (args)
-  (cons (concat "[CRM] " (car args)) (cdr args)))
+  (cons (format "[CRM%s] %s"
+                (replace-regexp-in-string
+                 "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                 crm-separator)
+                (car args))
+        (cdr args)))
+
 (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
 ;; Do not allow the cursor in the minibuffer prompt
@@ -900,7 +907,7 @@ there, otherwise you are prompted for a message buffer."
     "$" #'ispell
     "!" #'shell-command
     "&" #'async-shell-command
-    "x" #'consult-file-externally         ; useful for PDFs
+    "x" #'embark-open-externally         ; useful for PDFs
     "c" #'copy-file
     "k" #'kill-buffer
     "n" #'gr/embark-reveal-in-osx-finder
@@ -923,7 +930,7 @@ there, otherwise you are prompted for a message buffer."
   :after embark
   :bind
   (:map embark-org-link-map
-        ("x" . consult-file-externally)))
+        ("x" . embark-open-externally)))
 
 (use-package embark-consult
   :after (embark consult)
@@ -946,7 +953,7 @@ there, otherwise you are prompted for a message buffer."
   ("M-s r" . consult-ripgrep)
   ("M-s l" . consult-line)
   ("M-s L" . consult-line-multi)
-  ("M-s m" . consult-multi-occur)
+  ("M-s m" . multi-occur)
   ("M-s k" . consult-keep-lines)
   ("M-s u" . consult-focus-lines)
   (:map consult-narrow-map
@@ -1033,7 +1040,6 @@ there, otherwise you are prompted for a message buffer."
     (interactive "P")
     (let ((current-prefix-arg '(4)))
       (call-interactively #'consult-find)))
-
   )
 
 ;;;; consult-dir
@@ -1106,7 +1112,7 @@ That is, remove a non kept dired from the recent list."
   :init
   (setq orderless-matching-styles '(orderless-prefixes
                                     orderless-regexp)
-        completion-styles '(orderless partial-completion initials)
+        completion-styles '(orderless partial-completion initials basic)
         completion-category-defaults nil
         completion-category-overrides
         '((file (styles . (partial-completion initials)))))
@@ -1271,15 +1277,15 @@ parses its input."
 
   (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
 
-  (defun ex/citar-search-pdf-contents ()
-    ;; from localauthor
-    "Search pdfs."
-    (interactive)
-    (let* ((refs (citar-select-refs))
-           (files (citar-file--files-for-multiple-entries
-                   refs citar-library-paths '("pdf")))
-           (string (read-string "Search string: ")))
-      (pdf-occur-search files string t)))
+  ;; (defun ex/citar-search-pdf-contents ()
+  ;;   ;; from localauthor
+  ;;   "search pdfs."
+  ;;   (interactive)
+  ;;   (let* ((refs (citar-select-refs)
+  ;;          (files (citar-file--files-for-multiple-entries
+  ;;                  refs citar-library-paths '("pdf")))
+  ;;          (string (read-string "search string: ")))
+  ;;     (pdf-occur-search files string t)))
 
   ;; overrides
   ;; allows for finding files with citekeys anywhere in the file name
@@ -1544,7 +1550,7 @@ following the key as group 3."
 
 (use-package visual-fill-column
   :disabled ;; incompatible with olivetti
-  ;;nonly used in zk, as dir-local
+  ;;only used in zk, as dir-local
   ;;because it doesn't work with git-gutter
   :hook
   (org-mode-hook)
@@ -1568,7 +1574,6 @@ following the key as group 3."
   (setq olivetti-minimum-body-width 72)
   (setq olivetti-recall-visual-line-mode-entry-state t)
   (set-fringe-mode 8))
-
 
 ;;;; zk
 
@@ -1646,8 +1651,10 @@ don't want to fix with `SPC', and you can abort completely with
 ;;;; org-reveal
 
 (use-package ox-reveal
+  :defer 1
   :config
   (setq org-reveal-root (format "file://%s/.reveal.js" home-dir))
+  (add-to-list 'org-export-backends 'reveal)
   :custom
   (org-reveal-hlevel 2))
 
@@ -1861,7 +1868,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :straight nil
   :defer 1)
 
-;; priv-lisp
+;;;; priv-lisp
 
 (use-package dickinson
   :straight nil
@@ -1872,6 +1879,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :defer 1)
 
 ;;; Packages
+
 ;;;; magit
 
 (use-package magit
@@ -2331,7 +2339,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ;;          (complete-with-action action passwords string pred))))))
   )
 
-
 ;;;; ace-window
 
 (use-package posframe
@@ -2382,7 +2389,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (advice-add #'aw--switch-buffer :override #'aw--consult-buffer)
 
   )
-
 
 ;;;; popper
 
@@ -2465,7 +2471,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
     (pop-to-buffer "*Google Translate*" 'display-buffer-below-selected))
   )
 
-;;;; outshine-mode
+;;;; outline-mode
 
 (use-package outline-mode
   :straight nil
@@ -2475,14 +2481,14 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-S-<left>" . outline-promote)
   ("C-<right>" . outline-demote)
   ("C-<left>" . outline-promote)
-  :custom-face
-  (outline-1 ((t (:weight bold :underline t :height 130))))
-  (outline-2 ((t (:weight bold :underline t :height 1))))
-  (outline-3 ((t (:underline t :height 1))))
-  (outline-4 ((t (:underline t :height 1))))
-  (outline-5 ((t (:underline t :height 1))))
   :hook
   (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode)))
+  :custom-face
+  (outline-1 ((t (:foreground "blue3" :weight bold :underline t))))
+  (outline-2 ((t (:foreground "black" :weight bold :underline t))))
+  (outline-3 ((t (:underline t))))
+  (outline-4 ((t (:underline t))))
+  (outline-5 ((t (:underline t))))
   :custom
   (outline-minor-mode-cycle t))
 
@@ -2607,7 +2613,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (ledger-clear-whole-transactions t))
 
-
 ;;;; mastodon
 
 (use-package mastodon
@@ -2635,7 +2640,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         ("DEL" . golden-ratio-scroll-screen-down))
   :custom
   (nov-text-width t))
-
 
 ;;;; osx-reveal-in-finder
 
