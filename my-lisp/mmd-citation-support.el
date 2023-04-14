@@ -13,21 +13,25 @@
 ;;; Code:
 
 (require 'citar)
-;; (require 'citar-file)
-;; (require 'citar-citeproc)
+(require 'citar-file)
+(require 'citar-citeproc)
 
-;; (require 'oc-csl)
-;; (require 'thingatpt)
+(require 'ebib-extras)
 
-;; (require 'embark)
-;; (require 'link-hint)
+(require 'oc-csl)
+(require 'thingatpt)
+
+(require 'embark)
+(require 'link-hint)
 
 
 ;;; variables
 
+(defvar zk-desktop-directory)
+
 (defvar gr/mmd-citation-regexp "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]")
 (defvar gr/full-mmd-citation-regexp "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#\\(?4:[[:alpha:]-']*?[[:digit:]]\\{4\\}.?\\)]\\)")
-(defvar citar-citeproc-csl-style nil)
+(defvar citar-citeproc-csl-style)
 
 ;;; add highlighting and tooltips to mmd-citekeys
 
@@ -41,6 +45,7 @@
       t)))
 
 (defun gr/mmd-citation-fontify (key beg end)
+  "Fontify mmd-citation KEY, from BEG to END."
   (if (member key (hash-table-keys (citar-get-entries)))
       (add-text-properties beg end
                            '(font-lock-face font-lock-keyword-face
@@ -92,7 +97,7 @@
 
 ;;;###autoload
 (defun mmd-tooltip-toggle ()
-  "Toggle 'mmd-tooltip'."
+  "Toggle `mmd-tooltip'."
   (interactive)
   (if (bound-and-true-p mmd-tooltip-enable)
       (progn
@@ -104,39 +109,41 @@
 
 ;;; citar integration
 
-(defvar gr/last-mmd-citation nil)
+(defvar gr/last-mmd-citation-key nil)
+(defvar-local gr/mmd-citation-use nil)
 
 ;;;###autoload
 (defun gr/format-mmd-citation (key)
-  "Format BibTeX KEY in mmd format, with option to include pages."
-  (if current-prefix-arg
-      (insert gr/last-mmd-citation)
-    (let* ((pages (unless (looking-back "]" (- (point) 1))
-                    (read-from-minibuffer "Pages: ")))
-           (mmd (format "[#%s]" key)))
-      (if (or (not pages)
-              (string= "" pages))
-          (insert mmd)
-        (insert (format "[%s]" pages) mmd))
-      (setq gr/last-mmd-citation mmd)
-      (kill-new mmd))))
-
-(defvar-local gr/mmd-citation-use nil)
+  "Return BibTeX KEY in mmd format, with option to include pages."
+  (let* ((pages (unless (looking-back "]" (- (point) 1))
+                  (read-from-minibuffer "Pages: ")))
+         (mmd (format "[#%s]" key))
+         (cite))
+    (if (or (not pages)
+            (string= "" pages))
+        (setq cite mmd)
+      (setq cite (concat (format "[%s]" pages) mmd)))
+    (kill-new mmd)
+    cite))
 
 ;;;###autoload
 (defun gr/citar-insert-citation ()
   "Insert cite-key, format depending on context.
-When in zk file, mmd format; when org-mode, org-cite."
+When in zk file, mmd format; when `org-mode', org-cite."
   (interactive)
-  (let ((key (citar-select-ref)))
+  (let ((key (if (and gr/last-mmd-citation-key
+                      current-prefix-arg)
+                 gr/last-mmd-citation-key
+               (citar-select-ref))))
     (if (or (zk-file-p)
             (file-in-directory-p buffer-file-name
                                  zk-desktop-directory)
             gr/mmd-citation-use)
-        (gr/format-mmd-citation key)
+        (insert (gr/format-mmd-citation key))
       (condition-case nil
           (citar-insert-citation (list key))
-        (error (gr/format-mmd-citation key))))))
+        (error (gr/format-mmd-citation key))))
+    (setq gr/last-mmd-citation-key key)))
 
 ;;; link-hint integration
 
@@ -149,7 +156,7 @@ When in zk file, mmd format; when org-mode, org-cite."
   (link-hint--next-regexp gr/mmd-citation-regexp bound))
 
 (defun link-hint--open-mmd-citation ()
-  "Call 'citar-open' on mmd-citation key at point."
+  "Call `citar-open' on mmd-citation key at point."
   (let* ((key (when (thing-at-point-looking-at "[#|\\[]")
                 (progn
                   (forward-char 2)
