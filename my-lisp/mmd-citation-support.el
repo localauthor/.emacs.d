@@ -218,18 +218,21 @@ Collects mmd-citation keys from current buffer."
   (unless citar-citeproc-csl-style
     (citar-citeproc-select-csl-style))
   (if-let ((keys (gr/list-buffer-mmd-citations)))
-      (let* ((proc (citeproc-create (concat citar-citeproc-csl-styles-dir "/" citar-citeproc-csl-style)
+      (let* ((heading (ignore-errors (org-find-olp '("Bibliography") 'this-buffer)))
+             (proc (citeproc-create (concat citar-citeproc-csl-styles-dir "/" citar-citeproc-csl-style)
                                     (citeproc-itemgetter-from-bibtex citar-bibliography)
                                     (citeproc-locale-getter-from-dir org-cite-csl-locales-dir)
                                     "en-US"))
              (rendered-citations (progn
                                    (citeproc-add-uncited keys proc)
                                    (citeproc-render-bib proc 'plain))))
-        (goto-char (point-max))
-        (insert (concat "\n* Bibliography\n\n" (car rendered-citations)))
-        (when
-            (derived-mode-p 'org-mode)
-          (org-find-olp '("Bibliography") 'this-buffer)))
+        (if heading
+            (progn
+              (org-goto-marker-or-bmk heading)
+              (org-cut-subtree))
+          (goto-char (point-max)))
+        (insert (concat "\n* Bibliography\n\n" (car rendered-citations) "\n\n"))
+        (org-previous-visible-heading 1))
     (error "No citations")))
 
 ;;; convert mmd-citations to pandoc or org-mode
