@@ -1567,61 +1567,85 @@ following the key as group 3."
 
 ;; note: dictionaries are in ~/.stardic/dic
 
-
 ;;;; jinx
 
 (use-package jinx
+  :disabled
   :straight (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
   :defer 1
   :bind (([remap ispell-word] . #'jinx-correct)))
 
 
-;;;; autocorrect with abbrev
+;;;; ispell
 
-;; abbreviations and corrections stored in ~/.emacs.d/abbrev_defs
+(use-package ispell
+  :defer t
+  :bind
+  ([remap dabbrev-expand] . hippie-expand)
+  (:map ctl-x-map
+        ("C-i" . endless/ispell-word-then-abbrev))
+  :init
+  (setq save-abbrevs 'silently)
+  (setq-default abbrev-mode t)
+  (setenv "DICTIONARY" "en_US")
+  :commands endless/ispell-word-then-abbrev
+  :custom
+  (ispell-program-name "hunspell")
+  (ispell-dictionary "en_US")
+  :config
 
-(global-set-key [remap dabbrev-expand] 'hippie-expand)
+  (define-advice ispell-command-loop
+      (:override (miss guess word start end) gr/ispell-command-loop)
+    (let ((vertico-sort-function nil)
+          (ol (make-overlay start end)))
+      (unwind-protect
+          (progn
+            (overlay-put ol 'face 'highlight)
+            (push-mark start)
+            (completing-read (format "Replace \"%s\" with: " word) miss nil nil nil nil word))
+        (delete-overlay ol))))
 
-(define-key ctl-x-map "\C-i"
-            #'endless/ispell-word-then-abbrev)
+  ;; abbreviations and corrections stored in ~/.emacs.d/abbrev_defs
 
-(defun endless/simple-get-word ()
-  (car-safe (save-excursion (ispell-get-word nil))))
+  (defun endless/simple-get-word ()
+    (car-safe (save-excursion (ispell-get-word nil "[-'.@]"))))
 
-(defun endless/ispell-word-then-abbrev (p)
-  "Call `ispell-word', then create an abbrev for it.
-With prefix P, create local abbrev. Otherwise it will be global.
-If there's nothing wrong with the word at point, keep looking for
-a typo until the beginning of buffer. You can skip typos you
-don't want to fix with `SPC', and you can abort completely with
-`C-g'."
-  (interactive "P")
-  (let (bef aft)
-    (save-excursion
-      (while (if (setq bef (endless/simple-get-word))
-                 ;; Word was corrected or used quit.
-                 (if (ispell-word nil 'quiet)
-                     nil ; End the loop.
-                   ;; Also end if we reach `bob'.
-                   (not (bobp)))
-               ;; If there's no word at point, keep looking
-               ;; until `bob'.
-               (not (bobp)))
-        (backward-word)
-        (backward-char))
-      (setq aft (endless/simple-get-word)))
-    (if (and aft bef (not (equal aft bef)))
-        (let ((aft (downcase aft))
-              (bef (downcase bef)))
-          (define-abbrev
-            (if p local-abbrev-table global-abbrev-table)
-            bef aft)
-          (message "\"%s\" now expands to \"%s\" %sally"
-                   bef aft (if p "loc" "glob")))
-      (user-error "No typo at or before point"))))
-
-(setq save-abbrevs 'silently)
-(setq-default abbrev-mode t)
+  (defun endless/ispell-word-then-abbrev (p)
+    "Call `ispell-word', then create an abbrev for it.
+Finds first incorrect word before point, up to the beginning of
+buffer. Adds replacement, from list or input, to global abbrev.
+With prefix P, create local abbrev. Press `RET' with no input to
+add the word to `ispell-personal-dictionary'. Abort with `C-g'."
+    (interactive "P")
+    (let (bef aft)
+      (save-excursion
+        (while (if (setq bef (endless/simple-get-word))
+                   ;; Word was corrected or used quit.
+                   (if (ispell-word nil 'quiet)
+                       nil ; End the loop.
+                     ;; Also end if we reach `bob'.
+                     (not (bobp)))
+                 ;; If there's no word at point, keep looking
+                 ;; until `bob'.
+                 (not (bobp)))
+          (unless (backward-word)
+            (user-error "No typo at or before point"))
+          (backward-char))
+        (setq aft (endless/simple-get-word)))
+      (cond ((and aft bef (equal aft bef))
+             (progn
+               (ispell-send-string (concat "*" aft "\n"))
+               (setq ispell-pdict-modified-p '(t))
+               (ispell-pdict-save)))
+            ((and aft bef (not (equal aft bef)))
+             (let ((aft (downcase aft))
+                   (bef (downcase bef)))
+               (define-abbrev
+                 (if p local-abbrev-table global-abbrev-table)
+                 bef aft)
+               (message "\"%s\" now expands to \"%s\" %sally"
+                        bef aft (if p "loc" "glob")))))))
+  )
 
 ;;;; org-reveal
 
