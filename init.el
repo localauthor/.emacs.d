@@ -49,9 +49,6 @@
 
 (setq mu4e-mu-binary "/usr/local/bin/mu")
 
-(setq ignored-local-variable-values
-      '((gr/mmd-citation-use . t)))
-
 (setq safe-local-variable-values
       '((eval . (ignore-errors (when (derived-mode-p 'dired-mode)
                                  (setq-local truncate-lines t)
@@ -67,7 +64,7 @@
         (dired-omit-size-limit)
         (org-confirm-babel-evaluate)
         (zk-link-and-title-format . "+%t [[%i]]+")
-        (eval gr/mmd-citation-use)
+        (gr/mmd-citation-use . t)
         (eval progn
               (pp-buffer)
               (indent-buffer))
@@ -126,6 +123,11 @@
   ("C-}" . tab-bar-switch-to-next-tab)
   ("M-s-n" . gr/tab-to-frame)
   :config
+
+  (defun tab-bar-disable-in-frame ()
+    (when tab-bar-mode
+      (toggle-frame-tab-bar)))
+
   (defun gr/tab-to-frame ()
     "Open current tab in new frame."
     (interactive)
@@ -236,7 +238,6 @@
 (when (eq system-type 'darwin)
   (setq mac-right-command-modifier 'control))
 
-
 ;; Global Cursor Bindings -- Mimic MacOS Behavior (eg, as in TextEdit)
 ;; Binds Command-<left/right arrow> TO MOVE CURSOR TO BEG/END OF LINE
 (bind-keys
@@ -344,8 +345,7 @@
             "\\|") "\\)")
          (display-buffer-at-bottom)
          (window-height . 0.38))
-        )
-      )
+        ))
 
 (defun gr/select-buffer-at-bottom (buffer alist)
   "Display buffer at bottom and select it"
@@ -358,15 +358,6 @@
 (defun gr/select-buffer-in-direction (buffer alist)
   "Display buffer in direction specified by ALIST and select it."
   (select-window (display-buffer-in-direction buffer alist)))
-
-(defvar +occur-grep-modes-list '(occur-mode
-                                 grep-mode
-                                 xref--xref-buffer-mode
-                                 ivy-occur-grep-mode
-                                 ivy-occur-mode
-                                 locate-mode
-                                 rg-mode)
-  "List of major-modes used in occur-type buffers")
 
 ;; the following function is being redefined to allow my custom
 ;; display-buffer-alist to work as expected on org buffers,
@@ -390,61 +381,36 @@
 (bind-keys :map global-map
            :prefix-map gr-map
            :prefix "C-."
-
            ("C-." . avy-goto-char-timer)
-
            ("/" . switch-to-minibuffer-window)
            ("C-/" . exit-minibuffer)
-
            ("n" . gr/daily-notes)
-
            ("o" . link-hint-aw-select)
            ("O" . link-hint-other-tab)
-
            ("i" . gr/open-init-file)
-
            ("C-t" . gr/open-tasks-file)
-
            ("T" . gr/toggle-theme)
-
            ("f" . gr/open-fragments-file)
            ("C-f" . gr/open-fragments-file-other-frame)
-
            ("m" . gr/open-mu4e)
            ("M" . mu4e)
-
            ("a" . gr/org-agenda)
            ("c" . gr/calfw-open-org-calendar)
-
            ("b" . consult-bookmark)
-
            ("g" . eww-duckduckgo)
-
            ("j" . gr/org-journal-new-entry)
-
-           ("e" . gr/elfeed-open-new-window)
-           ("C-e" . gr/elfeed-open)
-
+           ("e" . ebib-open)
+           ;; ("e" . gr/elfeed-open-new-window)
+           ;; ("C-e" . gr/elfeed-open)
            ;;("W" . gr/word-count-subtree)
            ("W" . org-wc-display)
-
            ("D" . gr/lookup-word-at-point)
            ("d" . sdcv-search)
-
            ("L" . toggle-truncate-lines)
-
            ("t" . google-translate-smooth-translate)
-
            ("s" . hydra-mac-speak/body)
-
            ("P" . password-store-copy)
            )
-
-;;;;; C-s map
-
-(bind-keys :map global-map
-           ("C-s-/" . gr/citar-insert-citation))
-
 
 ;;;; define-repeat-map
 
@@ -507,10 +473,6 @@
   (link-hint-preview-mode-hook . tab-bar-disable-in-frame)
   (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
   )
-
-(defun tab-bar-disable-in-frame ()
-  (when tab-bar-mode
-    (toggle-frame-tab-bar)))
 
 ;;;; recentf
 
@@ -577,12 +539,15 @@
             ("v" . "verse")
             ("el" . "src emacs-lisp")
             ("C" . "center"))))
-  ;; :hook
-  ;; (org-mode-hook . variable-pitch-mode)
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
   (add-to-list 'org-file-apps '("\\.docx\\'" . default) 'append)
+
+  :custom-face
+  (org-drawer ((t (:height .8))))
+  (org-special-keyword ((t (:height .8))))
+  (org-hide ((t (:foreground "white"))))
 
   :custom
   (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
@@ -679,7 +644,6 @@
   (org-journal-file-format "journal-%Y-%m.org")
   (org-journal-find-file 'find-file))
 
-
 ;;;; org-contrib
 
 (use-package org-contrib
@@ -724,7 +688,6 @@ parent."
 
   )
 
-
 ;;; Completion
 
 ;;;; vertico
@@ -758,7 +721,6 @@ parent."
 
 ;; Enable recursive minibuffers
 (setq enable-recursive-minibuffers t)
-
 
 ;;;; embark
 
@@ -861,7 +823,6 @@ there, otherwise you are prompted for a message buffer."
     "Save the absolute path to FILE in the kill ring."
     (interactive "FFile: ")
     (kill-new (abbreviate-file-name (expand-file-name file))))
-
 
   ;; embark buffer actions
 
@@ -1071,7 +1032,6 @@ That is, remove a non kept dired from the recent list."
 (add-hook 'dired-after-readin-hook 'recentd-track-opened-file)
 (add-hook 'kill-buffer-hook 'recentd-track-closed-file)
 
-
 ;;;; marginalia
 
 (use-package marginalia
@@ -1080,8 +1040,7 @@ That is, remove a non kept dired from the recent list."
   (:map minibuffer-local-map
         ("M-A" . marginalia-cycle))
   :init
-  (marginalia-mode)
-  )
+  (marginalia-mode))
 
 ;;;; orderless
 
@@ -1120,8 +1079,7 @@ parses its input."
   :config
   (savehist-mode 1)
   (setq savehist-additional-variables
-        '(citar-history search-ring regexp-search-ring))
-  )
+        '(citar-history search-ring regexp-search-ring)))
 
 ;;;; corfu / cape
 
@@ -1213,7 +1171,6 @@ parses its input."
   ;; (global-tempel-abbrev-mode)
   )
 
-
 ;;; Citation / Bibliography
 ;;;; citar
 
@@ -1241,7 +1198,6 @@ parses its input."
   (citar-file-open-function 'citar-file-open-external)
   (citar-file-additional-files-separator " ")
   (citar-open-prompt t)
-
   (citar-format-reference-function 'citar-citeproc-format-reference)
   (citar-display-transform-functions nil)
   (citar-select-multiple t)
@@ -1305,7 +1261,6 @@ following the key as group 3."
   :config
   (citar-embark-mode))
 
-
 ;;;; org-cite
 
 (use-package oc
@@ -1346,8 +1301,7 @@ following the key as group 3."
         ("z" . nil)
         ("s" . ebib-filter-any)
         ("O" . ebib-filters-apply-filter)
-        ("s-s" . ebib-save-curent-database)
-        )
+        ("s-s" . ebib-save-curent-database))
   (:map ebib-entry-mode-map
         ("C-h" . (lambda ()
                    (interactive)
@@ -1428,12 +1382,10 @@ following the key as group 3."
   :defer 1
   :config
   (pdf-drop-mode)
-  (setq pdf-drop-search-hook #'my/pdf-process)
-  )
+  (setq pdf-drop-search-hook #'my/pdf-process))
 
 (defun my/pdf-process (file doi)
   (ebib-zotero-import-identifier (cdr doi) file))
-
 
 ;;;; biblio / sci-hub
 
@@ -1499,19 +1451,6 @@ following the key as group 3."
   :after (ebib biblio)
   :bind (:map biblio-selection-mode-map
               ("e" . ebib-biblio-selection-import)))
-
-;;;; oc-csl-activate
-
-(use-package oc-csl-activate
-  :disabled
-  :straight (oc-csl-activate :host github :repo "andras-simonyi/org-cite-csl-activate")
-  :after citeproc
-  :config
-  ;; not quite ready for primetime
-  ;; :hook (org-mode-hook . (lambda ()
-  ;; (cursor-sensor-mode 1)
-  ;; (org-cite-csl-activate-render-all)))
-  )
 
 ;;;; mmd-citation-support
 
@@ -1829,7 +1768,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
       nil)
     (browse-url "http://localhost:1313/")))
 
-
 ;;;; org-wc
 
 (use-package org-wc
@@ -1838,11 +1776,9 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 ;; org-wc-display is useful
 
-
 ;;;; emacs-benchmark
 
 (use-package elisp-benchmarks :defer t)
-
 
 ;;; my-lisp
 
@@ -1886,10 +1822,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (diff-refine-added ((t (:background "yellow" :foreground "red"))))
   :custom
   (magit-diff-refine-hunk t))
-
-;; (setq-default mode-line-format
-;;               (delete '(vc-mode vc-mode) mode-line-format))
-
 
 ;;;; esup
 
@@ -2012,7 +1944,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;; to allow --group-directories-first to work on osx
 (setq insert-directory-program "/usr/local/bin/gls" dired-use-ls-dired t)
 
-
 ;;;; avy
 
 (use-package avy
@@ -2122,7 +2053,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;   (forward-word)
 ;;   )
 
-
 ;;;; helpful
 
 (use-package helpful
@@ -2180,8 +2110,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :config
   (setq shr-inhibit-images nil)
   (setq eww-search-prefix "https://html.duckduckgo.com/html/?q=")
-  (setq eww-download-directory (expand-file-name "~/Downloads"))
-  )
+  (setq eww-download-directory (expand-file-name "~/Downloads")))
 
 (use-package prot-eww
   ;;located in ~/.emacs.d/lisp/prot-eww.el
@@ -2351,8 +2280,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :config
   (ace-window-posframe-mode 1)
   (setq aw-dispatch-alist
-        '(
-          (?b aw-switch-buffer-in-window "Select Buffer in Target")
+        '((?b aw-switch-buffer-in-window "Select Buffer in Target")
           (?w aw-swap-window "Swap Current and Target")
           (?m aw-copy-window "Move Current to Target")
           (?2 aw-split-window-vert "Split Vert Window")

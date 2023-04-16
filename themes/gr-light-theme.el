@@ -82,6 +82,8 @@
 
 ;;;; org-mode
 
+   `(org-drawer ((,c (:foreground "gray60" :height .8))))
+   `(org-special-keyword ((,c (:foreground "gray50" :height .8))))
    `(org-hide ((,c (:foreground "white"))))
    `(org-meta-line ((,c (:inherit fixed-pitch :foreground "Firebrick"))))
    `(org-block ((,c (:inherit fixed-pitch))))

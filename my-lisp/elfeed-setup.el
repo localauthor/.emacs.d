@@ -18,6 +18,7 @@
         ;;("p" . (lambda () (interactive) (previous-line) (call-interactively 'gr/elfeed-search-show-entry)))
         ("b" . (lambda () (interactive) (call-interactively 'gr/elfeed-search-show-entry) (gr/elfeed-show-xwidget)))
         ("j" . hydra-elfeed/body))
+
   :config
   (setq elfeed-db-directory "~/Dropbox/.elfeeddb")
   (setq elfeed-search-filter "+unread +AmLit")

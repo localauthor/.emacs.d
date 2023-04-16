@@ -1,8 +1,5 @@
 ;;; gr-functions.el --- Miscellaneous helpful functions     -*- lexical-binding: t; -*-
 
-
-
-
 (defhydra gr/symbol-menu (:hint nil :color blue)
   "
 Symbols and Diacritics

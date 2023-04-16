@@ -138,6 +138,7 @@ Optional ARG."
   :straight nil
   :load-path "my-lisp/zk"
   :after zk
+  :commands zk-consult-select-file
   :defer 1
   :custom
   (zk-select-file-function 'zk-consult-select-file))
