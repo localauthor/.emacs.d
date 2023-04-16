@@ -742,15 +742,14 @@ parent."
 
 ;; Add prompt indicator to `completing-read-multiple'.
 
-(defun crm-indicator (args)
+(define-advice completing-read-multile
+    (:filter-args (args) crm-indicator)
   (cons (format "[CRM%s] %s"
                 (replace-regexp-in-string
                  "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
                  crm-separator)
                 (car args))
         (cdr args)))
-
-(advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
 ;; Do not allow the cursor in the minibuffer prompt
 (setq minibuffer-prompt-properties
@@ -1002,14 +1001,13 @@ there, otherwise you are prompted for a message buffer."
     :parent embark-general-map
     "r" #'my/consult-outline-narrow-heading)
 
-  (defun with-embark-consult-outline-map (fn &rest args)
+  (define-advice consult-outline
+      (:around (fn &rest args) with-embark-consult-outline-map)
     "Let-bind `embark-keymap-alist' to include `consult-location'."
     (let ((embark-keymap-alist
            (cons '(consult-location . embark-consult-outline-map)
                  embark-keymap-alist)))
       (apply fn args)))
-
-  (advice-add 'consult-outline :around #'with-embark-consult-outline-map)
 
   (defun gr/consult-ripgrep-select-dir ()
     (interactive)
@@ -1272,7 +1270,9 @@ parses its input."
 
   ;; overrides
   ;; allows for finding files with citekeys anywhere in the file name
-  (defun gr/citar-file--make-filename-regexp (keys extensions &optional additional-sep)
+
+  (define-advice citar-file--make-filename-regexp
+      (:override (keys extensions &optional additional-sep) gr/citar-file--make-filename-regexp)
     "Regexp matching file names starting with KEYS and ending with EXTENSIONS.
 When ADDITIONAL-SEP is non-nil, it should be a regular expression
 that separates the key from optional additional text that follows
@@ -1288,8 +1288,6 @@ following the key as group 3."
      "\\."
      (if extensions (regexp-opt extensions "\\(?2:") "\\(?2:[^.]*\\)")
      "\\'"))
-
-  (advice-add 'citar-file--make-filename-regexp :override 'gr/citar-file--make-filename-regexp)
 
   )
 
@@ -1375,9 +1373,8 @@ following the key as group 3."
                         ("Title" 50 t)))
   :config
 
-  (advice-add #'ebib :after #'ebib-truncate-lines)
-
-  (defun ebib-truncate-lines (&rest _)
+  (define-advice ebib
+      (:after (&rest _) ebib-truncate-lines)
     (ebib--pop-to-buffer (ebib--buffer 'index))
     (let ((inhibit-message t))
       (unless (bound-and-true-p truncate-lines)
@@ -1709,17 +1706,19 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
           (inhibit-same-window . t)
           (window-height . 0.2)))
 
-  ;; funtion to save after adding comment
-  (defun bjm/save-buffer-no-args ()
-    "Save buffer ignoring arguments"
-    (save-buffer))
-
   ;; set RET to save annotations
   (with-eval-after-load "pdf-annot"
-    (define-key pdf-annot-edit-contents-minor-mode-map (kbd "RET") 'pdf-annot-edit-contents-commit)
-    (define-key pdf-annot-edit-contents-minor-mode-map (kbd "S-RET") 'newline)
 
-    (advice-add 'pdf-annot-edit-contents-commit :after 'bjm/save-buffer-no-args))
+    (define-key pdf-annot-edit-contents-minor-mode-map (kbd "RET") 'pdf-annot-edit-contents-commit)
+
+    (define-key pdf-annot-edit-contents-minor-mode-map (kbd "S-RET") 'newline)
+    ;; funtion to save after adding comment
+
+    (define-advice pdf-annot-edit-contents-commit
+        (:after nil bjm/save-buffer-no-args)
+      "Save buffer ignoring arguments"
+      (save-buffer)))
+
   )
 
 ;;;; LaTeX / AUCTeX
@@ -2348,15 +2347,14 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
           (?? aw-show-dispatch-help)))
 
-  (defun aw--consult-buffer ()
+  (define-advice aw--switch-buffer
+      (:override nil aw--consult-buffer)
     (cond ((bound-and-true-p ivy-mode)
            (ivy-switch-buffer))
           ((bound-and-true-p ido-mode)
            (ido-switch-buffer))
           (t
            (call-interactively 'consult-buffer))))
-
-  (advice-add #'aw--switch-buffer :override #'aw--consult-buffer)
 
   )
 
