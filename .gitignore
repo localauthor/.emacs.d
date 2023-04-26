@@ -33,6 +33,7 @@ org-clock-save.el
 prot-eww-visited-history
 custom.el
 /my-lisp/zk/
+/my-lisp/init-lock/
 /eww-bookmarks
 /my-lisp/zk-luhmann/
 /.emacs.desktop*

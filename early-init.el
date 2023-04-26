@@ -21,7 +21,9 @@
 (setq user-emacs-directory "~/.dotfiles/.emacs.d/")
 
 (pixel-scroll-precision-mode)
-(setq set-mark-command-repeat-pop nil)
+
+(setq set-mark-command-repeat-pop t)
+
 (prefer-coding-system 'utf-8)
 (setq-default buffer-file-coding-system 'utf-8
               default-buffer-file-coding-system 'utf-8
@@ -34,7 +36,6 @@
 (set-default-coding-systems 'utf-8)
 
 (setq dictionary-server "dict.org")
-
 
 (setq auto-save-default nil) ;; stop creating #autosave# files
 (setq create-lockfiles nil)  ;; stop creating .# files
@@ -60,7 +61,7 @@
 (global-auto-revert-mode t)
 
 (delete-selection-mode 1)
-(global-visual-line-mode 1)
+;;(global-visual-line-mode 1)
 (global-hl-line-mode 0)
 
 (winner-mode 1)
@@ -69,15 +70,14 @@
 
 (setq minibuffer-follows-selected-frame nil)
 
-(setq find-library-include-other-files nil)nil
+(setq find-library-include-other-files nil)
 
-(setq-default indent-tabs-mode nil)   ;; use spaces for tabs
+(setq-default indent-tabs-mode nil) ;; use spaces for tabs
 (setq sentence-end-double-space nil)
 
 (setq-default fill-column 77)
 
-(setq search-default-mode nil) ;; use literal strings in isearch, not regexps
-
+(setq search-default-mode t) ;; use literal strings in isearch, not regexps
 (setq isearch-lazy-count t)
 
 (setq ad-redefinition-action 'accept)
@@ -87,7 +87,6 @@
 (setq ring-bell-function 'ignore)
 
 (setq vc-follow-symlinks t)
-(setq show-trailing-whitespace t)
 
 (add-to-list 'completion-ignored-extensions ".DS_Store")
 

@@ -47,35 +47,16 @@
 
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
-(setq mu4e-mu-binary "/usr/local/bin/mu")
-
 (setq safe-local-variable-values
-      '((eval . (ignore-errors (when (derived-mode-p 'dired-mode)
-                                 (setq-local truncate-lines t)
-                                 (variable-pitch-mode 0))))
-        (eval . (lambda () (variable-pitch-mode 0)))
-        (eval . (ignore-errors (when (zk-file-p)
-                                 (face-remap-add-relative 'default
-                                                          :family "Consolas"
-                                                          :height 130))))
-        (eval gr/daily-notes-new-headline)
-        (eval setq-local zk-directory default-directory)
-        (checkdoc-package-keywords-flag)
+      '((eval gr/daily-notes-new-headline)
         (dired-omit-size-limit)
-        (org-confirm-babel-evaluate)
         (zk-link-and-title-format . "+%t [[%i]]+")
         (gr/mmd-citation-use . t)
-        (eval progn
-              (pp-buffer)
-              (indent-buffer))
-        (eval ignore-errors
-              (when
-                  (zk-file-p)
-                (face-remap-add-relative 'default :family "Monospace" :height 130)))
-        (eval face-remap-add-relative 'default :family "Monospace" :height 130)
-        (eval remove-from-invisibility-spec '(org-link))))
+        (eval . (text-scale-adjust 10))
+        ))
 
 ;;; Basics
+
 ;;;; Emacs
 
 (add-to-list 'load-path (expand-file-name (concat user-emacs-directory "lisp")))
@@ -85,8 +66,6 @@
 (setq elisp-flymake-byte-compile-load-path load-path)
 
 (require 'straight-fetch-report)
-
-(require 'priv-variables)
 
 (use-package exec-path-from-shell
   :defer 1
@@ -110,7 +89,16 @@
   (:map help-mode-map
         ("o" . link-hint-open-link))
   ;; rest of config in early-init.el
-  )
+  :hook
+  (prog-mode-hook . (lambda () (setq show-trailing-whitespace t)))
+  (prog-mode-hook . visual-line-mode)
+  (text-mode-hook . visual-line-mode))
+
+(with-current-buffer "*Messages*"
+  (visual-line-mode))
+
+(with-current-buffer "*scratch*"
+  (visual-line-mode))
 
 (use-package tab-bar
   ;;:config
@@ -122,7 +110,19 @@
   ("C-{" . tab-bar-switch-to-prev-tab)
   ("C-}" . tab-bar-switch-to-next-tab)
   ("M-s-n" . gr/tab-to-frame)
+  :custom-face
+  (tab-bar ((t (:font "Menlo" :height .75))))
+  (tab-bar-tab ((t (:background "grey60" :box (:line-width 1 :style released-button)))))
+  (tab-bar-tab-inactive ((t (:background "lightgrey" :box (:line-width 1 :style pressed-button)))))
   :config
+  (setq
+   tab-bar-show t
+   tab-bar-close-button-show nil
+   tab-bar-new-button-show nil
+   tab-bar-new-tab-to 'rightmost
+   tab-bar-new-tab-choice "*scratch*"
+   tab-bar-auto-width nil
+   tab-bar-tab-name-function 'tab-bar-tab-name-truncated)
 
   (defun tab-bar-disable-in-frame ()
     (when tab-bar-mode
@@ -136,28 +136,7 @@
         (tab-close))
       (gr/make-frame)
       (switch-to-buffer buffer)))
-
-  (defun gr/tab-bar-face-setup ()
-    (set-face-attribute
-     'tab-bar nil
-     :font "Menlo" :height .7)
-    (set-face-attribute
-     'tab-bar-tab nil
-     :background "grey75"
-     :box '(:line-width 1 :style released-button))
-    (set-face-attribute
-     'tab-bar-tab-inactive nil
-     :background "lightgrey"
-     :box '(:line-width 1 :style pressed-button)))
-  (setq tab-bar-show t
-        tab-bar-close-button-show nil
-        tab-bar-new-button-show nil
-        tab-bar-new-tab-to 'rightmost
-        tab-bar-new-tab-choice "*scratch*"
-        tab-bar-tab-name-function 'tab-bar-tab-name-truncated)
-  (gr/tab-bar-face-setup)
-  :hook
-  (server-after-make-frame-hook . gr/tab-bar-face-setup))
+  )
 
 (use-package hydra :defer 1)
 
@@ -322,6 +301,9 @@
          (display-buffer-at-bottom)
          (window-height . 0.5))
 
+        ("*Async Shell Command*"
+         (display-buffer-no-window))
+
         ("\\*elfeed-entry"
          (display-buffer-at-bottom)
          (window-height . 0.6))
@@ -404,12 +386,13 @@
            ;; ("C-e" . gr/elfeed-open)
            ;;("W" . gr/word-count-subtree)
            ("W" . org-wc-display)
+           ("w" . prot-eww-map)
            ("D" . gr/lookup-word-at-point)
            ("d" . sdcv-search)
            ("L" . toggle-truncate-lines)
            ("t" . google-translate-smooth-translate)
            ("s" . hydra-mac-speak/body)
-           ("P" . password-store-copy)
+           ("p" . password-store-copy)
            )
 
 ;;;; define-repeat-map
@@ -442,6 +425,8 @@
 ;;;; init-lock
 
 (use-package init-lock
+  :load-path "my-lisp/init-lock"
+  :defer t
   :straight nil
   :custom
   (init-lock-files '("~/.dotfiles/.emacs.d/init.el")))
@@ -722,6 +707,8 @@ parent."
 ;; Enable recursive minibuffers
 (setq enable-recursive-minibuffers t)
 
+(minibuffer-depth-indicate-mode 1)
+
 ;;;; embark
 
 (use-package embark
@@ -782,7 +769,6 @@ parent."
 
   ;; enable completing read prompter
   ;;(setq embark-prompter 'embark-completing-read-prompter)
-
 
   ;; from https://karthinks.com/software/fifteen-ways-to-use-embark/
   (eval-when-compile
@@ -885,9 +871,25 @@ there, otherwise you are prompted for a message buffer."
   :bind
   ;;("C-s" . consult-line)
   ("C-x b" . consult-buffer)
-  ("M-y" . consult-yank-from-kill-ring)
-  ("M-s f" . consult-find)
-  ("M-s F" . consult-locate)
+  ("M-y" . consult-yank-pop)
+  ;; C-c bindings in `mode-specific-map'
+  ("C-c M-x" . consult-mode-command)
+  ("C-c h" . consult-history)
+  ("C-c k" . consult-kmacro)
+  ("C-c i" . consult-info)
+  ([remap Info-search] . consult-info)
+  ;; M-g bindings in `goto-map'
+  ("M-g f" . consult-flymake)
+  ("M-g g" . consult-goto-line)
+  ("M-g M-g" . consult-goto-line)
+  ("M-g o" . consult-outline)
+  ("M-g m" . consult-mark)
+  ("M-g k" . consult-global-mark)
+  ("M-g i" . consult-imenu)
+  ("M-g I" . consult-imenu-multi)
+  ;; M-s bindings in `search-map'
+  ("M-s d" . consult-find)
+  ("M-s D" . consult-locate)
   ("M-s g" . consult-grep)
   ("M-s G" . consult-git-grep)
   ("M-s r" . consult-ripgrep)
@@ -1161,9 +1163,9 @@ parses its input."
     (setq-local completion-at-point-functions
                 (cons #'tempel-expand
                       completion-at-point-functions)))
-
-  (add-hook 'prog-mode-hook 'tempel-setup-capf)
-  (add-hook 'text-mode-hook 'tempel-setup-capf)
+  :hook
+  (prog-mode-hook . tempel-setup-capf)
+  (text-mode-hook . tempel-setup-capf)
 
   ;; Optionally make the Tempel templates available to Abbrev,
   ;; either locally or globally. `expand-abbrev' is bound to C-x '.
@@ -1314,6 +1316,8 @@ following the key as group 3."
         ("s-s" . ebib-save-curent-database)
         ("q" . ebib-quit-entry-buffer)
         ("k" . nil))
+  :hook
+  (ebib-entry-mode-hook . visual-line-mode)
   :custom
   (ebib-preload-bib-files gr/bibliography)
   (ebib-autogenerate-keys t)
@@ -1325,14 +1329,6 @@ following the key as group 3."
                         ("Entry Key" 15 t)
                         ;;("Year" 6 t)
                         ("Title" 50 t)))
-  :config
-
-  (define-advice ebib
-      (:after (&rest _) ebib-truncate-lines)
-    (ebib--pop-to-buffer (ebib--buffer 'index))
-    (let ((inhibit-message t))
-      (unless (bound-and-true-p truncate-lines)
-        (toggle-truncate-lines))))
   )
 
 
@@ -1506,15 +1502,6 @@ following the key as group 3."
 
 ;; note: dictionaries are in ~/.stardic/dic
 
-;;;; jinx
-
-(use-package jinx
-  :disabled
-  :straight (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
-  :defer 1
-  :bind (([remap ispell-word] . #'jinx-correct)))
-
-
 ;;;; ispell
 
 (use-package ispell
@@ -1540,7 +1527,7 @@ following the key as group 3."
       (unwind-protect
           (progn
             (overlay-put ol 'face 'highlight)
-            (push-mark start)
+            (push-mark (1- start))
             (completing-read (format "Replace \"%s\" with: " word) miss nil nil nil nil word))
         (delete-overlay ol))))
 
@@ -1839,7 +1826,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
         ("<backtab>". ibuffer-toggle-filter-group)
         ("TAB". ibuffer-toggle-filter-group))
   :hook
-  (ibuffer-hook . gr/truncate-lines)
   (ibuffer-hook . gr/ibuffer-set-filter-group)
   :custom
   (ibuffer-expert t)
@@ -1864,7 +1850,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                 '(
                   ("Article" (or (and (filename . "/Academic/*")
                                       (not (name . "magit")))))
-                  ("Autumn 2022" (or (and (filename . "/Autumn 2022/*")
+                  ("Spring 2023" (or (and (filename . "/Spring 2023/*")
                                           (not (name . "magit")))))
                   ("Writing" (or (and (filename . "/Writings/*")
                                       (not (name . "magit")))))
@@ -1887,6 +1873,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                              (not (name . "^\\*scratch"))
                              (not (name . "init.el"))))
                   ("dired" (mode . dired-mode))
+                  ("eww" (mode . eww-mode))
                   ("helpful" (mode . helpful-mode))
                   ("***" (or (name . "^\\*scratch")
                              (name . "init.el")
@@ -1895,8 +1882,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                              (name . "*Calculator*")
                              (name . "org_archive")
                              (name . "gcal")
-                             (name . ".persp")
-                             ))
+                             (name . ".persp")))
                   )))))
   )
 
@@ -1924,7 +1910,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :hook
   (dired-mode-hook . dired-omit-mode)
   (dired-mode-hook . dired-hide-details-mode)
-  (dired-omit-mode-hook . force-truncate-lines)
+  (dired-mode-hook . force-truncate-lines)
   (dired-omit-mode-hook . (lambda ()
                             (delete "~" dired-omit-extensions))) ;; show backup files
   :custom
@@ -2069,6 +2055,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         ("o" . link-hint-open-link))
   :custom
   (helpful-max-buffers 5)
+  :hook
+  (helpful-mode-hook . visual-line-mode)
   :config
   (with-eval-after-load 'semantic/symref/grep
     (add-to-list 'semantic-symref-filepattern-alist '(helpful-mode "*.el" "*.ede" ".emacs" "_emacs")))
@@ -2118,9 +2106,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (setq prot-eww-save-visited-history t)
   (setq prot-eww-bookmark-link nil)
   (define-prefix-command 'prot-eww-map)
-  (define-key global-map (kbd "C-. w") 'prot-eww-map)
+  ;;(define-key global-map (kbd "C-. w") 'prot-eww-map)
   (setq shr-folding-mode t
-        shr-use-colors nil
+        shr-use-colors t
         shr-bullet "• ")
   :hook
   (prot-eww-history-mode-hook . hl-line-mode)
@@ -2151,7 +2139,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                     (region-beginning)
                     (region-end))
                  (thing-at-point 'word)))
-         (text (read-string "Wiki for: " word)))
+         (text (read-string "Wiki for: " nil nil word)))
     (eww (format "https://en.m.wikipedia.org/wiki/Special:Search?search=%s"
                  (url-encode-url text)))))
 
@@ -2163,7 +2151,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                     (region-beginning)
                     (region-end))
                  (thing-at-point 'word)))
-         (text (read-string "DDG for: " word)))
+         (text (read-string "DDG for: " nil nil word)))
     (eww (format "https://duckduckgo.com/?q=%s"
                  (url-encode-url text)))))
 
@@ -2179,22 +2167,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (setq browse-url-generic-program "/usr/bin/open")
 (setq browse-url-browser-function #'browse-url-default-browser)
-
-(defvar gr/open-url-browsers-list '("eww" "xwidget" "safari")
-  "Web browsers list.")
-
-(defun gr/open-url-select-browser ()
-  (interactive)
-  (let ((browser (completing-read "Select web browser to open the url: " gr/open-url-browsers-list))
-        (url (thing-at-point-url-at-point))
-        (browse-url-generic-program "open")
-        (browse-url-generic-args nil))
-    (pcase browser
-      ("eww" (eww-browse-url url t))
-      ("safari" (browse-url-generic url))
-      ("xwidget" (xwidget-webkit-browse-url url t)))))
-
-(global-set-key (kbd "C-. q") ' gr/open-url-select-browser)
 
 (use-package xwidget
   :defer t
@@ -2229,7 +2201,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :init
   (setf epg-pinentry-mode 'loopback)
 
-  ;; add embark actions for password-store
   (defvar-keymap embark-password-store-actions
     :doc "Keymap for actions for password-store."
     :parent embark-general-map
@@ -2244,18 +2215,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
   (add-to-list 'embark-keymap-alist '(password-store . embark-password-store-actions))
 
-  ;; Either add a prompt classifier or overwrite password-store--completing-read
   (add-to-list 'marginalia-prompt-categories '("Password entry" . password-store))
 
-  ;; (defun password-store--completing-read ()
-  ;;   "Read a password entry in the minibuffer, with completion."
-  ;;   (completing-read
-  ;;    "Password entry: "
-  ;;    (let ((passwords (password-store-list)))
-  ;;      (lambda (string pred action)
-  ;;        (if (eq action 'metadata)
-  ;;            '(metadata (category . password-store))
-  ;;          (complete-with-action action passwords string pred))))))
   )
 
 ;;;; ace-window
@@ -2441,9 +2402,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; accent
 
 (use-package accent
-  ;; :hook ((text-mode-hook . accent-menu-mode)
-  ;;        (org-mode-hook . accent-menu-mode)
-  ;;        (message-mode-hook . accent-menu-mode))
   :bind
   (:map gr-map
         ("l" . accent-menu))
@@ -2527,6 +2485,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; nov.el
 
+;; a little bit useless because you can do full-text search
 (use-package nov
   :defer t
   :mode ("\\.epub\\'" . nov-mode)
@@ -2550,6 +2509,12 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                    default-directory))
           (filename (file-name-nondirectory file)))
       (reveal-in-osx-finder-as dir filename))))
+
+
+;;;; gptel
+
+(use-package gptel
+  :defer t)
 
 ;;; variable resets
 
