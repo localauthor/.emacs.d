@@ -1586,30 +1586,26 @@ add the word to `ispell-personal-dictionary'. Abort with `C-g'."
                         bef aft (if p "loc" "glob")))))))
   )
 
-;;;; org-reveal
+;;; org-reveal
 
 (use-package ox-reveal
   :defer 1
   :config
-  (setq org-reveal-root (format "file://%s/.reveal.js" home-dir))
   (add-to-list 'org-export-backends 'reveal)
   :custom
   (org-reveal-hlevel 2))
 
-(defun gr/inliner-create-single-html-file ()
-  "Turn webpage into a single html file.
+(defun gr/org-reveal-export-and-inline ()
+  "Export current org buffer to standalone html file.
 Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (interactive)
-  (let* ((orig (expand-file-name (read-file-name "File: ")))
-         (origext (file-name-extension orig))
-         (newfile (concat (file-name-sans-extension orig) " 2." origext)))
-    (with-current-buffer (find-file-noselect orig)
-      (goto-char (point-min))
-      (replace-regexp "https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/moon.css"
-                      (file-relative-name "~/.reveal.js/dist/theme/moon.css")))
-    (if (equal "html" origext)
-        (async-shell-command (format "inliner '%s' > '%s'" orig newfile))
-      (error "Must select .html file"))))
+  (unless (derived-mode-p 'org-mode)
+    (error "Not an org buffer."))
+  (let ((file (file-relative-name (concat default-directory (org-export-output-file-name " 1.html"))))
+        (new (file-relative-name (concat default-directory (org-export-output-file-name ".html")))))
+    (org-export-to-file 'reveal file)
+    (async-shell-command (format "inliner '%s' > '%s'" file new))
+    (dired-jump nil new)))
 
 ;;;; pdf-tools
 
