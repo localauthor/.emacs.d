@@ -153,8 +153,8 @@ org-mode
  "#+AUTHOR: Grant Rosson" n
  "#+OPTIONS: toc:nil num:nil author:nil title:nil date:nil tags:nil" n
  "#+OPTIONS: reveal_title_slide:nil org-reveal-ignore-speaker-notes:nil" n
+ "#+REVEAL_ROOT: " (file-relative-name (substitute-in-file-name "~/.reveal.js/")) n n
  "#+cite_export: csl ~/.csl/modern-language-association.csl" n
- "#+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js" n n
  "* Reminders and Useful Things                                                 :noexport:" n n
  "- Use /relative/ file paths, not absolute. (The inliner program can't handle absolute file paths.)" n n
  "- Before exporting, set the variable org-reveal-ignore-speaker-notes to t, otherwise students can see all your notes." n n n
@@ -164,7 +164,7 @@ org-mode
  "Speaker notes here" n
  "#+end_notes" n n n
  "* Notes                                                            :noexport:" n n q n n n
- "* Bibliography" n 
+ "* Bibliography" n
  "#+print_bibliography:")
 
 
