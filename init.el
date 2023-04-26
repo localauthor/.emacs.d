@@ -2394,7 +2394,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :hook
   (nxml-mode-hook)
   (emacs-lisp-mode-hook)
-  (outline-minor-mode-hook))
+  (outline-minor-mode-hook)
+  :custom
+  ;; prevent headings from appearing with functions in consult-imenu
+  (outshine-imenu-show-headlines-p nil))
 
 ;;;; whitespace-mode
 
