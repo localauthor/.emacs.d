@@ -6,7 +6,7 @@
   :load-path "my-lisp/zk"
   :straight nil
   :defer 1
-  :after consult
+  ;;:after consult
   :mode (("\\.md$" . org-mode))
   :bind
   (:map zk-file-map
@@ -30,21 +30,12 @@
   (zk-link-and-title-format "%t [[%i]]")
   (zk-completion-at-point-format "%t [[%i]]")
   (zk-search-function #'zk-xref) ;; #'zk-consult-grep) ;; #'zk-grep ;;
-  (zk-tag-search-function #'zk-consult-grep-tag-search) ;; #'zk-grep #'zk-xref
   (zk-current-notes-function nil)
-  (zk-consult-preview-functions
-   '(zk-current-notes
-     zk-unlinked-notes))
   :config
   (zk-setup-auto-link-buttons)
   (zk-setup-embark)
   (with-eval-after-load 'embark
-    (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map))
-  (with-eval-after-load 'consult
-    (add-to-list 'consult-buffer-sources 'zk-consult-source 'append))
-  (consult-customize
-   zk-find-file zk-find-file-by-full-text-search zk-network zk-backlinks zk-links-in-note
-   :preview-key '("C-{")))
+    (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)))
 
 (defun gr/zk-new-note-header (title new-id &optional orig-id)
   "Insert header in new notes with args TITLE and NEW-ID.
@@ -135,18 +126,27 @@ Optional ARG."
 ;;;; zk-extras
 
 (use-package zk-consult
-  :straight nil
   :load-path "my-lisp/zk"
   :after zk
+  :straight nil
   :commands zk-consult-select-file
   :defer 1
   :custom
-  (zk-select-file-function 'zk-consult-select-file))
+  (zk-tag-search-function #'zk-consult-grep-tag-search) ;; #'zk-grep #'zk-xref
+  (zk-consult-preview-functions
+   '(zk-current-notes
+     zk-unlinked-notes))
+  (zk-select-file-function 'zk--select-file)
+  :config
+  (add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
+  (consult-customize
+   zk-find-file zk-find-file-by-full-text-search zk-network zk-backlinks zk-links-in-note
+   :preview-key '("C-{")))
 
 (use-package zk-citar
-  :straight nil
   :load-path "my-lisp/zk"
   :after zk
+  :straight nil
   :defer 1
   :config
   (setq citar-notes-source 'zk)
@@ -154,9 +154,9 @@ Optional ARG."
   (zk-citar-citekey-regexp "[a-z]+[0-9]\\{4\\}[a-z]?"))
 
 (use-package zk-link-hint
-  :straight nil
   :load-path "my-lisp/zk"
   :after zk
+  :straight nil
   :defer 1
   :bind
   (:map zk-file-map
@@ -177,9 +177,9 @@ Optional ARG."
 ;;;; zk hydras
 
 (use-package zk-extras
-  :straight nil
   :load-path "my-lisp/zk"
   :after zk zk-luhmann
+  :straight nil
   :bind (:map zk-index-mode-map
               ("L" . zk-lit-notes-index)))
 

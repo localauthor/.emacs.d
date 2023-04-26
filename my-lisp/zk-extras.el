@@ -285,8 +285,9 @@ Also excludes, journal, poem, Dickinson, and literature notes."
 ;;; Unlinked Notes
 
 ;;;###autoload
-(defun gr/zk--unlinked-notes-list ()
-  "Return list of IDs for notes that no notes link to."
+(defun gr/zk--unlinked-notes-list (zk-alist)
+  "Return list of IDs for notes that no notes link to.
+Takes ZK-ALIST."
   (let* ((all-link-ids (zk--grep-link-id-list))
          (all-ids (zk--id-list)))
     (remq nil (mapcar
@@ -301,8 +302,9 @@ Also excludes, journal, poem, Dickinson, and literature notes."
 (defun gr/zk-unlinked-notes ()
   "Find unlinked notes, minus ED notes."
   (interactive)
-  (let* ((ids (gr/zk--unlinked-notes-list)))
-    (if-let (notes (zk--parse-id 'file-path ids))
+  (let* ((zk-alist (zk--alist))
+         (ids (gr/zk--unlinked-notes-list zk-alist)))
+    (if-let (notes (zk--parse-id 'file-path ids zk-alist))
         (find-file (zk--select-file "Unlinked notes: " notes))
       (user-error "No unlinked notes found"))))
 
