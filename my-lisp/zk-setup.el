@@ -136,7 +136,7 @@ Optional ARG."
   (zk-consult-preview-functions
    '(zk-current-notes
      zk-unlinked-notes))
-  (zk-select-file-function 'zk--select-file)
+  (zk-select-file-function 'zk-consult-select-file)
   :config
   (add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
   (consult-customize
