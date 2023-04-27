@@ -296,8 +296,20 @@
 (setq switch-to-buffer-obey-display-actions nil)
 ;; with t, popwin-dummy buffer shows up with elfeed-entry
 
+(defun make-display-buffer-matcher-function (major-modes)
+  (lambda (buffer-name action)
+    (with-current-buffer buffer-name (apply #'derived-mode-p major-modes))))
+
+;; NOTE: windows designated as popups are controlled by popper, so these
+;; settings have no effect on them; eg zk-index, dired buffers, Messages;
+;; see 'gr/popper-select-buffer-at-bottom
+
 (setq display-buffer-alist
       `(
+        ;; (,(make-display-buffer-matcher-function (list 'dired-mode))
+        ;;  (display-buffer-at-bottom)
+        ;;  (window-height . 0.5))
+
         ("magit:"
          (display-buffer-at-bottom)
          (window-height . 0.5))
@@ -309,9 +321,13 @@
          (display-buffer-at-bottom)
          (window-height . 0.6))
 
+        ("Dictionary"
+         (display-buffer-at-bottom)
+         (window-height . 0.6))
+
         ("\\*ZK-Index\\|\\*ZK-Desktop"
          (gr/select-buffer-at-bottom)
-         (window-height . 0.4))
+         (window-height . 0.45))
 
         ("*mu4e-main*"
          (display-buffer-full-frame))
@@ -319,15 +335,15 @@
         (,(concat
            "\\*\\("
            (string-join
-            '("Completions" "Async" "Backups:" "helpful"
+            '("Completions""Backups:" "helpful"
               "CAPTURE" "Pp Eval Output" "eshell" "Backtrace"
               "Messages" "Metahelp" "Python" "Org Agenda"
               "Warnings" "Go Translate" "Google Translate"
               "Org Select" "Compile-Log" "[Hh]elp" "annotations"
-              "calfw-details" "Embark Collect" "Dictionary")
+              "calfw-details" "Embark Collect")
             "\\|") "\\)")
          (display-buffer-at-bottom)
-         (window-height . 0.38))
+         (window-height . 0.45))
         ))
 
 (defun gr/select-buffer-at-bottom (buffer alist)
@@ -1878,7 +1894,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   ("C-x d" . dired-jump)
   ;;("C-x d" . dired)
   (:map dired-mode-map
-        ("o" . link-hint-aw-select)
         ("C-x C-q" . dired-toggle-read-only))
   :hook
   (dired-mode-hook . dired-omit-mode)
@@ -1890,6 +1905,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (dired-listing-switches "-algho --group-directories-first")
   (delete-by-moving-to-trash t)
   (dired-hide-details-mode t)
+  (dired-free-space nil)
   :config
   (setq dired-omit-files "\\.DS_Store\\|\\.dropbox\\|Icon\\\015")
   (setq dired-kill-when-opening-new-dired-buffer t)
@@ -2262,14 +2278,23 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                "Embark Collect" "Google Translate" "annotations"
                "Ilist" "Backups")
              "\\|") "\\)")
+          dired-mode
           undo-tree-mode
-          helpful-mode
-          help-mode
           compilation-mode))
-  (popper-mode 1)
-  :config
-  (setq popper-display-function #'popper-select-popup-at-bottom)
-  (setq popper-display-control 'user))
+
+  (defun gr/popper-select-buffer-at-bottom (buffer &optional alist)
+    (select-window (display-buffer-at-bottom
+                    buffer
+                    (append alist
+                            '((window-height . 0.5))))))
+
+  (setq popper-display-control t)
+  (setq popper-display-function #'gr/popper-select-buffer-at-bottom)
+
+  (setq popper-echo-dispatch-keys '(?a ?s ?d ?f ?j ?k ?l))
+  (setq popper-echo-dispatch-persist nil)
+
+  (popper-mode 1))
 
 ;;;; expand-region
 
