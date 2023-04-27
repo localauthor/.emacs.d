@@ -84,6 +84,7 @@
   ("C-c e" . eval-buffer)
   ("C-x e" . eval-last-sexp)
   ("C-x E" .  kmacro-end-and-call-macro)
+  ("M-o" . other-window)
   (:map Info-mode-map
         ("o" . link-hint-open-link))
   (:map help-mode-map
@@ -678,6 +679,7 @@ parent."
 ;;;; vertico
 
 (use-package vertico
+  :straight (:files (:defaults "extensions/*"))
   :init (vertico-mode)
   :bind* (:map vertico-map
                ("C-j" . vertico-exit-input)
@@ -685,6 +687,41 @@ parent."
   :custom
   (vertico-cycle t)
   (vertico-count 7))
+
+(use-package vertico-multiform
+  :straight nil
+  :init
+  (vertico-multiform-mode)
+
+  :config
+
+  (setq vertico-multiform-commands
+        '((consult-imenu-all buffer)
+          (execute-extended-command unobtrusive)
+          (consult-dir buffer)))
+
+  (setq vertico-multiform-categories
+        '((file buffer
+                (vertico-sort-function . sort-directories-first-alpha))
+          (zk-file buffer)
+          (bookmark buffer)
+          (consult-grep buffer)))
+
+  (defun sort-directories-first-alpha (files)
+    (setq files (vertico-sort-alpha files))
+    (nconc (seq-filter (lambda (x) (string-suffix-p "/" x)) files)
+           (seq-remove (lambda (x) (string-suffix-p "/" x)) files)))
+
+  (defun gr/vertico-display-action (buffer alist)
+    (display-buffer-reuse-window
+     buffer
+     (append alist '((window-height . 0.3)))))
+
+  (setq vertico-buffer-display-action '(display-buffer-in-side-window
+                                        (window-height . 0.45)
+                                        (side . bottom)))
+
+  )
 
 (setq crm-separator ",")
 
