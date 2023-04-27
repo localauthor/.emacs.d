@@ -947,29 +947,21 @@ there, otherwise you are prompted for a message buffer."
   (consult-fontify-preserve nil)
   (consult-project-function nil)
   (consult-async-split-style 'semicolon)
+  (consult-preview-key "C-{")
 
   :config
 
-  ;; Set consult-preview-key for certain functions
-  (consult-customize
-   consult-git-grep consult-grep consult-global-mark consult-ripgrep
-   consult-bookmark consult--source-buffer consult-recent-file consult-xref
-   consult--source-bookmark consult-buffer
-   :preview-key '("C-{"
-                  :debounce 1.5 any))
+  ;; consult-preview settings
 
-  (setq consult-preview-key 'any)
+  ;; (consult-customize
+  ;;  consult-git-grep consult-grep consult-global-mark consult-ripgrep
+  ;;  consult-bookmark consult--source-buffer consult-recent-file consult-xref
+  ;;  consult--source-bookmark consult-buffer
+  ;;  :preview-key '("C-{"
+  ;;                 :debounce 1.5 any))
 
-  ;;Combine `consult-imenu' and `consult-imenu-multi'
-
-  (defun consult-imenu-all (&optional arg)
-    "Call `consult-imenu'. With prefix-command ARG, call
-    `consult-imenu-multi'."
-    (interactive "P")
-    (if arg (consult-imenu-multi) (consult-imenu)))
-  ;;makes C-s and C-r search forward and backward in consult-line
+  ;;make C-s and C-r search forward and backward in consult-line
   ;;changed to make C-s call previous search term
-
   (defvar my-consult-line-map
     (let ((map (make-sparse-keymap)))
       (define-key map "\C-s" #'previous-history-element)
@@ -977,37 +969,6 @@ there, otherwise you are prompted for a message buffer."
       ;;(define-key map "\C-r" #'previous-line)
       map))
   (consult-customize consult-line :keymap my-consult-line-map)
-
-  ;; manual preview for non-Consult commands using Embark
-
-  (define-key minibuffer-local-map (kbd "M-[") #'my-embark-preview)
-
-  (defun my-embark-preview ()
-    (interactive)
-    ;; Disable preview for Consult commands
-    (unless (bound-and-true-p consult--preview-function)
-      (save-selected-window
-        (let ((embark-quit-after-action))
-          (embark-dwim)))))
-
-  (defun my/consult-outline-narrow-heading (heading)
-    "Narrow to and expand HEADING."
-    (embark-consult-goto-location heading)
-    (outshine-narrow-to-subtree)
-    (outline-show-subtree))
-
-  (defvar-keymap embark-consult-outline-map
-    :doc "Keymap for embark actions in `consult-outline'."
-    :parent embark-general-map
-    "r" #'my/consult-outline-narrow-heading)
-
-  (define-advice consult-outline
-      (:around (fn &rest args) with-embark-consult-outline-map)
-    "Let-bind `embark-keymap-alist' to include `consult-location'."
-    (let ((embark-keymap-alist
-           (cons '(consult-location . embark-consult-outline-map)
-                 embark-keymap-alist)))
-      (apply fn args)))
 
   (defun gr/consult-ripgrep-select-dir ()
     (interactive)
@@ -1028,32 +989,7 @@ there, otherwise you are prompted for a message buffer."
         ("C-x C-j" . consult-dir-jump-file))
   :custom
   (consult-dir-sources '(consult-dir--source-bookmark
-                         consult-dir--source-recentf
-                         consult-dir--source-straight-repos))
-  :config
-
-  (defvar consult-dir--source-straight-repos
-    `(:name "Straight repos"
-            :narrow ?s
-            :hidden t
-            :category file
-            :face consult-file
-            :history file-name-history
-            :items ,#'consult-dir-straight-repos)
-    "Straight repos directory source for `consult-dir--pick'.")
-
-  (defun consult-dir-straight-repos ()
-    "Return a list of the straight repos directories."
-    (mapcar
-     (lambda (x)
-       (concat (abbreviate-file-name x) "/"))
-     (directory-files
-      (concat
-       straight-base-dir
-       "straight/repos/")
-      t
-      "^\\([^.]\\|\\.[^.]\\|\\.\\..\\)")))
-  )
+                         consult-dir--source-recentf)))
 
 (defun recentd-track-opened-file ()
   "Insert the name of the directory just opened into the recent list."
