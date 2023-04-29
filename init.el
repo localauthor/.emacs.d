@@ -63,8 +63,6 @@
 (add-to-list 'load-path (expand-file-name (concat user-emacs-directory "my-lisp")))
 (add-to-list 'load-path (expand-file-name (concat user-emacs-directory "priv-lisp")))
 
-(setq elisp-flymake-byte-compile-load-path load-path)
-
 (require 'straight-fetch-report)
 
 (use-package exec-path-from-shell
@@ -2375,6 +2373,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :straight (melpazoid :host github :repo "riscy/melpazoid"
                        :files ("melpazoid/melpazoid.el"))
   :defer 1)
+
+(add-hook 'flymake-mode-hook
+          (lambda () (setq elisp-flymake-byte-compile-load-path load-path)))
 
 (defun gr/elisp-check-buffer ()
   (interactive)
