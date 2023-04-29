@@ -2312,6 +2312,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; google-translate
 
 (use-package google-translate
+  ;; must defer or else emacsclient won't start, for some reason
+  :defer t
   :custom
   (google-translate-default-source-language "lt")
   (google-translate-default-target-language "en")
