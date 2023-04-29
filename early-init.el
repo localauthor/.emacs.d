@@ -196,6 +196,11 @@
 
 (setq global-mode-string '("")) ;; remove display-time-string from right
 
+;; truncate buffer name in mode-line to 29 characters
+(setq-default mode-line-buffer-identification
+              (append '(-29)
+                      (propertized-buffer-identification "%b")))
+
 (setq-default mode-line-format
               '(;;"%e"
                 ;;mode-line-front-space

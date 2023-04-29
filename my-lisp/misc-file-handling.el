@@ -43,7 +43,7 @@ since `consult-find' passes a buffer name, not a file path."
   "Use 'completing-read' to return a value from a list of keys ALIST.
 Optional initial INPUT."
   (let* ((select (completing-read "Select File: " alist nil t input))
-         (value (cdr (assoc select alist))))
+         (value (cdr (assq (intern select) alist))))
     (format "%s" value)))
 
 (defun gr/open-file-externally (alist &optional input)
