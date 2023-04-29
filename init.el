@@ -407,7 +407,7 @@
            ("D" . gr/lookup-word-at-point)
            ("d" . sdcv-search)
            ("L" . toggle-truncate-lines)
-           ("t" . google-translate-smooth-translate)
+           ("t" . google-translate-buffer)
            ("s" . hydra-mac-speak/body)
            ("p" . password-store-copy)
            )
@@ -712,7 +712,7 @@ parent."
   :config
 
   (setq vertico-multiform-commands
-        '((consult-imenu-all buffer)
+        '((consult-imenu buffer)
           (execute-extended-command unobtrusive)
           (consult-dir buffer)))
 
@@ -955,7 +955,7 @@ there, otherwise you are prompted for a message buffer."
         ("?" . consult-narrow-help))
   :bind*
   ("C-c [" . consult-global-mark)
-  ("C-:" . consult-imenu-all)
+  ("C-:" . consult-imenu)
   ("C-;" . consult-outline)
   :hook
   (embark-collect-mode-hook . consult-preview-at-point-mode)
@@ -1383,8 +1383,8 @@ following the key as group 3."
 (use-package biblio
   :defer 1
   ;;:after ebib
-  :custom
-  (biblio-crossref-user-email-address vu-email)
+  ;; :custom
+  ;; (biblio-crossref-user-email-address vu-email)
   :config
   ;; override default to ido
   (defun biblio--completing-read-function ()
@@ -2312,25 +2312,18 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; google-translate
 
 (use-package google-translate
-  :bind ("C-c t" . google-translate-smooth-translate))
+  :custom
+  (google-translate-default-source-language "lt")
+  (google-translate-default-target-language "en")
+  (google-translate-backend-method 'curl))
 
 (use-package google-translate-smooth-ui
   :straight nil
   :defer t
-  :config
-  (setq google-translate-backend-method 'curl)
-
-  (defun google-translate--search-tkk () "Search TKK." (list 430675 2721866130))
-
-  (setq google-translate-translation-directions-alist
-        '(("lt" . "en")
-          ("en" . "lt")))
-
-  (defun gr/google-translate-lt-en ()
-    (interactive)
-    (call-interactively #'google-translate-smooth-translate)
-    (pop-to-buffer "*Google Translate*" 'display-buffer-below-selected))
-  )
+  :custom
+  (google-translate-translation-directions-alist
+   '(("lt" . "en")
+     ("en" . "lt"))))
 
 ;;;; outline-mode
 
@@ -2383,8 +2376,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (defun gr/elisp-check-buffer ()
   (interactive)
-  (if (or flycheck-mode
-          flymake-mode)
+  (if (ignore-errors (or flycheck-mode
+                         flymake-mode))
       (progn
         (flycheck-mode -1)
         (flymake-mode -1)
@@ -2497,8 +2490,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; osx-reveal-in-finder
 
 (use-package reveal-in-osx-finder
+  :disabled
   :defer t
-  :commands reveal-in-osx-finder-as
+  :commands gr/embark-reveal-in-osx-finder
   :config
   (defun gr/embark-reveal-in-osx-finder (file)
     "Embark action to reveal file or buffer in finder."
