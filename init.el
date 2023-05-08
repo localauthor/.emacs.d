@@ -1567,19 +1567,23 @@ add the word to `ispell-personal-dictionary'. Abort with `C-g'."
   :config
   (add-to-list 'org-export-backends 'reveal)
   :custom
+  (org-reveal-single-file t)
   (org-reveal-hlevel 2))
 
+;; backup if org-reveal-single-file doesn't work
 (defun gr/org-reveal-export-and-inline ()
   "Export current org buffer to standalone html file.
 Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (interactive)
   (unless (derived-mode-p 'org-mode)
     (error "Not an org buffer."))
+  (setq org-reveal-single-file nil)
   (let ((file (file-relative-name (concat default-directory (org-export-output-file-name " 1.html"))))
         (new (file-relative-name (concat default-directory (org-export-output-file-name ".html")))))
     (org-export-to-file 'reveal file)
     (async-shell-command (format "inliner '%s' > '%s'" file new))
-    (dired-jump nil new)))
+    (dired-jump nil new))
+  (setq org-reveal-single-file t))
 
 ;;;; pdf-tools
 
