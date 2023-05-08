@@ -82,6 +82,8 @@
 
 (setq ad-redefinition-action 'accept)
 (setq warning-suppress-types (quote (bytecomp comp)))
+;; outshine uses cl; so this suppresses deprecated warning
+(setq byte-compile-warnings '((not cl-functions)))
 (setq native-comp-async-report-warnings-errors nil)
 (setq warning-minimum-level ':error)
 (setq ring-bell-function 'ignore)
