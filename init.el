@@ -2257,7 +2257,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; popper
 
 (use-package popper
-  :bind (("C-\\"   . popper-toggle-latest)
+  :bind (("C-\\"   . gr/popper-zk-index)
          ("M-\\"   . popper-cycle)
          ("C-M-\\" . popper-toggle-type))
   :init
@@ -2280,13 +2280,30 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           undo-tree-mode
           compilation-mode))
 
-  (defun gr/popper-select-buffer-at-bottom (buffer &optional alist)
-    (select-window (display-buffer-at-bottom
-                    buffer
-                    (append alist
-                            '((window-height . 0.5))))))
+  (defun gr/popper-zk-index ()
+    (interactive)
+    (cond ((zk-file-p)
+           (pop-to-buffer zk-index-buffer-name))
+          ((eq (current-buffer) (get-buffer "*ZK-Index*"))
+           (delete-window))
+          (t
+           (popper-toggle-latest))))
 
-  (setq popper-display-control t)
+  (defun gr/popper-select-buffer-at-bottom (buffer &optional alist)
+    (let ((height (cond
+                   ((or (string-match "magit.*\\|\\*ZK-Index\\*"
+                                      (buffer-name buffer))
+                        (with-current-buffer buffer
+                          (derived-mode-p 'dired-mode)))
+                    '(window-height . 0.4))
+                   (t
+                    '(window-height . 0.3)))))
+      (select-window (display-buffer-at-bottom
+                      buffer
+                      (append alist
+                              `(,height))))))
+
+  (setq popper-display-control 'user)
   (setq popper-display-function #'gr/popper-select-buffer-at-bottom)
 
   (setq popper-echo-dispatch-keys '(?a ?s ?d ?f ?j ?k ?l))
