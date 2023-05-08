@@ -43,3 +43,5 @@ custom.el
 /init.el.~1~
 /mastodon.plstore
 /tramp
+*davmail*
+
