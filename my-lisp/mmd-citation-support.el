@@ -113,10 +113,11 @@
 (defvar-local gr/mmd-citation-use nil)
 
 ;;;###autoload
-(defun gr/format-mmd-citation (key)
+(defun gr/format-mmd-citation (key &optional pages)
   "Return BibTeX KEY in mmd format, with option to include pages."
-  (let* ((pages (unless (looking-back "]" (- (point) 1))
-                  (read-from-minibuffer "Pages: ")))
+  (let* ((pages (or pages
+                    (unless (looking-back "]" (- (point) 1))
+                      (read-from-minibuffer "Pages: "))))
          (mmd (format "[#%s]" key))
          (cite))
     (if (or (not pages)
@@ -127,23 +128,68 @@
     cite))
 
 ;;;###autoload
-(defun gr/citar-insert-citation ()
+(defun gr/citar-insert-citation (&optional key pages)
   "Insert cite-key, format depending on context.
 When in zk file, mmd format; when `org-mode', org-cite."
   (interactive)
-  (let ((key (if (and gr/last-mmd-citation-key
-                      current-prefix-arg)
-                 gr/last-mmd-citation-key
-               (citar-select-ref))))
+  (let ((key (or key
+                 (if (and gr/last-mmd-citation-key
+                          current-prefix-arg)
+                     gr/last-mmd-citation-key
+                   (citar-select-ref)))))
     (if (or (zk-file-p)
-            (file-in-directory-p buffer-file-name
+            (string= "*scratch*" (buffer-name))
+            (file-in-directory-p (or buffer-file-name
+                                     ;;for indirect clones
+                                     (buffer-file-name
+                                      (buffer-base-buffer)))
                                  zk-desktop-directory)
             gr/mmd-citation-use)
-        (insert (gr/format-mmd-citation key))
+        (insert (gr/format-mmd-citation key pages))
       (condition-case nil
           (citar-insert-citation (list key))
-        (error (gr/format-mmd-citation key))))
+        (error (gr/format-mmd-citation key pages))))
     (setq gr/last-mmd-citation-key key)))
+
+(defun gr/mmd-citation-at-point ()
+  "When mmd-citation is at point, return citekey."
+  (interactive)
+  (when
+      (save-excursion
+        (re-search-backward "\\[#")
+        (thing-at-point-looking-at gr/mmd-citation-regexp))
+    (thing-at-point 'symbol t)))
+
+(defun gr/mmd-citation-convert (key)
+  "Convert citation at point to/from org and mmd."
+  (interactive (list (or (citar-key-at-point)
+                         (gr/mmd-citation-at-point))))
+  (if (not (citar-key-at-point))
+      (let* ((beg (save-excursion
+                    (re-search-backward " ")
+                    (point)))
+             (end (save-excursion
+                    (re-search-forward "]")
+                    (point)))
+             (pages (progn
+                      (re-search-backward "\\[\\([0-9-]+\\)]\\["
+                                          beg t)
+                      (match-string 1))))
+        (delete-region beg end)
+        (insert " ")
+        (citar-org-insert-citation (list key))
+        (when pages
+          (forward-char -1)
+          (insert " " pages)
+          (forward-char 1)))
+    (let ((gr/mmd-citation-use t) ;; org to mmd
+          (pages (progn
+                   (re-search-backward "\\[cite:")
+                   (re-search-forward " \\([0-9]+\\)]")
+                   (match-string 1))))
+      (citar-org-delete-citation)
+      (insert " ")
+      (gr/citar-insert-citation key pages))))
 
 ;;; link-hint integration
 
