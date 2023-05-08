@@ -35,7 +35,7 @@
 (setq debug-on-error t)
 
 ;; set mode for *scratch* buffer
-(setq initial-major-mode 'emacs-lisp-mode)
+(setq initial-major-mode 'lisp-interaction-mode)
 (setq initial-scratch-message nil)
 
 (defun efs/display-startup-time ()
@@ -141,13 +141,13 @@
 
 (use-package keycast :defer 1)
 
-;;;; blood-sugar
+;;;; ruta-bg
 
 (use-package plz :defer 1)
 
-(defvar gr/blood-sugar "BG:")
+(defvar gr/ruta-bg nil)
 
-(defun gr/blood-sugar ()
+(defun gr/ruta-bg ()
   (interactive)
   (let* ((inhibit-message t)
          (data (plz 'get "https://rutaruta.fly.dev/api/v1/entries"))
@@ -162,12 +162,12 @@
                   ("\"FortyFiveDown\"" "↘")
                   ("\"SingleDown\"" "↓")
                   ("\"DoubleDown\"" "⇊"))))
-    (setq gr/blood-sugar (concat " BG:" bg-final arrow " "))
+    (setq gr/ruta-bg (concat " BG:" bg-final arrow " "))
     (kill-buffer "*Calculator*")))
 
-(add-to-list 'global-mode-string '(:eval gr/blood-sugar) t)
+(push '(:eval gr/ruta-bg) mode-line-misc-info)
 
-(run-at-time "10 sec" 300 'gr/blood-sugar)
+(run-at-time "35 sec" 300 'gr/ruta-bg)
 
 ;;;; themes
 
@@ -308,9 +308,9 @@
         ;;  (display-buffer-at-bottom)
         ;;  (window-height . 0.5))
 
-        ("magit:"
-         (display-buffer-at-bottom)
-         (window-height . 0.5))
+        ;; ("magit:"
+        ;;  (display-buffer-at-bottom)
+        ;;  (window-height . 0.5))
 
         ("*Async Shell Command*"
          (display-buffer-no-window))
@@ -325,7 +325,7 @@
 
         ("\\*ZK-Index\\|\\*ZK-Desktop"
          (gr/select-buffer-at-bottom)
-         (window-height . 0.45))
+         (window-height . 0.4))
 
         ("*mu4e-main*"
          (display-buffer-full-frame))
@@ -732,7 +732,7 @@ parent."
      (append alist '((window-height . 0.3)))))
 
   (setq vertico-buffer-display-action '(display-buffer-in-side-window
-                                        (window-height . 0.45)
+                                        (window-height . 0.3)
                                         (side . bottom)))
 
   )
@@ -763,13 +763,14 @@ parent."
 ;;;; embark
 
 (use-package embark
-  :straight (:files (:defaults "embark-org.el"))
   :bind
   ("C-," . embark-act)
   ("C->" . embark-act-noquit)
   ("C-<" . embark-act-all)
   ("M-," . embark-dwim)
   ("C-h b" . embark-bindings)
+  (:map embark-general-map
+        ("," . embark-select))
   (:map embark-identifier-map
         ("$" . ispell-region)
         ("d" . sdcv-search)
@@ -787,7 +788,6 @@ parent."
         ("h" . helpful-symbol))
   (:map embark-file-map
         ("M" . embark-attach-file)
-        ("n" . gr/embark-reveal-in-osx-finder)
         ("p" . gr/embark-save-absolute-path)
         ("P" . gr/embark-insert-absolute-path))
   (:map embark-region-map
@@ -802,8 +802,8 @@ parent."
   (embark-help-key "?")
   (embark-keymap-prompter-key ",")
   (embark-quit-after-action t)
+  (embark-confirm-act-all nil)
   (embark-indicators '(embark-minimal-indicator embark-highlight-indicator))
-  (embark-collect-view 'list)
   (prefix-help-command #'embark-prefix-help-command)
   :config
 
@@ -887,7 +887,6 @@ there, otherwise you are prompted for a message buffer."
     "x" #'embark-open-externally         ; useful for PDFs
     "c" #'copy-file
     "k" #'kill-buffer
-    "n" #'gr/embark-reveal-in-osx-finder
     "z" #'bury-buffer
     "s" #'embark-eshell
     "|" #'embark-shell-command-on-buffer
@@ -1171,12 +1170,14 @@ parses its input."
   (:map org-mode-map
         ("C-c \\" . gr/citar-insert-citation))
   (:map citar-map
-        ("c" . citar-insert-citation)
+        ("i" . citar-insert-citation)
+        ("k" . citar-copy-reference)
         ("z" . zk-search)
-        ("s" . ex/citar-search-pdf-contents))
+        ("s" . ex/search-pdf-contents))
   (:map citar-citation-map
         ("z" . zk-search)
-        ("s" . ex/citar-search-pdf-contents))
+        ("k" . citar-copy-reference)
+        ("s" . ex/search-pdf-contents))
   :custom
   (citar-bibliography gr/bibliography)
   (citar-library-paths (list-dirs-recursively devonthink-dir))
@@ -1191,6 +1192,8 @@ parses its input."
   (citar-display-transform-functions nil)
   (citar-select-multiple t)
   (citar-open-resources '(:files :notes :create-notes))
+  (citar-citeproc-csl-style
+   "chicago-fullnote-bibliography-short-title-subsequent.csl")
 
   :config
 
@@ -1440,6 +1443,11 @@ following the key as group 3."
 (use-package mmd-citation-support
   :straight nil
   :defer 1
+  :bind
+  (:map embark-mmd-citation-map
+        ("c" . gr/mmd-citation-convert))
+  (:map citar-citation-map
+        ("c" . gr/mmd-citation-convert))
   :hook
   (completion-at-point-functions . gr/mmd-citation-completion-at-point))
 
@@ -2336,7 +2344,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (google-translate-default-source-language "lt")
   (google-translate-default-target-language "en")
-  (google-translate-backend-method 'curl))
+  (google-translate-backend-method 'curl)
+  (google-translate-pop-up-buffer-set-focus t))
 
 (use-package google-translate-smooth-ui
   :straight nil
@@ -2400,6 +2409,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (defun gr/elisp-check-buffer ()
   (interactive)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+  (package-initialize)
+  (package-refresh-contents)
   (if (ignore-errors (or flycheck-mode
                          flymake-mode))
       (progn
@@ -2514,9 +2526,12 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; osx-reveal-in-finder
 
 (use-package reveal-in-osx-finder
-  :disabled
-  :defer t
+  :defer 1
+  :after embark
   :commands gr/embark-reveal-in-osx-finder
+  :bind
+  (:map embark-file-map
+        ("n" . gr/embark-reveal-in-osx-finder))
   :config
   (defun gr/embark-reveal-in-osx-finder (file)
     "Embark action to reveal file or buffer in finder."
