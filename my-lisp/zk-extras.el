@@ -160,7 +160,8 @@ Optionally takes list of FILES."
 (defun zk-lit-notes-index ()
   "List lit notes in ZK-Index, by size."
   (interactive)
-  (zk-index (zk-lit-notes-list) nil #'zk-index--sort-size))
+  (zk-index (zk-lit-notes-list) nil #'zk-index--sort-size)
+  (zk-index--reset-mode-line))
 
 ;;;###autoload
 (defun zk-luhmann-word-count ()

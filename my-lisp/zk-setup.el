@@ -34,8 +34,19 @@
   :config
   (zk-setup-auto-link-buttons)
   (zk-setup-embark)
+
+  (defun zk-index-embark-clear-selection (&rest _)
+    "Clear buffer-local candidates selected with `embark-select'."
+    (mapc
+     (lambda (x) (delete-overlay (cdr x)))
+     embark--selection)
+    (setq-local embark--selection nil))
+
   (with-eval-after-load 'embark
-    (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)))
+    (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
+    (add-to-list 'embark-post-action-hooks '(zk-index-narrow zk-index-embark-clear-selection))
+    (add-to-list 'embark-post-action-hooks '(zk-index-insert-link zk-index-embark-clear-selection))
+    (add-to-list 'embark-post-action-hooks '(zk-copy-link-and-title     zk-index-embark-clear-selection))))
 
 (defun gr/zk-new-note-header (title new-id &optional orig-id)
   "Insert header in new notes with args TITLE and NEW-ID.
@@ -79,6 +90,7 @@ Optional ARG."
   :config
   (zk-index-setup-embark)
   :custom
+  (zk-index-help-echo-function nil)
   (zk-index-prefix " "))
 
 ;;;; zk-desktop
@@ -186,8 +198,7 @@ Optional ARG."
 (eval-and-compile
   (defhydra hydra-zk (:hint nil
                             :pre (require 'zk-extras)
-                            :color blue
-                            :idle 1.0)
+                            :color blue)
     "
     _h h_: Inbox      _i_: Insert Link   _N_: New Note       _d_: to desktop
     _h s_: Strct Nts  _c_: Insert Cite   _r_: Rename Note    _z_: zk grep
