@@ -312,6 +312,10 @@
         ;;  (display-buffer-at-bottom)
         ;;  (window-height . 0.5))
 
+        ;; ("\\*ZK-Index\\|\\*ZK-Desktop"
+        ;;  (gr/select-buffer-at-bottom)
+        ;;  (window-height . 0.4))
+
         ("*Async Shell Command*"
          (display-buffer-no-window))
 
@@ -322,10 +326,6 @@
         ("Dictionary"
          (display-buffer-at-bottom)
          (window-height . 0.6))
-
-        ("\\*ZK-Index\\|\\*ZK-Desktop"
-         (gr/select-buffer-at-bottom)
-         (window-height . 0.4))
 
         ("*mu4e-main*"
          (display-buffer-full-frame))
@@ -2269,7 +2269,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; popper
 
 (use-package popper
-  :bind (("C-\\"   . gr/popper-zk-index)
+  :bind (("C-\\"   . popper-toggle-latest)
          ("M-\\"   . popper-cycle)
          ("C-M-\\" . popper-toggle-type))
   :init
@@ -2307,15 +2307,15 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                                       (buffer-name buffer))
                         (with-current-buffer buffer
                           (derived-mode-p 'dired-mode)))
-                    '(window-height . 0.4))
+                    '(window-height . 0.45))
                    (t
-                    '(window-height . 0.3)))))
+                    '(window-height . 0.4)))))
       (select-window (display-buffer-at-bottom
                       buffer
                       (append alist
                               `(,height))))))
 
-  (setq popper-display-control 'user)
+  (setq popper-display-control t)
   (setq popper-display-function #'gr/popper-select-buffer-at-bottom)
 
   (setq popper-echo-dispatch-keys '(?a ?s ?d ?f ?j ?k ?l))
