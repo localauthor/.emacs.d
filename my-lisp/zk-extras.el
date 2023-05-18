@@ -22,11 +22,12 @@ Opens search results in an `xref' buffer."
 
 ;; (setq xref-show-xrefs-function 'consult-xref)
 
+
 ;;; clickable tags
 
 (defun zk-tag-font-lock (limit)
   "Activate font-lock on zk-tags up to LIMIT."
-  (when (re-search-forward "[[:space:]]\\(#[a-zA-Z0-9]+\\)" limit t)
+  (when (re-search-forward "[[:space:]]\\(#[a-zA-Z0-9-]+\\)" limit t)
     (let ((beg (match-beginning 1)) ;; -1 to match the #
           (end (match-end 1))
           (tag (match-string 1))

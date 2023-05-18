@@ -34,6 +34,9 @@
 ;; Debug if there's an error during setup. Set to nil at end of init.el
 (setq debug-on-error t)
 
+;; for left and right fringe/margin
+(advice-add 'mwheel-scroll :override 'pixel-scroll-precision)
+
 ;; set mode for *scratch* buffer
 (setq initial-major-mode 'lisp-interaction-mode)
 (setq initial-scratch-message nil)
@@ -141,33 +144,10 @@
 
 (use-package keycast :defer 1)
 
-;;;; ruta-bg
+(use-package ruta-bg
+  :straight nil
+  :demand t)
 
-(use-package plz :defer 1)
-
-(defvar gr/ruta-bg nil)
-
-(defun gr/ruta-bg ()
-  (interactive)
-  (let* ((inhibit-message t)
-         (data (plz 'get "https://rutaruta.fly.dev/api/v1/entries"))
-         (bg (string-to-number (elt (split-string data) 2)))
-         (bg-final (calc-eval '("$/18" calc-internal-prec 2) nil bg))
-         (trend (elt (split-string data) 3))
-         (arrow (pcase trend
-                  ("\"DoubleUp\"" "⇈")
-                  ("\"SingleUp\"" "↑")
-                  ("\"FortyFiveUp\"" "↗")
-                  ("\"Flat\"" "→")
-                  ("\"FortyFiveDown\"" "↘")
-                  ("\"SingleDown\"" "↓")
-                  ("\"DoubleDown\"" "⇊"))))
-    (setq gr/ruta-bg (concat " BG:" bg-final arrow " "))
-    (kill-buffer "*Calculator*")))
-
-(push '(:eval gr/ruta-bg) mode-line-misc-info)
-
-(run-at-time "35 sec" 300 'gr/ruta-bg)
 
 ;;;; themes
 
@@ -1379,7 +1359,7 @@ following the key as group 3."
   :straight (:host github :repo "emacs-pe/scihub.el")
   :defer 1
   :custom
-  (scihub-download-directory (expand-file-name "~/DT3 Inbox")))
+  (scihub-download-directory (expand-file-name "~/DT3 Academic")))
 
 (use-package biblio
   :defer 1
@@ -1904,6 +1884,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   ("C-x d" . dired-jump)
   ;;("C-x d" . dired)
   (:map dired-mode-map
+        ("RET" . gr/dired-find-file-other-window)
         ("C-x C-q" . dired-toggle-read-only))
   :hook
   (dired-mode-hook . dired-omit-mode)
@@ -1920,6 +1901,13 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (setq dired-omit-files "\\.DS_Store\\|\\.dropbox\\|Icon\\\015")
   (setq dired-kill-when-opening-new-dired-buffer t)
 
+  (defun gr/dired-find-file-other-window ()
+    "In dired, open directories in same window, files in other window."
+    (interactive)
+    (let ((file (dired-get-file-for-visit)))
+      (if (file-directory-p file)
+          (dired--find-possibly-alternative-file file)
+        (dired--find-file #'find-file-other-window file))))
   )
 
 ;; to allow --group-directories-first to work on osx
@@ -2365,6 +2353,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-S-<left>" . outline-promote)
   ("C-<right>" . outline-demote)
   ("C-<left>" . outline-promote)
+  (:map outline-minor-mode-cycle-map
+        ("<left-margin> <mouse-1>" . nil)
+        ("<left-margin> S-<mouse-1>" . nil)
+        ("<right-margin> <mouse-1>" . nil)
+        ("<right-margin> S-<mouse-1>" . nil))
   :hook
   (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode)))
   :custom
@@ -2531,7 +2524,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :commands gr/embark-reveal-in-osx-finder
   :bind
   (:map embark-file-map
-        ("n" . gr/embark-reveal-in-osx-finder))
+        ("O" . gr/embark-reveal-in-osx-finder))
   :config
   (defun gr/embark-reveal-in-osx-finder (file)
     "Embark action to reveal file or buffer in finder."
@@ -2541,11 +2534,26 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           (filename (file-name-nondirectory file)))
       (reveal-in-osx-finder-as dir filename))))
 
+;;;; simplenote
 
-;;;; gptel
+(use-package simplenote2
+  :straight (simplenote2 :host github
+                         :repo "alpha22jp/simplenote2.el"
+                         :fork t)
+  :defer 3
+  :config
+  (setq simplenote2-email "grantrosson@gmail.com")
+  (setq simplenote2-password (string-trim-right (shell-command-to-string "security find-generic-password -a grantrosson@gmail.com -s simplenote -w")))
+  (simplenote2-setup))
 
-(use-package gptel
-  :defer t)
+;;;; chatgpt
+
+(use-package chatgpt-shell
+  :defer t
+  :custom
+  (chatgpt-shell-openai-key
+   (lambda ()
+     (auth-source-pick-first-password :host "api.openai.com"))))
 
 ;;; variable resets
 

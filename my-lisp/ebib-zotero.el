@@ -76,7 +76,7 @@ can be DOI, ISBN, PMID, or arXiv ID."
 
 (defun ebib-zotero-rename-file (key file)
   (let ((ext (file-name-extension file t)))
-  (rename-file file (concat "~/DT3 Inbox/" key ext))))
+  (rename-file file (concat "~/DT3 Academic/" key ext))))
 
 ;;;###autoload
 (defalias 'ebib-auto-import 'ebib-zotero-import-identifier)

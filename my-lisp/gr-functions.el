@@ -1,5 +1,6 @@
 ;;; gr-functions.el --- Miscellaneous helpful functions     -*- lexical-binding: t; -*-
 
+
 (defhydra gr/symbol-menu (:hint nil :color blue)
   "
 Symbols and Diacritics
@@ -45,10 +46,10 @@ Symbols and Diacritics
            (find-file (concat org-directory "/dailynotes.org"))
            (set-frame-position (selected-frame) 845 20)
            (delete-other-windows))
+          ((eq (current-buffer) buffer)
+           nil)
           (t (pop-to-buffer buffer
-                            '((display-buffer-at-bottom)
-                              ;;(window-height . 0.5)
-                              ))))
+                            '((display-buffer-at-bottom)))))
     (gr/daily-notes-new-headline)))
 
 (defun gr/daily-notes-new-headline ()
@@ -450,6 +451,5 @@ Use a prefix arg to get regular RET. "
      ;; fall-through case
      (t
       (org-return)))))
-
 
 (provide 'gr-functions)
