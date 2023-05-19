@@ -2340,10 +2340,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; melpazoid
 
-;; (use-package melpazoid
-;;   :vc (:url "https://github.com/riscy/melpazoid"
-;;             :lisp-dir "melpazoid/")
-;;   :defer 1)
+(unless (package-installed-p 'melpazoid)
+  (package-vc-install '(melpazoid
+                        :url "https://github.com/riscy/melpazoid"
+                        :lisp-dir "melpazoid/")))
 
 (add-hook 'flymake-mode-hook
           (lambda () (setq elisp-flymake-byte-compile-load-path load-path)))
