@@ -45,3 +45,6 @@ custom.el
 /tramp
 *davmail*
 
+/package-quickstart.el
+/multisession/
+/chatgpt/
