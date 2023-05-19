@@ -1,38 +1,19 @@
 ;; init.el                    -*- lexical-binding: t; -*-
 
-;;; Straight setup
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
-(setq straight-check-for-modifications '(check-on-save find-when-checking))
-(setq straight-repository-branch "develop")
+;;; install org
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-(setq straight-host-usernames '((github . "localauthor")))
-
-(setq straight-use-package-by-default t)
-
-(straight-use-package 'org)
-
-(setq use-package-hook-name-suffix nil)
+(unless (package-installed-p 'org)
+  (package-vc-install '(org :url "https://git.savannah.gnu.org/git/emacs/org-mode.git"
+			    :lisp-dir "lisp"
+			    :shell-command "make autoloads")))
 
 ;;; Misc Startups
 
-(load-library (concat user-emacs-directory "lisp/gcmh.el"))
+(load-library "~/.emacs.d/lisp/gcmh.el")
 (gcmh-mode 1)
-
-;; Debug if there's an error during setup. Set to nil at end of init.el
-(setq debug-on-error t)
 
 ;; for left and right fringe/margin
 (advice-add 'mwheel-scroll :override 'pixel-scroll-precision)
@@ -55,8 +36,7 @@
         (dired-omit-size-limit)
         (zk-link-and-title-format . "+%t [[%i]]+")
         (gr/mmd-citation-use . t)
-        (eval . (text-scale-adjust 10))
-        ))
+        (eval . (text-scale-adjust 10))))
 
 ;;; Basics
 
@@ -65,8 +45,6 @@
 (add-to-list 'load-path (expand-file-name (concat user-emacs-directory "lisp")))
 (add-to-list 'load-path (expand-file-name (concat user-emacs-directory "my-lisp")))
 (add-to-list 'load-path (expand-file-name (concat user-emacs-directory "priv-lisp")))
-
-(require 'straight-fetch-report)
 
 (use-package exec-path-from-shell
   :defer 1
@@ -78,7 +56,6 @@
   (exec-path-from-shell-initialize))
 
 (use-package emacs
-  :straight nil
   :bind
   ("C-x [" . beginning-of-buffer)
   ("C-x ]" . end-of-buffer)
@@ -86,8 +63,8 @@
   ("C-x e" . eval-last-sexp)
   ("C-x E" .  kmacro-end-and-call-macro)
   ("M-o" . other-window)
-  (:map Info-mode-map
-        ("o" . link-hint-open-link))
+  ;; (:map Info-mode-map
+  ;;       ("o" . link-hint-open-link))
   (:map help-mode-map
         ("o" . link-hint-open-link))
   ;; rest of config in early-init.el
@@ -145,9 +122,7 @@
 (use-package keycast :defer 1)
 
 (use-package ruta-bg
-  :straight nil
-  :demand t)
-
+  :ensure nil)
 
 ;;;; themes
 
@@ -351,7 +326,8 @@
 
 ;;;; gr-functions and gr-map
 
-(use-package gr-functions :straight nil)
+(use-package gr-functions
+  :ensure nil)
 
 (define-prefix-command 'gr-map)
 
@@ -393,12 +369,9 @@
 ;;;; define-repeat-map
 
 (use-package define-repeat-map
-  :straight (define-repeat-map
-                :host nil
-                :repo "https://tildegit.org/acdw/define-repeat-map.el")
-  :defer 1
+  :vc (:url "https://tildegit.org/acdw/define-repeat-map.el")
+  :defer 2
   :config
-
   (define-repeat-map isearch
     ("s" isearch-repeat-forward)
     ("r" isearch-repeat-backward)
@@ -406,7 +379,6 @@
     ("C-p" isearch-repeat-backward)
     (:exit "RET" isearch-exit
            "C-g" keyboard-quit))
-
   (setq repeat-echo-function #'ignore)
   (repeat-mode))
 
@@ -420,9 +392,8 @@
 ;;;; init-lock
 
 (use-package init-lock
-  :load-path "my-lisp/init-lock"
+  :load-path "~/.emacs.d/my-lisp/init-lock"
   :defer t
-  :straight nil
   :custom
   (init-lock-files '("~/.dotfiles/.emacs.d/init.el")))
 
@@ -434,30 +405,29 @@
   (link-hint-message nil))
 
 (use-package link-hint-aw-select
-  :straight (link-hint-aw-select :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-aw-select")
+  :load-path "~/.emacs.d/my-lisp/link-hint-aw-select"
   :bind
   (:map gr-map
         ("o" . link-hint-aw-select))
   :config
   ;; open org-links in same window
   ;; allows link-hint--aw-select-org-link to work properly
-  (with-eval-after-load "org"
+  (with-eval-after-load 'org
     (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)))
 
 (use-package link-hint-preview
-  :straight (link-hint-preview :local-repo "~/.dotfiles/.emacs.d/my-lisp/link-hint-preview")
+  :load-path "~/.emacs.d/my-lisp/link-hint-preview"
   :bind
   (:map gr-map
         ("p" . link-hint-preview))
   :hook
   (link-hint-preview-mode-hook . tab-bar-disable-in-frame)
-  (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line)
-  )
+  (link-hint-preview-mode-hook . link-hint-preview-toggle-frame-mode-line))
 
 ;;;; recentf
 
 (use-package recentf
-  :defer 1
+  :defer 5
   :config
   (recentf-mode))
 
@@ -483,6 +453,7 @@
 ;;;; org-mode
 
 (use-package org
+  :load-path "~/.emacs.d/elpa/org/lisp"
   :bind
   ("C-c c" . org-capture)
   ("C-c a" . org-agenda)
@@ -511,10 +482,11 @@
         ("" . org-cycle-agenda-files))
   :mode (("\\.org$" . org-mode))
   :init
-  (with-eval-after-load "org"
+  (with-eval-after-load 'org
     (setq org-structure-template-alist
           '(("c" . "comment")
             ("q" . "quote")
+            ("n" . "note")
             ("s" . "src")
             ("v" . "verse")
             ("el" . "src emacs-lisp")
@@ -577,21 +549,21 @@
   (defun org-babel-execute:yaml (body params) body))
 
 (use-package org-agenda-setup
-  :straight nil
+  :ensure nil
   :defer 1
   :after org)
 
 (use-package org-capture-setup
-  :straight nil
+  :ensure nil
   :after org
   :defer 1)
 
 (use-package org-gcal-setup
-  :straight nil
+  :ensure nil
   :defer 1)
 
 (use-package gr-org-extras
-  :straight nil
+  :ensure nil
   :defer 1)
 
 ;;;; org-superstar
@@ -611,7 +583,7 @@
 
 (use-package org-journal
   :defer t
-  :init
+  :config
   (setq org-journal-prefix-key "C-c j")
   :custom-face
   (org-journal-calendar-entry-face ((t (:underline t :weight bold))))
@@ -673,7 +645,8 @@ parent."
 ;;;; vertico
 
 (use-package vertico
-  :straight (:files (:defaults "extensions/*"))
+  :vc (:url "https://github.com/minad/vertico"
+            :rev :newest)
   :init (vertico-mode)
   :bind* (:map vertico-map
                ("C-j" . vertico-exit-input)
@@ -683,12 +656,11 @@ parent."
   (vertico-count 7))
 
 (use-package vertico-multiform
-  :straight nil
-  :init
-  (vertico-multiform-mode)
-
+  :vc (:url "https://github.com/minad/vertico"
+            :lisp-dir "extensions/"
+            :rev :newest)
   :config
-
+  ;; (vertico-multiform-mode)
   (setq vertico-multiform-commands
         '((consult-imenu buffer)
           (execute-extended-command unobtrusive)
@@ -743,6 +715,8 @@ parent."
 ;;;; embark
 
 (use-package embark
+  :vc (:url "https://github.com/oantolin/embark"
+            :rev :newest)
   :bind
   ("C-," . embark-act)
   ("C->" . embark-act-noquit)
@@ -776,8 +750,7 @@ parent."
         ("G g" . eww-duckduckgo)
         ("z" . zk-search))
   (:map embark-url-map
-        ("s" . browse-url-generic)
-        ("x" . xwidget-webkit-browse-url))
+        ("s" . browse-url-generic))
   :custom
   (embark-help-key "?")
   (embark-keymap-prompter-key ",")
@@ -810,7 +783,7 @@ parent."
            (aw-switch-to-window (aw-select nil))
            (call-interactively (symbol-function ',fn))))))
 
-  (with-eval-after-load "embark"
+  (with-eval-after-load 'embark
     (define-key embark-file-map (kbd "o") (embark-aw-select find-file))
     (define-key embark-buffer-map (kbd "o") (embark-aw-select switch-to-buffer))
     (define-key embark-bookmark-map (kbd "o") (embark-aw-select bookmark-jump)))
@@ -882,7 +855,7 @@ there, otherwise you are prompted for a message buffer."
   )
 
 (use-package embark-org
-  :straight nil
+  :ensure nil
   :after embark
   :bind
   (:map embark-org-link-map
@@ -1220,7 +1193,7 @@ following the key as group 3."
   )
 
 (use-package citar-citeproc
-  :straight nil
+  :ensure nil
   :after (citar)
   :custom
   (citar-citeproc-csl-styles-dir "~/.csl")
@@ -1236,7 +1209,7 @@ following the key as group 3."
 ;;;; org-cite
 
 (use-package oc
-  :straight nil
+  :ensure nil
   :defer 1
   :init
   (setq org-cite-csl-styles-dir "~/.csl"
@@ -1250,7 +1223,7 @@ following the key as group 3."
         org-cite-export-processors '((t csl "~/.csl/chicago-fullnote-bibliography-short-title-subsequent.csl"))))
 
 (use-package oc-csl
-  :straight nil
+  :ensure nil
   :defer t)
 
 ;;;; citeproc / parsebib
@@ -1303,7 +1276,7 @@ following the key as group 3."
 
 
 (use-package ebib-extras
-  :straight nil
+  :ensure nil
   :commands (ebib-open ebib-isbn-web-search)
   :bind
   (:map ebib-index-mode-map
@@ -1337,14 +1310,15 @@ following the key as group 3."
     ("q" nil)))
 
 (use-package ebib-zotero
-  :straight nil
+  :ensure nil
   :commands ebib-auto-import
   :bind
   (:map ebib-index-mode-map
         ("I" . ebib-zotero-import-identifier)))
 
 (use-package pdf-drop-mode
-  :straight (:host github :repo "rougier/pdf-drop-mode")
+  :vc (:url "https://github.com/rougier/pdf-drop-mode"
+            :rev :newest)
   :defer 1
   :config
   (pdf-drop-mode)
@@ -1356,7 +1330,8 @@ following the key as group 3."
 ;;;; biblio / sci-hub
 
 (use-package scihub
-  :straight (:host github :repo "emacs-pe/scihub.el")
+  :vc (:url "https://github.com/emacs-pe/scihub.el"
+            :rev :newest)
   :defer 1
   :custom
   (scihub-download-directory (expand-file-name "~/DT3 Academic")))
@@ -1413,7 +1388,7 @@ following the key as group 3."
   )
 
 (use-package ebib-biblio
-  :straight nil
+  :ensure nil
   :after (ebib biblio)
   :bind (:map biblio-selection-mode-map
               ("e" . ebib-biblio-selection-import)))
@@ -1421,7 +1396,7 @@ following the key as group 3."
 ;;;; mmd-citation-support
 
 (use-package mmd-citation-support
-  :straight nil
+  :ensure nil
   :defer 1
   :bind
   (:map embark-mmd-citation-map
@@ -1463,14 +1438,15 @@ following the key as group 3."
 ;;;; zk
 
 (use-package zk-setup
-  :straight nil
+  :ensure nil
   :bind
   ("C-z" . hydra-zk/body))
 
 ;;;; sdcv-mode - stardict dictionary
 
 (use-package sdcv-mode
-  :straight (sdcv-mode :host github :repo "gucong/emacs-sdcv")
+  :vc (:url "https://github.com/gucong/emacs-sdcv"
+            :rev :newest)
   :defer 1
   :custom
   (sdcv-buffer-name "*Dictionary*"))
@@ -1632,7 +1608,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
           (window-height . 0.2)))
 
   ;; set RET to save annotations
-  (with-eval-after-load "pdf-annot"
+  (with-eval-after-load 'pdf-annot
 
     (define-key pdf-annot-edit-contents-minor-mode-map (kbd "RET") 'pdf-annot-edit-contents-commit)
 
@@ -1648,8 +1624,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 ;;;; LaTeX / AUCTeX
 
-(use-package tex
-  :straight auctex
+(use-package auctex
   :defer t
   :config
   (setq TeX-auto-save t)
@@ -1745,31 +1720,31 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;; my-lisp
 
 (use-package elfeed-setup
-  :straight nil
+  :ensure nil
   :defer t
   :commands gr/elfeed-open-new-window)
 
 (use-package misc-file-handling
-  :straight nil
+  :ensure nil
   :defer t)
 
 (use-package text-to-speech
-  :straight nil
+  :ensure nil
   :defer t
   :commands hydra-mac-speak/body)
 
 (use-package devonthink-dir
-  :straight nil
+  :ensure nil
   :defer 1)
 
 ;;;; priv-lisp
 
 (use-package dickinson
-  :straight nil
+  :ensure nil
   :defer 1)
 
 (use-package mu4e-setup
-  :straight nil
+  :ensure nil
   :defer 1)
 
 ;;; Packages
@@ -1797,7 +1772,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; ibuffer
 
 (use-package ibuffer
-  :straight (:type built-in)
   :bind
   (:map ctl-x-map
         ("C-b" . ibuffer))
@@ -1878,7 +1852,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; dired
 
 (use-package dired
-  :straight (:type built-in)
+  :ensure nil
   :bind
   ("C-x C-j" . dired-jump)
   ("C-x d" . dired-jump)
@@ -2071,10 +2045,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package wgrep :defer t)
 
-;;;; web browsing / eww / xwidget webkit /xwwp
+;;;; web browsing
 
 (use-package eww
-  :straight (:type built-in)
   :bind
   (:map eww-mode-map
         ("o" . link-hint-open-link))
@@ -2084,8 +2057,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (setq eww-download-directory (expand-file-name "~/Downloads")))
 
 (use-package prot-eww
-  ;;located in ~/.emacs.d/lisp/prot-eww.el
-  :straight nil
+  :ensure nil
   :defer 1
   :config
   (setq prot-eww-save-history-file
@@ -2211,8 +2183,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package posframe :defer 1)
 
 (use-package ace-window
-  ;; :straight (ace-window :host github :repo "fbuether/ace-window" :fork t
-  ;;                       :files (:defaults "ace-window-posframe.el"))
   :bind
   ("C-x o" . ace-window)
   :custom-face
@@ -2336,7 +2306,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (google-translate-pop-up-buffer-set-focus t))
 
 (use-package google-translate-smooth-ui
-  :straight nil
+  :ensure nil
   :defer t
   :custom
   (google-translate-translation-directions-alist
@@ -2346,7 +2316,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; outline-mode
 
 (use-package outline-mode
-  :straight nil
+  :ensure nil
   :diminish
   :bind
   ("C-S-<right>" . outline-demote)
@@ -2392,10 +2362,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; melpazoid
 
-(use-package melpazoid
-  :straight (melpazoid :host github :repo "riscy/melpazoid"
-                       :files ("melpazoid/melpazoid.el"))
-  :defer 1)
+;; (use-package melpazoid
+;;   :vc (:url "https://github.com/riscy/melpazoid"
+;;             :lisp-dir "melpazoid/")
+;;   :defer 1)
 
 (add-hook 'flymake-mode-hook
           (lambda () (setq elisp-flymake-byte-compile-load-path load-path)))
@@ -2403,7 +2373,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (defun gr/elisp-check-buffer ()
   (interactive)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-  (package-initialize)
   (package-refresh-contents)
   (if (ignore-errors (or flycheck-mode
                          flymake-mode))
@@ -2537,10 +2506,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; simplenote
 
 (use-package simplenote2
-  :straight (simplenote2 :host github
-                         :repo "alpha22jp/simplenote2.el"
-                         :fork t)
-  :defer 3
+  :vc (:url "https://github.com/localauthor/simplenote2.el"
+            :rev :newest)
+  :defer t
   :config
   (setq simplenote2-email "grantrosson@gmail.com")
   (setq simplenote2-password (string-trim-right (shell-command-to-string "security find-generic-password -a grantrosson@gmail.com -s simplenote -w")))
@@ -2555,6 +2523,4 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
    (lambda ()
      (auth-source-pick-first-password :host "api.openai.com"))))
 
-;;; variable resets
 
-(setq debug-on-error nil)

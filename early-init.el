@@ -1,6 +1,17 @@
 ;;; -*- lexical-binding: t -*-
 
+(setq debug-on-error t)
+(defvar file-name-handler-alist-original file-name-handler-alist)
+(setq file-name-handler-alist nil)
+
+(add-hook 'after-init-hook
+          (lambda ()
+            (setq debug-on-error nil)
+            (setq file-name-handler-alist file-name-handler-alist-original)
+            (makunbound 'file-name-handler-alist-original)))
+
 ;;; speedup
+
 (let ((default-gc-threshold gc-cons-threshold)
       (default-gc-percentage gc-cons-percentage))
   (setq gc-cons-threshold most-positive-fixnum
@@ -12,7 +23,20 @@
 
 (setq load-prefer-newer t)
 
-(setq package-enable-at-startup nil)
+;;; package setup
+
+(setq package-enable-at-startup t)
+(setq package-quickstart t)
+
+(setq package-vc-allow-side-effects t)
+
+(eval-and-compile
+  (setq use-package-always-ensure t)
+  (setq use-package-expand-minimally t)
+  (setq use-package-enable-imenu-support t)
+  (setq use-package-hook-name-suffix nil))
+
+;;; setenv
 
 (setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/12:/usr/local/opt/libgccjit/lib/gcc/12:/usr/local/opt/gcc/lib/gcc/12/gcc/x86_64-apple-darwin21/12")
 

@@ -3,8 +3,7 @@
 ;;;; zk
 
 (use-package zk
-  :load-path "my-lisp/zk"
-  :straight nil
+  :load-path "~/.emacs.d/my-lisp/zk"
   :defer 1
   ;;:after consult
   :mode (("\\.md$" . org-mode))
@@ -15,7 +14,7 @@
         ("s" . zk-search)
         ("z" . zk-grep) ;; zk-consult-grep does not work as embark action
         ("G" . zk-luhmann-index-goto)
-        ("o" . link-hint--aw-select-zk-link))
+        ("o" . link-hint-aw-select))
   :hook
   (completion-at-point-functions . zk-completion-at-point)
   (completion-at-point-functions . gr/mmd-citation-completion-at-point)
@@ -73,9 +72,8 @@ Optional ARG."
 ;;;; zk-index
 
 (use-package zk-index
-  :load-path "my-lisp/zk"
+  :load-path "~/.emacs.d/my-lisp/zk"
   :after zk
-  :straight nil
   :bind
   (:map zk-index-mode-map
         ("o" . zk-index-aw-select)
@@ -96,8 +94,7 @@ Optional ARG."
 ;;;; zk-desktop
 
 (use-package zk-desktop
-  :load-path "my-lisp/zk"
-  :straight nil
+  :load-path "~/.emacs.d/my-lisp/zk"
   :commands zk-desktop
   :bind
   (:map zk-desktop-button-map
@@ -120,9 +117,8 @@ Optional ARG."
 ;;;; zk-luhmann
 
 (use-package zk-luhmann
-  :load-path "my-lisp/zk-luhmann"
+  :load-path "~/.emacs.d/my-lisp/zk-luhmann"
   :after zk-index
-  :straight nil
   :bind (:map zk-index-mode-map
               ("l" . zk-luhmann-index-top)
               ("C-f" . zk-luhmann-index-forward)
@@ -138,9 +134,8 @@ Optional ARG."
 ;;;; zk-extras
 
 (use-package zk-consult
-  :load-path "my-lisp/zk"
+  :load-path "~/.emacs.d/my-lisp/zk"
   :after zk
-  :straight nil
   :commands zk-consult-select-file
   :defer 1
   :custom
@@ -156,9 +151,8 @@ Optional ARG."
    :preview-key '("C-{")))
 
 (use-package zk-citar
-  :load-path "my-lisp/zk"
+  :load-path "~/.emacs.d/my-lisp/zk"
   :after zk
-  :straight nil
   :defer 1
   :config
   (setq citar-notes-source 'zk)
@@ -166,9 +160,8 @@ Optional ARG."
   (zk-citar-citekey-regexp "[a-z]+[0-9]\\{4\\}[a-z]?"))
 
 (use-package zk-link-hint
-  :load-path "my-lisp/zk"
+  :load-path "~/.emacs.d/my-lisp/zk"
   :after zk
-  :straight nil
   :defer 1
   :bind
   (:map zk-file-map
@@ -191,7 +184,6 @@ Optional ARG."
 (use-package zk-extras
   :load-path "my-lisp/zk"
   :after zk zk-luhmann
-  :straight nil
   :bind (:map zk-index-mode-map
               ("L" . zk-lit-notes-index)))
 
@@ -270,6 +262,3 @@ _C_: Created       _a_: all      _c_: core  _e_: ED"
 
 (provide 'zk-setup)
 ;;; zk-setup.el ends here
-
-
-
