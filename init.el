@@ -392,7 +392,7 @@
 ;;;; init-lock
 
 (use-package init-lock
-  :load-path "~/.emacs.d/my-lisp/init-lock"
+  :load-path "my-lisp/init-lock"
   :defer t
   :custom
   (init-lock-files '("~/.dotfiles/.emacs.d/init.el")))
@@ -405,7 +405,7 @@
   (link-hint-message nil))
 
 (use-package link-hint-aw-select
-  :load-path "~/.emacs.d/my-lisp/link-hint-aw-select"
+  :load-path "my-lisp/link-hint-aw-select"
   :bind
   (:map gr-map
         ("o" . link-hint-aw-select))
@@ -416,7 +416,7 @@
     (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)))
 
 (use-package link-hint-preview
-  :load-path "~/.emacs.d/my-lisp/link-hint-preview"
+  :load-path "my-lisp/link-hint-preview"
   :bind
   (:map gr-map
         ("p" . link-hint-preview))
@@ -453,7 +453,7 @@
 ;;;; org-mode
 
 (use-package org
-  :load-path "~/.emacs.d/elpa/org/lisp"
+  :load-path "elpa/org/lisp"
   :bind
   ("C-c c" . org-capture)
   ("C-c a" . org-agenda)
