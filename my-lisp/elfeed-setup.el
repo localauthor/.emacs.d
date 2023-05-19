@@ -20,7 +20,7 @@
         ("j" . hydra-elfeed/body))
 
   :config
-  (setq elfeed-db-directory "~/Dropbox/.elfeeddb")
+  (setq elfeed-db-directory "~/.emacs.d/.elfeed")
   (setq elfeed-search-filter "+unread +AmLit")
   (setq elfeed-search-remain-on-entry t)
   (setq elfeed-show-entry-switch 'display-buffer)
@@ -77,7 +77,7 @@ _a_: AmLit  _j_: Journals  _l_: lit  _g_: geog  _k_: knowledge  _s_: starred"
     (delete-windows-on "*elfeed-entry*")))
 
 (use-package elfeed-db
-  :straight nil)
+  :ensure nil)
 
 (use-package elfeed-goodies
   :after elfeed
