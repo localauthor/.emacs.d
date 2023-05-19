@@ -1,23 +1,23 @@
 ;;; gr-functions.el --- Miscellaneous helpful functions     -*- lexical-binding: t; -*-
 
-
-(defhydra gr/symbol-menu (:hint nil :color blue)
-  "
+(with-eval-after-load 'hydra
+  (defhydra gr/symbol-menu (:hint nil :color blue)
+            "
 Symbols and Diacritics
     _a_: ą   _e_: ė   _u_: ū   _U_: ų  _E_: €
     _s_: š   _c_: č   _z_: ž   _i_: į
     "
-  ("q" nil)
-  ("a" (insert "ą"))
-  ("e" (insert "ė"))
-  ("u" (insert "ū"))
-  ("U" (insert "ų"))
-  ("s" (insert "š"))
-  ("c" (insert "č"))
-  ("z" (insert "ž"))
-  ("i" (insert "į"))
-  ("E" (insert "€"))
-  )
+            ("q" nil)
+            ("a" (insert "ą"))
+            ("e" (insert "ė"))
+            ("u" (insert "ū"))
+            ("U" (insert "ų"))
+            ("s" (insert "š"))
+            ("c" (insert "č"))
+            ("z" (insert "ž"))
+            ("i" (insert "į"))
+            ("E" (insert "€"))
+            ))
 
 (defun gr/select-theme ()
   (interactive)

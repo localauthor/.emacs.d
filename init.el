@@ -1288,27 +1288,27 @@ following the key as group 3."
   (:map citar-map
         ("e" . citar-ebib-jump-to-entry))
   :config
-
-  (defhydra hydra-ebib (:hint nil :color blue)
-    "
+  (with-eval-after-load 'hydra
+    (defhydra hydra-ebib (:hint nil :color blue)
+              "
   _j_: Jump to Entry   _k_: Add Keyword    _!_: Auto-Citekey     _s_: DOI Lookup
   _O_: Apply Filter                        _E_: Edit Citekey     _S_: ISBN Lookup
   _C_: Cancel Filter   _D_: Delete Field   _X_: Delete Entry     _I_: Auto Import
   "
-    ("k" ebib-add-keywords-to-entry)
-    ("!" ebib-generate-autokey)
-    ("X" ebib-delete-entry)
-    ("E" ebib-edit-keyname)
-    ("D" ebib-delete-current-field-contents)
-    ("j" ebib-jump-to-entry)
-    ("O" ebib-filters-apply-filter)
-    ("o" ebib-citar-open-resource)
-    ("C" ebib-filters-cancel-filter)
-    ;; ("s" ebib-save-current-database)
-    ("I" ebib-zotero-import-identifier)
-    ("S" ebib-isbn-web-search)
-    ("s" crossref-lookup)
-    ("q" nil)))
+              ("k" ebib-add-keywords-to-entry)
+              ("!" ebib-generate-autokey)
+              ("X" ebib-delete-entry)
+              ("E" ebib-edit-keyname)
+              ("D" ebib-delete-current-field-contents)
+              ("j" ebib-jump-to-entry)
+              ("O" ebib-filters-apply-filter)
+              ("o" ebib-citar-open-resource)
+              ("C" ebib-filters-cancel-filter)
+              ;; ("s" ebib-save-current-database)
+              ("I" ebib-zotero-import-identifier)
+              ("S" ebib-isbn-web-search)
+              ("s" crossref-lookup)
+              ("q" nil))))
 
 (use-package ebib-zotero
   :ensure nil
