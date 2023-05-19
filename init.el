@@ -3,6 +3,10 @@
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
+(setq inhibit-startup-echo-area-message "grantrosson")
+
+(setq use-package-always-defer t)
+
 ;;; install org
 
 (mapc
@@ -68,8 +72,6 @@
   ("C-x e" . eval-last-sexp)
   ("C-x E" .  kmacro-end-and-call-macro)
   ("M-o" . other-window)
-  ;; (:map Info-mode-map
-  ;;       ("o" . link-hint-open-link))
   (:map help-mode-map
         ("o" . link-hint-open-link))
   ;; rest of config in early-init.el
@@ -77,6 +79,11 @@
   (prog-mode-hook . (lambda () (setq show-trailing-whitespace t)))
   (prog-mode-hook . visual-line-mode)
   (text-mode-hook . visual-line-mode))
+
+(use-package info
+  :bind
+  (:map Info-mode-map
+        ("o" . link-hint-open-link)))
 
 (with-current-buffer "*Messages*"
   (visual-line-mode))
@@ -332,7 +339,8 @@
 ;;;; gr-functions and gr-map
 
 (use-package gr-functions
-  :ensure nil)
+  :ensure nil
+  :demand t)
 
 (define-prefix-command 'gr-map)
 
@@ -374,8 +382,8 @@
 ;;;; define-repeat-map
 
 (use-package define-repeat-map
-  :vc (:url "https://tildegit.org/acdw/define-repeat-map.el")
-  :defer 2
+  :vc (:url "https://tildegit.org/acdw/define-repeat-map.el"
+            :rev :newest)
   :config
   (define-repeat-map isearch
     ("s" isearch-repeat-forward)
@@ -432,7 +440,7 @@
 ;;;; recentf
 
 (use-package recentf
-  :defer 5
+  :defer 1
   :config
   (recentf-mode))
 
@@ -539,7 +547,7 @@
      ("=" org-verbatim verbatim)
      ("+" (t (:background "gray85" :height .9)))
      ("~" verbatim)))
-  (org-fold-core-style 'text-properties) ; text-properties don't unfold with ctrlf, only isearch; ctrlf issue #118
+  (org-fold-core-style 'text-properties)
   (org-startup-with-latex-preview nil)
   (org-use-fast-todo-selection 'expert)
   (org-edit-src-content-indentation 0)
@@ -659,14 +667,15 @@ parent."
                ("C-g" . keyboard-escape-quit))
   :custom
   (vertico-cycle t)
-  (vertico-count 7))
+  (vertico-count 7)
 
-(use-package vertico-multiform
-  :vc (:url "https://github.com/minad/vertico"
-            :lisp-dir "extensions/"
-            :rev :newest)
   :config
-  ;; (vertico-multiform-mode)
+  (add-to-list 'load-path "~/.emacs.d/elpa/vertico/extensions")
+  (require 'vertico-multiform)
+  (require 'vertico-buffer)
+  (require 'vertico-unobtrusive)
+  (vertico-multiform-mode)
+
   (setq vertico-multiform-commands
         '((consult-imenu buffer)
           (execute-extended-command unobtrusive)
@@ -692,7 +701,6 @@ parent."
   (setq vertico-buffer-display-action '(display-buffer-in-side-window
                                         (window-height . 0.3)
                                         (side . bottom)))
-
   )
 
 (setq crm-separator ",")
@@ -876,6 +884,8 @@ there, otherwise you are prompted for a message buffer."
 ;;;; consult
 
 (use-package consult
+  :vc (:url "https://github.com/minad/consult"
+            :rev :newest)
   :after (embark)
   :bind
   ;;("C-s" . consult-line)
@@ -2298,7 +2308,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; outline-mode
 
-(use-package outline-mode
+(use-package outline
   :ensure nil
   :diminish
   :bind
@@ -2345,31 +2355,34 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; melpazoid
 
-(unless (package-installed-p 'melpazoid)
-  (package-vc-install '(melpazoid
-                        :url "https://github.com/riscy/melpazoid"
-                        :lisp-dir "melpazoid/")))
+(use-package melpazoid
+  :vc (:url "https://github.com/riscy/melpazoid"
+            :main-file "melpazoid/melpazoid.el"
+            :rev :newest)
+  :defer t
+  :commands gr/elisp-check-buffer
+  :config
+  (defun gr/elisp-check-buffer ()
+    (interactive)
+    (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+    (package-refresh-contents)
+    (if (ignore-errors (or flycheck-mode
+                           flymake-mode))
+        (progn
+          (flycheck-mode -1)
+          (flymake-mode -1)
+          (message "Elisp checks off"))
+      (progn
+        (flycheck-mode)
+        (flycheck-list-errors)
+        (flymake-mode)
+        (flymake-show-buffer-diagnostics)
+        (package-lint-current-buffer)
+        (melpazoid)))))
 
 (add-hook 'flymake-mode-hook
           (lambda () (setq elisp-flymake-byte-compile-load-path load-path)))
 
-(defun gr/elisp-check-buffer ()
-  (interactive)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-  (package-refresh-contents)
-  (if (ignore-errors (or flycheck-mode
-                         flymake-mode))
-      (progn
-        (flycheck-mode -1)
-        (flymake-mode -1)
-        (message "Elisp checks off"))
-    (progn
-      (flycheck-mode)
-      (flycheck-list-errors)
-      (flymake-mode)
-      (flymake-show-buffer-diagnostics)
-      (package-lint-current-buffer)
-      (melpazoid))))
 
 ;;;; accent
 
