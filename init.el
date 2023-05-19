@@ -2116,40 +2116,17 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                  (url-encode-url text)))))
 
 (defun gr/switch-browser (choice)
-  (interactive (list (completing-read "Choose: " '(safari eww xwidget) nil t)))
+  (interactive (list (completing-read "Choose: " '(safari eww) nil t)))
   (let ((completion-ignore-case  t))
     (setq browse-url-browser-function
           (pcase choice
             ("safari" 'browse-url-default-browser)
-            ("eww" 'eww)
-            ("xwidget" 'xwwp-browse-url-other-window)))
+            ("eww" 'eww)))
     (message (format "browse-url set to `%s'" choice))))
 
 (setq browse-url-generic-program "/usr/bin/open")
 (setq browse-url-browser-function #'browse-url-default-browser)
 
-(use-package xwidget
-  :defer t
-  :config
-  ;; causes problems if this variable is not defined
-  (defvar xwidget-webkit-enable-plugins nil))
-
-(use-package ctable :defer t)
-
-(use-package xwwp-full
-  :after xwidget
-  :init (require 'xwwp-full)
-  :straight (xwwp-full :host github
-                       :repo "BlueFlo0d/xwwp"
-                       :files (:defaults "*.js" "*.css"))
-  :custom
-  (xwwp-follow-link-completion-system 'default)
-  :bind (:map xwidget-webkit-mode-map
-              ("o" . xwwp-follow-link)
-              ("l" . xwwp-ace-toggle)
-              ("h" . xwwp-history-show)
-              ("s" . xwwp-section)
-              ("R" . xwwp-reader-toggle)))
 
 ;;;; pass
 
