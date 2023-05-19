@@ -5,10 +5,15 @@
 
 ;;; install org
 
+(mapc
+ (lambda (x) (when (string-match-p "org$" x)
+               (delq x load-path)))
+ load-path)
+
 (unless (package-installed-p 'org)
   (package-vc-install '(org :url "https://git.savannah.gnu.org/git/emacs/org-mode.git"
 			    :lisp-dir "lisp"
-			    :shell-command "make autoloads")))
+			    :make)))
 
 ;;; Misc Startups
 
