@@ -598,11 +598,12 @@
 
 ;;;; org-contrib
 
-(use-package org-contrib
-  :straight (org-contrib :files ("lisp/org-contrib.el" "lisp/ox-extra.el")))
+(use-package org-contrib)
+
+(remove-hook 'org-mode-hook #'org-eldoc-load)
 
 (use-package ox-extra
-  :straight nil
+  :ensure nil
   :defer 1
   :config
   ;;(require 'ox-extra)
