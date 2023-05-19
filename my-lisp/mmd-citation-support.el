@@ -115,10 +115,7 @@
 ;;;###autoload
 (defun gr/format-mmd-citation (key &optional pages)
   "Return BibTeX KEY in mmd format, with option to include pages."
-  (let* ((pages (or pages
-                    (unless (looking-back "]" (- (point) 1))
-                      (read-from-minibuffer "Pages: "))))
-         (mmd (format "[#%s]" key))
+  (let* ((mmd (format "[#%s]" key))
          (cite))
     (if (or (not pages)
             (string= "" pages))
@@ -136,7 +133,10 @@ When in zk file, mmd format; when `org-mode', org-cite."
                  (if (and gr/last-mmd-citation-key
                           current-prefix-arg)
                      gr/last-mmd-citation-key
-                   (citar-select-ref)))))
+                   (citar-select-ref))))
+        (pages (or pages
+                   (unless (looking-back "]" (- (point) 1))
+                     (read-from-minibuffer "Pages: ")))))
     (if (or (zk-file-p)
             (string= "*scratch*" (buffer-name))
             (file-in-directory-p (or buffer-file-name
@@ -147,8 +147,14 @@ When in zk file, mmd format; when `org-mode', org-cite."
             gr/mmd-citation-use)
         (insert (gr/format-mmd-citation key pages))
       (condition-case nil
-          (citar-insert-citation (list key))
-        (error (gr/format-mmd-citation key pages))))
+          (progn
+            (citar-insert-citation (list key))
+            (unless (or (not pages)
+                        (string= "" pages))
+              (save-excursion
+                (forward-char -1)
+                (insert " " pages))))
+        (error (insert (gr/format-mmd-citation key pages)))))
     (setq gr/last-mmd-citation-key key)))
 
 (defun gr/mmd-citation-at-point ()
