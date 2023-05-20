@@ -1,11 +1,25 @@
 ;; init.el                    -*- lexical-binding: t; -*-
 
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+;;; Misc Startups
+
+(setq debug-on-error t)
 
 (setq inhibit-startup-echo-area-message "grantrosson")
 
-(setq use-package-always-defer t)
+(use-package gcmh
+  :load-path "~/.emacs.d/lisp/"
+  :diminish
+  :config
+  (gcmh-mode 1))
+
+(defun efs/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections."
+           (format "%.2f seconds"
+                   (float-time
+                    (time-subtract after-init-time before-init-time)))
+           gcs-done))
+
+(add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
 ;;; install org
 
@@ -18,34 +32,6 @@
   (package-vc-install '(org :url "https://git.savannah.gnu.org/git/emacs/org-mode.git"
 			    :lisp-dir "lisp"
 			    :make)))
-
-;;; Misc Startups
-
-(load-library "~/.emacs.d/lisp/gcmh.el")
-(gcmh-mode 1)
-
-;; for left and right fringe/margin
-(advice-add 'mwheel-scroll :override 'pixel-scroll-precision)
-
-;; set mode for *scratch* buffer
-(setq initial-major-mode 'lisp-interaction-mode)
-(setq initial-scratch-message nil)
-
-(defun efs/display-startup-time ()
-  (message "Emacs loaded in %s with %d garbage collections."
-           (format "%.2f seconds"
-                   (float-time
-                    (time-subtract after-init-time before-init-time)))
-           gcs-done))
-
-(add-hook 'emacs-startup-hook #'efs/display-startup-time)
-
-(setq safe-local-variable-values
-      '((eval gr/daily-notes-new-headline)
-        (dired-omit-size-limit)
-        (zk-link-and-title-format . "+%t [[%i]]+")
-        (gr/mmd-citation-use . t)
-        (eval . (text-scale-adjust 10))))
 
 ;;; Basics
 
@@ -64,7 +50,14 @@
   (exec-path-from-shell-copy-env "PKG_CONFIG_PATH")
   (exec-path-from-shell-initialize))
 
+(use-package diminish
+  :defer 1)
+
 (use-package emacs
+  :diminish
+  eldoc-mode
+  visual-line-mode
+  abbrev-mode
   :bind
   ("C-x [" . beginning-of-buffer)
   ("C-x ]" . end-of-buffer)
@@ -92,9 +85,6 @@
   (visual-line-mode))
 
 (use-package tab-bar
-  ;;:config
-  ;;(tab-bar-mode 1)
-  ;;(tab-bar-history-mode)
   :bind
   ("s-{" . tab-bar-switch-to-prev-tab)
   ("s-}" . tab-bar-switch-to-next-tab)
@@ -134,6 +124,7 @@
 (use-package keycast :defer 1)
 
 (use-package ruta-bg
+  :demand t
   :ensure nil)
 
 ;;;; themes
@@ -170,7 +161,6 @@
  ("s-c" . kill-ring-save)
  ("s-s" . save-buffer)
  ("s-z" . undo)
- ;;("s-Z" . redo)
  ("s-q" . save-buffers-kill-emacs)
  ("s-f" . consult-line)
  ("s-w" . gr/delete-frame-or-tab)
@@ -270,20 +260,7 @@
 ;; see 'gr/popper-select-buffer-at-bottom
 
 (setq display-buffer-alist
-      `(
-        ;; (,(make-display-buffer-matcher-function (list 'dired-mode))
-        ;;  (display-buffer-at-bottom)
-        ;;  (window-height . 0.5))
-
-        ;; ("magit:"
-        ;;  (display-buffer-at-bottom)
-        ;;  (window-height . 0.5))
-
-        ;; ("\\*ZK-Index\\|\\*ZK-Desktop"
-        ;;  (gr/select-buffer-at-bottom)
-        ;;  (window-height . 0.4))
-
-        ("*Async Shell Command*"
+      `(("*Async Shell Command*"
          (display-buffer-no-window))
 
         ("\\*elfeed-entry"
@@ -302,7 +279,7 @@
            (string-join
             '("Completions""Backups:" "helpful"
               "CAPTURE" "Pp Eval Output" "eshell" "Backtrace"
-              "Messages" "Metahelp" "Python" "Org Agenda"
+              "Messages" "Metahelp" "Python"
               "Warnings" "Go Translate" "Google Translate"
               "Org Select" "Compile-Log" "[Hh]elp" "annotations"
               "calfw-details" "Embark Collect")
@@ -310,31 +287,6 @@
          (display-buffer-at-bottom)
          (window-height . 0.45))
         ))
-
-(defun gr/select-buffer-at-bottom (buffer alist)
-  "Display buffer at bottom and select it"
-  (select-window (display-buffer-at-bottom buffer alist)))
-
-(defun gr/select-buffer-in-side-window (buffer alist)
-  "Display buffer in a side window and select it"
-  (select-window (display-buffer-in-side-window buffer alist)))
-
-(defun gr/select-buffer-in-direction (buffer alist)
-  "Display buffer in direction specified by ALIST and select it."
-  (select-window (display-buffer-in-direction buffer alist)))
-
-;; the following function is being redefined to allow my custom
-;; display-buffer-alist to work as expected on org buffers,
-;; which override the display-buffer-alist, per:
-;;   - https://www.mail-archive.com/emacs-orgmode@gnu.org/msg133885.html
-;;   - https://github.com/wasamasa/shackle/issues/65
-;; but if there's some funky window business, delete this
-
-(defun org-switch-to-buffer-other-window (args)
-  ;;  (org-no-popups
-  ;;     (apply 'switch-to-buffer-other-window args)))
-  (switch-to-buffer-other-window args))
-
 
 ;;;; gr-functions and gr-map
 
@@ -366,9 +318,6 @@
            ("g" . eww-duckduckgo)
            ("j" . gr/org-journal-new-entry)
            ("e" . ebib-open)
-           ;; ("e" . gr/elfeed-open-new-window)
-           ;; ("C-e" . gr/elfeed-open)
-           ;;("W" . gr/word-count-subtree)
            ("W" . org-wc-display)
            ("w" . prot-eww-map)
            ("D" . gr/lookup-word-at-point)
@@ -444,29 +393,13 @@
   :config
   (recentf-mode))
 
-;;;; diminish
-
-(use-package diminish
-  :defer 1
-  :init
-  (eval-after-load 'org-indent '(diminish 'org-indent-mode))
-  (diminish 'eldoc-mode)
-  (diminish 'outline-mode)
-  (diminish 'gcmh-mode)
-  (diminish 'visual-line-mode)
-  (diminish 'buffer-face-mode)
-  (diminish 'outline-minor-mode)
-  (eval-after-load 'citar-embark '(diminish 'citar-embark-mode))
-  (diminish 'abbrev-mode))
-
-(add-hook 'buffer-face-mode-hook (lambda () (diminish 'buffer-face-mode)))
-
 ;;; Org
 
 ;;;; org-mode
 
 (use-package org
   :load-path "elpa/org/lisp"
+  :diminish
   :bind
   ("C-c c" . org-capture)
   ("C-c a" . org-agenda)
@@ -504,6 +437,8 @@
             ("v" . "verse")
             ("el" . "src emacs-lisp")
             ("C" . "center"))))
+  (with-eval-after-load 'org-indent
+    (diminish 'org-indent-mode))
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
@@ -592,23 +527,6 @@
           (?* . ?➤)
           (?- . ?–))))
 
-;;;; org-journal
-
-(use-package org-journal
-  :defer t
-  :config
-  (setq org-journal-prefix-key "C-c j")
-  :custom-face
-  (org-journal-calendar-entry-face ((t (:underline t :weight bold))))
-  :custom
-  (org-journal-enable-agenda-integration t)
-  (org-journal-dir "~/Dropbox/Writings/journal/")
-  (org-journal-file-header "#+TITLE: %B %Y Journal\n#+STARTUP: folded")
-  (org-journal-file-type 'monthly)
-  (org-journal-date-format "%A, %B %d, %Y")
-  (org-journal-file-format "journal-%Y-%m.org")
-  (org-journal-find-file 'find-file))
-
 ;;;; org-contrib
 
 (use-package org-contrib)
@@ -619,18 +537,18 @@
   :ensure nil
   :defer 1
   :config
-  ;;(require 'ox-extra)
   (ox-extras-activate '(latex-header-blocks ignore-headlines))
 
-  ;; change "ignore" tag to "noheadline"
-  (defun org-export-ignore-headlines (data backend info)
-    "Remove headlines tagged \"noheadline\" retaining contents and promoting children.
-Each headline tagged \"ignore\" will be removed retaining its
-contents and promoting any children headlines to the level of the
-parent."
+  (define-advice org-export-ignore-headlines
+      (:override (data backend info) gr/org-export-ignore-headlines)
+    "Remove headlines tagged \"ignore\" or \"noheadline\" retaining
+contents and promoting children. Each headline tagged \"ignore\"
+or \"noheadline\" will be removed retaining its contents and
+promoting any children headlines to the level of the parent."
     (org-element-map data 'headline
       (lambda (object)
-        (when (member "noheadline" (org-element-property :tags object))
+        (when (or (member "noheadline" (org-element-property :tags object))
+                  (member "ignore" (org-element-property :tags object)))
           (let ((level-top (org-element-property :level object))
                 level-diff)
             (mapc (lambda (el)
@@ -782,11 +700,8 @@ parent."
 
   (setq prefix-help-command #'embark-prefix-help-command)
 
-  ;; no completing read; (type "C-h" for completing read prompter)
+  ;; no completing read; (type "?" for completing read prompter)
   (setq embark-prompter 'embark-keymap-prompter)
-
-  ;; enable completing read prompter
-  ;;(setq embark-prompter 'embark-completing-read-prompter)
 
   ;; from https://karthinks.com/software/fifteen-ways-to-use-embark/
   (eval-when-compile
@@ -1121,11 +1036,6 @@ parses its input."
   :hook
   (prog-mode-hook . tempel-setup-capf)
   (text-mode-hook . tempel-setup-capf)
-
-  ;; Optionally make the Tempel templates available to Abbrev,
-  ;; either locally or globally. `expand-abbrev' is bound to C-x '.
-  ;; (add-hook 'prog-mode-hook #'tempel-abbrev-mode)
-  ;; (global-tempel-abbrev-mode)
   )
 
 ;;; Citation / Bibliography
@@ -1219,6 +1129,7 @@ following the key as group 3."
 
 (use-package citar-embark
   :after (citar)
+  :diminish
   :config
   (citar-embark-mode))
 
@@ -1424,19 +1335,6 @@ following the key as group 3."
 
 ;;; Writing
 
-;;;; visual-fill-column
-
-(use-package visual-fill-column
-  :disabled ;; incompatible with olivetti
-  ;;only used in zk, as dir-local
-  ;;because it doesn't work with git-gutter
-  :hook
-  (org-mode-hook)
-  :config
-  (setq-default visual-fill-column-center-text t)
-  :custom
-  (visual-fill-column-width 90))
-
 ;;;; olivetti mode
 
 (use-package olivetti
@@ -1582,7 +1480,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (pdf-annot-list-mode-hook . (lambda () (pdf-annot-list-follow-minor-mode)))
   (pdf-occur-buffer-mode-hook . next-error-follow-minor-mode)
   (pdf-view-mode-hook . (lambda () (setq-local make-backup-files nil)))
-  ;;(pdf-view-mode-hook . pdf-keynav-minor-mode)
   :custom
   (pdf-annot-activate-created-annotations t "automatically annotate highlights")
 
@@ -1625,12 +1522,10 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
   ;; set RET to save annotations
   (with-eval-after-load 'pdf-annot
-
     (define-key pdf-annot-edit-contents-minor-mode-map (kbd "RET") 'pdf-annot-edit-contents-commit)
-
     (define-key pdf-annot-edit-contents-minor-mode-map (kbd "S-RET") 'newline)
-    ;; funtion to save after adding comment
 
+    ;; funtion to save after adding comment
     (define-advice pdf-annot-edit-contents-commit
         (:after nil bjm/save-buffer-no-args)
       "Save buffer ignoring arguments"
@@ -1673,7 +1568,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (add-hook 'TeX-after-compilation-finished-functions
           #'TeX-revert-document-buffer)
 
-;;(setq org-startup-with-latex-preview t)
 (setq org-preview-latex-default-process 'dvisvgm)
 
 ;;;; ox-hugo
@@ -1872,23 +1766,18 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :bind
   ("C-x C-j" . dired-jump)
   ("C-x d" . dired-jump)
-  ;;("C-x d" . dired)
   (:map dired-mode-map
         ("RET" . gr/dired-find-file-other-window)
         ("C-x C-q" . dired-toggle-read-only))
   :hook
-  (dired-mode-hook . dired-omit-mode)
   (dired-mode-hook . dired-hide-details-mode)
   (dired-mode-hook . force-truncate-lines)
-  (dired-omit-mode-hook . (lambda ()
-                            (delete "~" dired-omit-extensions))) ;; show backup files
   :custom
   (dired-listing-switches "-algho --group-directories-first")
   (delete-by-moving-to-trash t)
   (dired-hide-details-mode t)
   (dired-free-space nil)
   :config
-  (setq dired-omit-files "\\.DS_Store\\|\\.dropbox\\|Icon\\\015")
   (setq dired-kill-when-opening-new-dired-buffer t)
 
   (defun gr/dired-find-file-other-window ()
@@ -1899,6 +1788,17 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
           (dired--find-possibly-alternative-file file)
         (dired--find-file #'find-file-other-window file))))
   )
+
+(use-package dired-x
+  :ensure nil
+  :hook
+  (dired-mode-hook . dired-omit-mode)
+  :config
+  (setq dired-omit-files "\\.DS_Store\\|\\.dropbox\\|Icon\\\015")
+  ;; show backup and elc files
+  (mapc
+   (lambda (x) (delete x dired-omit-extensions))
+   '("~" ".elc")))
 
 ;; to allow --group-directories-first to work on osx
 (setq insert-directory-program "/usr/local/bin/gls" dired-use-ls-dired t)
@@ -2038,24 +1938,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (with-eval-after-load 'semantic/symref/grep
     (add-to-list 'semantic-symref-filepattern-alist '(helpful-mode "*.el" "*.ede" ".emacs" "_emacs")))
   )
-
-;;;; Undo-tree
-
-(use-package undo-tree
-  :diminish undo-tree-mode
-  :defer 1
-  ;; :init
-  ;; (global-undo-tree-mode)
-  :custom
-  (undo-tree-auto-save-history nil))
-
-;;;; vundo
-
-(use-package vundo
-  :defer 1
-  :custom
-  ;;(vundo-glyph-alist vundo-unicode-symbols)
-  (vundo-roll-back-on-quit nil))
 
 ;;;; wgrep
 
@@ -2445,13 +2327,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-<up>" . move-text-up)
   ("C-<down>" . move-text-down))
 
-;;;; ledger-mode
-
-(use-package ledger-mode
-  :mode ("\\.dat\\'" . ledger-mode)
-  :custom
-  (ledger-clear-whole-transactions t))
-
 ;;;; mastodon
 
 (use-package mastodon
@@ -2467,19 +2342,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :config
   (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
   (global-set-key [remap scroll-up-command] 'golden-ratio-scroll-screen-up))
-
-;;;; nov.el
-
-;; a little bit useless because you can do full-text search
-(use-package nov
-  :defer t
-  :mode ("\\.epub\\'" . nov-mode)
-  :bind
-  (:map nov-mode-map
-        ("SPC" . golden-ratio-scroll-screen-up)
-        ("DEL" . golden-ratio-scroll-screen-down))
-  :custom
-  (nov-text-width t))
 
 ;;;; osx-reveal-in-finder
 

@@ -1,6 +1,5 @@
 ;;; -*- lexical-binding: t -*-
 
-(setq debug-on-error t)
 (defvar file-name-handler-alist-original file-name-handler-alist)
 (setq file-name-handler-alist nil)
 
@@ -23,18 +22,32 @@
 
 (setq load-prefer-newer t)
 
-;;; package setup
+;;; safe-local-variable-values
 
-(setq package-enable-at-startup t)
-(setq package-quickstart t)
+(setq safe-local-variable-values
+      '((eval gr/daily-notes-new-headline)
+        (dired-omit-size-limit)
+        (zk-link-and-title-format . "+%t [[%i]]+")
+        (gr/mmd-citation-use . t)
+        (eval . (text-scale-adjust 10))))
 
-(setq package-vc-allow-side-effects t)
+;;; use-package
 
 (eval-and-compile
   (setq use-package-always-ensure t)
   (setq use-package-expand-minimally t)
   (setq use-package-enable-imenu-support t)
   (setq use-package-hook-name-suffix nil))
+
+;;; package
+
+(use-package package
+  :ensure nil
+  :config
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  (setq package-enable-at-startup t)
+  (setq package-quickstart t)
+  (setq package-vc-allow-side-effects t))
 
 ;;; setenv
 
@@ -44,7 +57,15 @@
 
 (setq user-emacs-directory "~/.dotfiles/.emacs.d/")
 
+;; set mode for *scratch* buffer
+(setq initial-major-mode 'lisp-interaction-mode)
+(setq initial-scratch-message nil)
+
 (pixel-scroll-precision-mode)
+
+;; for left and right fringe/margin
+(define-advice mwheel-scroll
+    (:override nil pixel-scroll-precision))
 
 (setq set-mark-command-repeat-pop t)
 
