@@ -489,6 +489,13 @@
   (org-src-preserve-indentation nil)
   (org-log-states-order-reversed nil)
 
+  (org-refile-targets '((nil :maxlevel . 2)
+                        (org-agenda-files :maxlevel . 2)))
+
+  (org-outline-path-complete-in-steps nil)
+  (org-refile-use-outline-path 'file)
+  (org-refile-allow-creating-parent-nodes 'confirm)
+
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages

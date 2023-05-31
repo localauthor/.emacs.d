@@ -74,46 +74,6 @@
 ;;(global-set-key (kbd "C-x n") 'narrow-or-widen-dwim)
 (global-set-key (kbd "C-c n") 'narrow-or-widen-dwim)
 
-
-;;;; org-refile
-
-;; for Capture and Refile; to enable finding and selecting headings when refiling a capture;
-
-(setq org-refile-targets '((nil :maxlevel . 9)
-                           (org-agenda-files :maxlevel . 9)
-                           ;;                             ("~/Dropbox/org/tasks.org_archive" :maxlevel . 9)
-                           ;;                             ("~/Dropbox/org/myinit.org_archive" :maxlevel . 9)
-                           ))
-
-(setq org-outline-path-complete-in-steps nil)          ; Refile in a single go
-(setq org-refile-use-outline-path 'file)               ; Show full paths for refiling
-(setq org-refile-allow-creating-parent-nodes 'confirm) ;
-
-;; Search and Jump to Any Heading in Org-Refile-Targets files
-
-;; SOURCE: https://yiming.dev/blog/2018/03/02/my-org-refile-workflow/
-
-;; NOTE: If a heading isn't found, either the file is not listed in the variable 'org-refile-targets', or the filelist cache needs to be updated ('org-refile-get-targets')
-
-(defun +org-search ()
-  "Go to seleted heading in org agenda file."
-  (interactive)
-  (org-refile '(4)))
-
-;; The org-refile can be slow if it reloads the cache every time, so enable caching
-
-;;  (setq org-refile-use-cache t)
-
-;; And set the cache to reload when emacs is idle for five minutes
-
-;; (run-with-idle-timer 300 t (lambda ()
-;;                             (org-refile-cache-clear)
-;;                             (org-refile-get-targets)))
-
-;; This means that the headings listed in the cache will not always be up to date, up to the minute
-;; If something is missing, call the function 'org-refile-get-targets'
-
-
 ;;;; org-archive
 
 (defun gr/org-archive (arg)
