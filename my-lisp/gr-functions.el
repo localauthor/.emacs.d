@@ -56,10 +56,15 @@ Symbols and Diacritics
   (interactive)
   (org-set-startup-visibility)
   (let ((date (concat "** " (format-time-string "%Y-%m-%d %A")))
-        (month (concat "* " (format-time-string "%B %Y"))))
+        (month (concat "* " (format-time-string "%B %Y")))
+        (last-month (format-time-string "%B"
+                                        (time-subtract
+                                         (current-time)
+                                         (days-to-time 31)))))
     (goto-char (point-min))
     (unless (re-search-forward month nil t)
-      (forward-line 2)
+      (re-search-forward (concat "* " last-month))
+      (beginning-of-line)
       (insert month "\n\n")
       (forward-line -2)
       (org-set-property "VISIBILITY" "all"))
@@ -74,7 +79,15 @@ Symbols and Diacritics
   (select-frame (make-frame-command))
   (set-frame-position (selected-frame) 150 20)
   (set-frame-size (selected-frame) 160 60)
-  (calfw-open-org-calendar))
+  (save-excursion
+    (let* ((source1 (calfw-org-create-source))
+           (curr-keymap (if calfw-org-overwrite-default-keybinding calfw-org-custom-map calfw-org-schedule-map))
+           (cp (calfw-create-calendar-component-buffer
+                :view 'two-weeks
+                :contents-sources (list source1)
+                :custom-map curr-keymap
+                :sorter 'calfw-org-schedule-sorter)))
+      (switch-to-buffer (calfw-cp-get-buffer cp)))))
 
 (defun gr/word-count-subtree ()
   "Count words in org subtree at point."
@@ -193,6 +206,14 @@ Symbols and Diacritics
 ;;   (set-frame-position (selected-frame) 200 100)
 ;;   (delete-other-windows))
 
+(defun gr/toggle-capslock ()
+  "Toggle capslock.
+See bin in ~/Repos/capslock and source
+https://discussions.apple.com/thread/7094207"
+  (interactive)
+  (shell-command "capslock -1"))
+
+(define-key global-map (kbd "<f12>") 'gr/toggle-capslock)
 
 (defun gr/insert-line (p)
   (interactive "P")
