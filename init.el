@@ -2201,36 +2201,28 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
    '(("lt" . "en")
      ("en" . "lt"))))
 
-;;;; outline-mode
+;;;; outline-minor-mode
 
 (use-package outline
   :ensure nil
-  :diminish
+  :diminish outline-minor-mode
   :bind
   ("C-S-<right>" . outline-demote)
   ("C-S-<left>" . outline-promote)
   ("C-<right>" . outline-demote)
   ("C-<left>" . outline-promote)
   (:map outline-minor-mode-cycle-map
+        ("<backtab>" . outline-cycle-buffer)
         ("<left-margin> <mouse-1>" . nil)
         ("<left-margin> S-<mouse-1>" . nil)
         ("<right-margin> <mouse-1>" . nil)
         ("<right-margin> S-<mouse-1>" . nil))
   :hook
-  (outline-minor-mode-hook . (lambda () (diminish 'outline-minor-mode)))
+  (emacs-lisp-mode-hook . outline-minor-mode)
+  (emacs-lisp-mode-hook . (lambda () (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\)")))
   :custom
+  (outline-minor-mode-highlight 'override)
   (outline-minor-mode-cycle t))
-
-(use-package outshine
-  :defer 1
-  :diminish
-  :hook
-  (nxml-mode-hook)
-  (emacs-lisp-mode-hook)
-  (outline-minor-mode-hook)
-  :custom
-  ;; prevent headings from appearing with functions in consult-imenu
-  (outshine-imenu-show-headlines-p nil))
 
 ;;;; whitespace-mode
 
