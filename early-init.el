@@ -22,15 +22,6 @@
 
 (setq load-prefer-newer t)
 
-;;; safe-local-variable-values
-
-(setq safe-local-variable-values
-      '((eval gr/daily-notes-new-headline)
-        (dired-omit-size-limit)
-        (zk-link-and-title-format . "+%t [[%i]]+")
-        (gr/mmd-citation-use . t)
-        (eval . (text-scale-adjust 10))))
-
 ;;; use-package
 
 (eval-and-compile
@@ -47,6 +38,7 @@
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
   (setq package-enable-at-startup t)
   (setq package-quickstart t)
+  (setq package-install-upgrade-built-in t)
   (setq package-vc-allow-side-effects t))
 
 ;;; setenv
@@ -55,7 +47,7 @@
 
 ;;; emacs config
 
-(setq user-emacs-directory "~/.dotfiles/.emacs.d/")
+(setq user-emacs-directory "~/.emacs.d/")
 
 ;; set mode for *scratch* buffer
 (setq initial-major-mode 'lisp-interaction-mode)
@@ -65,7 +57,7 @@
 
 ;; for left and right fringe/margin
 (define-advice mwheel-scroll
-    (:override nil pixel-scroll-precision))
+    (:override (event &optional arg) pixel-scroll-precision))
 
 (setq set-mark-command-repeat-pop t)
 
@@ -100,7 +92,8 @@
 (add-hook 'after-make-frame-functions
           #'(lambda (frame)
               (modify-frame-parameters frame
-                                       '((vertical-scroll-bars . nil)
+                                       '((undecorated-round . t)
+                                         (vertical-scroll-bars . nil)
                                          (horizontal-scroll-bars . nil)))))
 
 (global-auto-revert-mode t)

@@ -2,15 +2,14 @@
 
 ;;; Misc Startups
 
-(setq debug-on-error t)
-
-(setq inhibit-startup-echo-area-message "grantrosson")
-
 (use-package gcmh
   :load-path "~/.emacs.d/lisp/"
   :diminish
   :config
   (gcmh-mode 1))
+
+(setq debug-on-error t)
+(setq inhibit-startup-echo-area-message "grantrosson")
 
 (defun efs/display-startup-time ()
   (message "Emacs loaded in %s with %d garbage collections."
@@ -21,17 +20,16 @@
 
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
-;;; install org
 
-(mapc
- (lambda (x) (when (string-match-p "org$" x)
-               (delq x load-path)))
- load-path)
+;;; safe-local-variable-values
 
-(unless (package-installed-p 'org)
-  (package-vc-install '(org :url "https://git.savannah.gnu.org/git/emacs/org-mode.git"
-			    :lisp-dir "lisp"
-			    :make)))
+(setq safe-local-variable-values
+      '((eval gr/daily-notes-new-headline)
+        (dired-omit-size-limit)
+        (zk-link-and-title-format . "+%t [[%i]]+")
+        (gr/mmd-citation-use . t)
+        (eval . (gr/toggle-capslock))
+        (eval . (text-scale-adjust 10))))
 
 ;;; Basics
 
@@ -58,6 +56,7 @@
   eldoc-mode
   visual-line-mode
   abbrev-mode
+  auto-fill-mode
   :bind
   ("C-x [" . beginning-of-buffer)
   ("C-x ]" . end-of-buffer)
@@ -179,14 +178,6 @@
 (when (eq system-type 'darwin)
   (setq mac-right-command-modifier 'control))
 
-;; Global Cursor Bindings -- Mimic MacOS Behavior (eg, as in TextEdit)
-;; Binds Command-<left/right arrow> TO MOVE CURSOR TO BEG/END OF LINE
-(bind-keys
- ("s-<left>" . move-beginning-of-line)
- ("s-<right>" . move-end-of-line)
- ("s-<up>" . beginning-of-buffer)
- ("s-<down>" . end-of-buffer))
-
 ;; Bold, italics, underline functions
 
 (defun bold-region-or-point ()
@@ -280,6 +271,9 @@
         ("*mu4e-main*"
          (display-buffer-full-frame))
 
+        ("Org Links" display-buffer-no-window
+         (allow-no-window . t))
+
         (,(concat
            "\\*\\("
            (string-join
@@ -353,7 +347,7 @@
   :load-path "my-lisp/init-lock"
   :defer t
   :custom
-  (init-lock-files '("~/.dotfiles/.emacs.d/init.el")))
+  (init-lock-files '("~/.emacs.d/init.el")))
 
 ;;;; link-hint
 
@@ -465,7 +459,7 @@
   (org-support-shift-select nil)
   (org-return-follows-link t)
   (org-export-backends '(ascii html latex md odt org))
-  (org-log-done nil)
+  (org-log-done 'time)
   ;; Sets spacing between headings in org-mode
   (org-cycle-separator-lines -1)
   (org-blank-before-new-entry
@@ -834,6 +828,7 @@ there, otherwise you are prompted for a message buffer."
   :hook
   (embark-collect-mode-hook . consult-preview-at-point-mode)
   :custom
+  (completion-in-region-function 'consult-completion-in-region)
   (consult-fontify-preserve nil)
   (consult-project-function nil)
   (consult-async-split-style 'semicolon)
@@ -1546,7 +1541,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 (setq org-preview-latex-default-process 'dvisvgm)
 
-;;;; ox-hugo
+;;;; websites
 
 (use-package ox-hugo
   :defer 3
@@ -1698,9 +1693,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                   ("ZK" (or (name . "*ZK")
                             (and (filename . "/Zettels/")
                                  (not (name . "magit")))))
-                  ("ORG" (or (and (filename . "\\.org$")
-                                  (not (name . "gcal")))
-                             (name . "^\\*calfw-calendar")))
+                  ("ORG" (and (filename . "\\.org$")
+                              (not (name . "gcal"))))
                   ("PDF" (or (mode . pdf-view-mode)
                              (mode . pdf-occur-buffer-mode)
                              (mode . pdf-annot-list-mode)
@@ -1718,8 +1712,10 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                              (name . "init.el")
                              (name . "^\\*Messages")
                              (name . "^\\*mu4e-")
+                             (name . "^\\*calfw-calendar")
                              (name . "*Calculator*")
                              (name . "org_archive")
+                             (name . "*davmail-server*")
                              (name . "gcal")
                              (name . ".persp")))
                   )))))
@@ -2088,7 +2084,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           ,(concat
             "\\*\\("
             (string-join
-             '("Messages" "Warnings" "Dictionary"
+             '("chatgpt" "Messages" "Warnings" "Dictionary"
                "Outline" "Occur" "sdcv" "vterm"
                "xref" "Backtrace" "ZK-Index" "Apropos"
                "eshell" "PDF-Occur" "Org Agenda"
@@ -2148,13 +2144,16 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; google-translate
 
 (use-package google-translate
-  ;; must defer or else emacsclient won't start, for some reason
   :defer t
   :custom
   (google-translate-default-source-language "lt")
   (google-translate-default-target-language "en")
   (google-translate-backend-method 'curl)
   (google-translate-pop-up-buffer-set-focus t))
+
+;; override to prevent insertion of original text
+(defun google-translate--translating-text ()
+  nil)
 
 (use-package google-translate-smooth-ui
   :ensure nil
@@ -2335,10 +2334,18 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :vc (:url "https://github.com/localauthor/simplenote2.el"
             :rev :newest)
   :defer t
+  :bind
+  (:map gr-map
+        ("N" . simplenote2-open))
   :config
   (setq simplenote2-email "grantrosson@gmail.com")
   (setq simplenote2-password (string-trim-right (shell-command-to-string "security find-generic-password -a grantrosson@gmail.com -s simplenote -w")))
-  (simplenote2-setup))
+  (defun simplenote2-open ()
+    (interactive)
+    (if (boundp 'simplenote2-notes-info)
+        (simplenote2-list)
+      (simplenote2-setup)
+      (simplenote2-list))))
 
 ;;;; chatgpt
 
@@ -2347,6 +2354,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (chatgpt-shell-openai-key
    (lambda ()
-     (auth-source-pick-first-password :host "api.openai.com"))))
-
-
+     (auth-source-pick-first-password :host "api.openai.com")))
+  :config
+  (add-to-list 'chatgpt-shell-system-prompts '("Writing" . "You are a large language model and a writing assistant.")))
