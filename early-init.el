@@ -51,7 +51,7 @@
 
 ;;; setenv
 
-(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/12:/usr/local/opt/libgccjit/lib/gcc/12:/usr/local/opt/gcc/lib/gcc/12/gcc/x86_64-apple-darwin21/12")
+(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/current:/usr/local/opt/libgccjit/lib/gcc/current:")
 
 ;;; emacs config
 
