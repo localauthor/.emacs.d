@@ -590,8 +590,6 @@ promoting any children headlines to the level of the parent."
 ;;;; vertico
 
 (use-package vertico
-  :vc (:url "https://github.com/minad/vertico"
-            :rev :newest)
   :init (vertico-mode)
   :bind* (:map vertico-map
                ("C-j" . vertico-exit-input)
@@ -601,10 +599,6 @@ promoting any children headlines to the level of the parent."
   (vertico-count 7)
 
   :config
-  (add-to-list 'load-path "~/.emacs.d/elpa/vertico/extensions")
-  (require 'vertico-multiform)
-  (require 'vertico-buffer)
-  (require 'vertico-unobtrusive)
   (vertico-multiform-mode)
 
   (setq vertico-multiform-commands
@@ -660,8 +654,6 @@ promoting any children headlines to the level of the parent."
 ;;;; embark
 
 (use-package embark
-  :vc (:url "https://github.com/oantolin/embark"
-            :rev :newest)
   :bind
   ("C-," . embark-act)
   ("C->" . embark-act-noquit)
@@ -812,8 +804,6 @@ there, otherwise you are prompted for a message buffer."
 ;;;; consult
 
 (use-package consult
-  :vc (:url "https://github.com/minad/consult"
-            :rev :newest)
   :after (embark)
   :bind
   ;;("C-s" . consult-line)
