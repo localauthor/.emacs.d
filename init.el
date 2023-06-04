@@ -957,6 +957,27 @@ parses its input."
       `(orderless-initialism . ,(substring pattern 0 -1))))
   )
 
+;;;; cape
+
+(use-package cape
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  :bind (("M-i" . completion-at-point)
+         ("C-c p p" . completion-at-point) ;; capf
+         ("C-c p t" . complete-tag)        ;; etags
+         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c p f" . cape-file)
+         ("C-c p s" . cape-symbol)
+         ("C-c p a" . cape-abbrev)
+         ("C-c p i" . cape-ispell)))
+
+(setq read-file-name-completion-ignore-case t
+      read-buffer-completion-ignore-case t
+      completion-ignore-case t)
+
+(setq tab-always-indent 'complete)
+
 ;;;; savehist
 
 (use-package savehist
@@ -965,44 +986,6 @@ parses its input."
   (savehist-mode 1)
   (setq savehist-additional-variables
         '(citar-history search-ring regexp-search-ring)))
-
-;;;; corfu / cape
-
-(use-package corfu
-  :init (global-corfu-mode 1)
-  :hook
-  (emacs-lisp-mode-hook)
-  :bind
-  ("M-i" . completion-at-point)
-  :custom
-  (corfu-cycle t)
-  (corfu-auto t)
-  (corfu-auto-delay 1)
-  (corfu-auto-prefix 1)
-  (corfu-quit-no-match 'separator)
-  (corfu-quit-at-boundary 'separator)
-  (corfu-preview-current nil)
-  :custom-face
-  (corfu-default ((t (:background "cornsilk" :font "Menlo"))))
-  (corfu-current ((t (:background "light blue")))))
-
-(setq read-file-name-completion-ignore-case t
-      read-buffer-completion-ignore-case t
-      completion-ignore-case t)
-
-(setq tab-always-indent 'complete)
-
-(use-package cape
-  :init
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  :bind (("C-c p p" . completion-at-point) ;; capf
-         ("C-c p t" . complete-tag)        ;; etags
-         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
-         ("C-c p f" . cape-file)
-         ("C-c p s" . cape-symbol)
-         ("C-c p a" . cape-abbrev)
-         ("C-c p i" . cape-ispell)))
 
 ;;;; prescient / company-prescient
 
