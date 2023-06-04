@@ -73,6 +73,12 @@
   (prog-mode-hook . visual-line-mode)
   (text-mode-hook . visual-line-mode))
 
+(use-package elec-pair
+  :init
+  (electric-pair-mode)
+  :custom
+  (electric-pair-inhibit-predicate 'ignore))
+
 (use-package info
   :bind
   (:map Info-mode-map
