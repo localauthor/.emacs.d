@@ -2041,7 +2041,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 ;;;; ace-window
 
-(use-package posframe :defer 1)
+;;(use-package posframe :defer 1)
 
 (use-package ace-window
   :bind
@@ -2053,7 +2053,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (aw-scope 'visible)
   (aw-dispatch-always t)
   :config
-  (ace-window-posframe-mode 1)
+  ;;  (ace-window-posframe-mode 1)
   (setq aw-dispatch-alist
         '((?b aw-switch-buffer-in-window "Select Buffer in Target")
           (?w aw-swap-window "Swap Current and Target")
