@@ -298,57 +298,47 @@
 
 (use-package gr-functions
   :ensure nil
-  :demand t)
+  :init
+  (define-prefix-command 'gr-map)
+  (bind-keys :map global-map
+             :prefix-map gr-map
+             :prefix "C-."
+             ("C-." . avy-goto-char-timer)
+             ("/" . switch-to-minibuffer-window)
+             ("C-/" . exit-minibuffer)
+             ("n" . gr/daily-notes)
+             ("o" . link-hint-aw-select)
+             ("O" . link-hint-other-tab)
+             ("i" . gr/open-init-file)
+             ("C-t" . gr/open-tasks-file)
+             ("T" . gr/toggle-theme)
+             ("f" . gr/open-fragments-file)
+             ("C-f" . gr/open-fragments-file-other-frame)
+             ("m" . gr/open-mu4e)
+             ("M" . mu4e)
+             ("a" . gr/org-agenda)
+             ("c" . gr/calfw-open-org-calendar)
+             ("b" . consult-bookmark)
+             ("g" . eww-duckduckgo)
+             ("j" . gr/org-journal-new-entry)
+             ("e" . ebib-open)
+             ("W" . org-wc-display)
+             ("w" . prot-eww-map)
+             ("D" . gr/lookup-word-at-point)
+             ("d" . sdcv-search)
+             ("L" . toggle-truncate-lines)
+             ("t" . google-translate-buffer)
+             ("s" . hydra-mac-speak/body)
+             ("p" . password-store-copy)))
 
-(define-prefix-command 'gr-map)
+;;;; isearch
 
-(bind-keys :map global-map
-           :prefix-map gr-map
-           :prefix "C-."
-           ("C-." . avy-goto-char-timer)
-           ("/" . switch-to-minibuffer-window)
-           ("C-/" . exit-minibuffer)
-           ("n" . gr/daily-notes)
-           ("o" . link-hint-aw-select)
-           ("O" . link-hint-other-tab)
-           ("i" . gr/open-init-file)
-           ("C-t" . gr/open-tasks-file)
-           ("T" . gr/toggle-theme)
-           ("f" . gr/open-fragments-file)
-           ("C-f" . gr/open-fragments-file-other-frame)
-           ("m" . gr/open-mu4e)
-           ("M" . mu4e)
-           ("a" . gr/org-agenda)
-           ("c" . gr/calfw-open-org-calendar)
-           ("b" . consult-bookmark)
-           ("g" . eww-duckduckgo)
-           ("j" . gr/org-journal-new-entry)
-           ("e" . ebib-open)
-           ("W" . org-wc-display)
-           ("w" . prot-eww-map)
-           ("D" . gr/lookup-word-at-point)
-           ("d" . sdcv-search)
-           ("L" . toggle-truncate-lines)
-           ("t" . google-translate-buffer)
-           ("s" . hydra-mac-speak/body)
-           ("p" . password-store-copy)
-           )
-
-;;;; define-repeat-map
-
-(use-package define-repeat-map
-  :vc (:url "https://tildegit.org/acdw/define-repeat-map.el"
-            :rev :newest)
-  :config
-  (define-repeat-map isearch
-    ("s" isearch-repeat-forward)
-    ("r" isearch-repeat-backward)
-    ("C-n" isearch-repeat-forward)
-    ("C-p" isearch-repeat-backward)
-    (:exit "RET" isearch-exit
-           "C-g" keyboard-quit))
-  (setq repeat-echo-function #'ignore)
-  (repeat-mode))
+(use-package isearch
+  :ensure nil
+  :bind
+  (:map isearch-mode-map
+        ("C-n" . isearch-repeat-forward)
+        ("C-p" . isearch-repeat-backward)))
 
 ;;;; re-builder
 
