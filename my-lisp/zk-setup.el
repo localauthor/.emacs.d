@@ -169,7 +169,9 @@ Optional ARG."
   (:map zk-id-map
         ("p" . link-hint-preview-zk-link))
   :config
-  (require 'link-hint-preview))
+  (require 'link-hint-preview)
+  (setq link-hint-avy-ignored-modes '(zk-index-mode))
+  )
 
 (with-eval-after-load "embark"
   (defvar-keymap embark-become-zk-file-map
@@ -183,7 +185,7 @@ Optional ARG."
 
 (use-package zk-extras
   :load-path "my-lisp/zk"
-  :after zk zk-luhmann
+  :after zk zk-luhmann zk-consult
   :bind (:map zk-index-mode-map
               ("L" . zk-lit-notes-index)))
 
