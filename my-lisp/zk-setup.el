@@ -76,7 +76,13 @@ Optional ARG."
   :after zk
   :bind
   (:map zk-index-mode-map
+        ("n". zk-index-next-line)
+        ("p" . zk-index-previous-line)
+        ("C-n" . next-line)
+        ("C-p" . previous-line)
         ("o" . zk-index-aw-select)
+        ("/" . zk-index-focus)
+        ;; ("RET" . zk-index-view-note)
         ("v" . zk-index-view-note)
         ("P" . link-hint-preview-button)
         ("j" . consult-line) ;; "jump"
@@ -123,6 +129,8 @@ Optional ARG."
               ("l" . zk-luhmann-index-top)
               ("C-f" . zk-luhmann-index-forward)
               ("C-b" . zk-luhmann-index-back)
+              ("f" . zk-luhmann-index-forward)
+              ("b" . zk-luhmann-index-back)
               ("C-t" . zk-luhmann-index-unfold)
               ("t" . zk-luhmann-index-top))
   :hook (completion-at-point-functions . zk-luhmann-completion-at-point)
@@ -142,6 +150,7 @@ Optional ARG."
   (zk-tag-search-function #'zk-consult-grep-tag-search) ;; #'zk-grep #'zk-xref
   (zk-consult-preview-functions
    '(zk-current-notes
+     zk-consult-grep
      zk-unlinked-notes))
   (zk-select-file-function 'zk-consult-select-file)
   :config
