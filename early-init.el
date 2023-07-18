@@ -34,12 +34,14 @@
 
 (use-package package
   :ensure nil
+  :custom
+  (package-enable-at-startup t)
+  (package-check-signature nil)
+  (package-quickstart t)
+  (package-install-upgrade-built-in t)
+  (package-vc-allow-side-effects t)
   :config
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  (setq package-enable-at-startup t)
-  (setq package-quickstart t)
-  (setq package-install-upgrade-built-in t)
-  (setq package-vc-allow-side-effects t))
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")))
 
 ;;; setenv
 
@@ -76,6 +78,8 @@
 
 (setq auto-save-default nil) ;; stop creating #autosave# files
 (setq create-lockfiles nil)  ;; stop creating .# files
+
+(auto-save-visited-mode 1)
 
 (setq inhibit-splash-screen t)
 (desktop-save-mode -1)
@@ -180,7 +184,7 @@
 (add-hook 'before-save-hook 'force-backup-of-buffer)
 
 (setq epg-gpg-program "/usr/local/bin/gpg")
-(setq xref-search-program 'ripgrep)
+(setq xref-search-program 'ugrep)
 
 (setq erc-server "irc.libera.chat"
       erc-nick "localauthor"
