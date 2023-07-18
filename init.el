@@ -180,56 +180,40 @@
 
 ;; Bold, italics, underline functions
 
-(defun bold-region-or-point ()
-  (interactive)
-  (if (region-active-p)
-      (progn
-        (let ((beg (region-end))
-              (end (region-beginning)))
-          (goto-char beg)
-          (insert "*")
-          (goto-char end)
-          (insert "*")))
-    (backward-word)
-    (insert "*")
-    (forward-word)
-    (insert "*")))
+(defmacro surround-region (name symbol &optional symbol-two)
+  `(defun ,(intern (concat "surround-region-" (symbol-name name))) ()
+     (interactive)
+     (if (region-active-p)
+         (progn
+           (let ((beg (region-beginning))
+                 (end (1+ (region-end))))
+             (goto-char beg)
+             (insert ,symbol)
+             (goto-char end)
+             (insert ,(if symbol-two
+                          symbol-two
+                        symbol))))
+       (backward-word)
+       (insert ,symbol)
+       (forward-word)
+       (insert ,(if symbol-two
+                    symbol-two
+                  symbol)))))
 
-(defun italicize-region-or-point ()
-  (interactive)
-  (if (region-active-p)
-      (progn
-        (let ((beg (region-end))
-              (end (region-beginning)))
-          (goto-char beg)
-          (insert "/")
-          (goto-char end)
-          (insert "/")))
-    (backward-word)
-    (insert "/")
-    (forward-word)
-    (insert "/")))
-
-(defun underline-region-or-point ()
-  (interactive)
-  (if (region-active-p)
-      (progn
-        (let ((beg (region-end))
-              (end (region-beginning)))
-          (goto-char beg)
-          (insert "_")
-          (goto-char end)
-          (insert "_")))
-    (backward-word)
-    (insert "_")
-    (forward-word)
-    (insert "_")))
+(surround-region quotes "\"")
+(surround-region bold "\*")
+(surround-region italics "\/")
+(surround-region underline "\_")
+(surround-region parens "\(" "\)")
+(surround-region brackets "\[" "\]")
 
 (bind-keys*
- ("s-i" . italicize-region-or-point)
- ("s-b" . bold-region-or-point)
- ("s-u" . underline-region-or-point))
-
+ ("s-i" . surround-region-italics)
+ ("s-b" . surround-region-bold)
+ ("s-u" . surround-region-underline)
+ ("s-\"" . surround-region-quotes)
+ ("s-\(" . surround-region-parens)
+ ("s-\[" . surround-region-brackets))
 
 ;;;; Window and Frame Setup
 
