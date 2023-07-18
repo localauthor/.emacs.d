@@ -114,10 +114,10 @@ org-mode
  "# letterhead: true # To include personalized letterheads" n
  "---" n
  "#+end_src" n n
- "#+begin_src shell" n
- "cd ./invoice-boilerplate" n
+ "#+begin_src shell :results none" n
+ "cd ~/Dropbox/Proofreading/invoice-boilerplate" n
  "make" n
- "mv ./output.pdf '../2022 Projects/" (s client-name) " " (s invoice-nr) "/Rosson - Invoice - " (s client-name) " " (s invoice-nr) ".pdf'" n
+ "mv ./output.pdf '../Rosson - Invoice - " (s client-name) " " (s invoice-nr) ".pdf'" n
  "#+end_src")
 
 (article
