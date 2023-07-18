@@ -20,7 +20,6 @@
 
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
-
 ;;; safe-local-variable-values
 
 (setq safe-local-variable-values
@@ -73,6 +72,7 @@
   (text-mode-hook . visual-line-mode))
 
 (use-package elec-pair
+  :disabled
   :init
   (electric-pair-mode)
   :custom
@@ -304,18 +304,18 @@
              ("o" . link-hint-aw-select)
              ("O" . link-hint-other-tab)
              ("i" . gr/open-init-file)
-             ("C-t" . gr/open-tasks-file)
-             ("T" . gr/toggle-theme)
+             ;;("C-t" . gr/open-tasks-file)
+             ("C-t" . gr/toggle-theme)
              ("f" . gr/open-fragments-file)
              ("C-f" . gr/open-fragments-file-other-frame)
-             ("m" . gr/open-mu4e)
-             ("M" . mu4e)
+             ("m" . mu4e)
+             ("M" . gr/open-mu4e)
              ("a" . gr/org-agenda)
              ("c" . gr/calfw-open-org-calendar)
              ("b" . consult-bookmark)
              ("g" . eww-duckduckgo)
              ("j" . gr/org-journal-new-entry)
-             ("e" . ebib-open)
+             ("e" . ebib)
              ("W" . org-wc-display)
              ("w" . prot-eww-map)
              ("D" . gr/lookup-word-at-point)
@@ -1232,7 +1232,7 @@ following the key as group 3."
             :rev :newest)
   :defer 1
   :custom
-  (scihub-download-directory (expand-file-name "~/DT3 Academic")))
+  (scihub-download-directory (expand-file-name "~/DT3 Academic/")))
 
 (use-package biblio
   :defer 1
@@ -1433,6 +1433,11 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
     (async-shell-command (format "inliner '%s' > '%s'" file new))
     (dired-jump nil new))
   (setq org-reveal-single-file t))
+
+(defun gr/html-single-file (file)
+  (interactive "fFile: ")
+  (let ((new (concat default-directory "single.html")))
+    (async-shell-command (format "inliner '%s' > '%s'" (expand-file-name file) new))))
 
 ;;;; pdf-tools
 
@@ -1773,7 +1778,8 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
    '("~" ".elc")))
 
 ;; to allow --group-directories-first to work on osx
-(setq insert-directory-program "/usr/local/bin/gls" dired-use-ls-dired t)
+(setq insert-directory-program "/usr/local/bin/gls")
+
 
 ;;;; avy
 
@@ -1935,7 +1941,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (setq prot-eww-save-visited-history t)
   (setq prot-eww-bookmark-link nil)
   (define-prefix-command 'prot-eww-map)
-  ;;(define-key global-map (kbd "C-. w") 'prot-eww-map)
   (setq shr-folding-mode t
         shr-use-colors t
         shr-bullet "• ")
@@ -1946,6 +1951,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         ("b" . prot-eww-visit-bookmark)
         ("e" . prot-eww-browse-dwim)
         ("g" . eww-duckduckgo)
+        ("d" . eww-duckduckgo)
         ("w" . eww-wiki))
   (:map eww-mode-map
         ("B" . prot-eww-bookmark-page)
@@ -2048,16 +2054,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           (?3 aw-split-window-horz "Split Horz Window")
           (?k aw-delete-window "Delete Window")
           (?0 aw-delete-window "Delete Window")
-
-          ;;(?F aw-split-window-fair "Split Fair Window")
-          ;;(?m aw-move-window "Move Curr. to Targ.")
-          ;;(?n aw-flip-window "Flip Window")
-          ;;(?J aw-switch-buffer-other-window "Select Buffer in Targ.")
-          ;;(?o delete-other-windows "Delete Other Windows")
-          ;;(?T aw-transpose-frame "Transpose Frame")
-          ;; ?i ?r ?t are used by hyperbole.el
-          ;;(?e aw-execute-command-other-window "Execute Command Other Window")
-
           (?? aw-show-dispatch-help)))
 
   (define-advice aw--switch-buffer
@@ -2098,6 +2094,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
           compilation-mode))
 
   (defun gr/popper-zk-index ()
+    ;; doesn't really work
     (interactive)
     (cond ((zk-file-p)
            (pop-to-buffer zk-index-buffer-name))
@@ -2151,9 +2148,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (google-translate-backend-method 'curl)
   (google-translate-pop-up-buffer-set-focus t))
 
-;; override to prevent insertion of original text
-(defun google-translate--translating-text ()
-  nil)
+(with-eval-after-load 'google-translate-core-ui
+  ;; override to prevent insertion of original text
+  (define-advice google-translate--translating-text
+      (:override (gtos format))
+    " "))
 
 (use-package google-translate-smooth-ui
   :ensure nil
@@ -2240,16 +2239,16 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (:map gr-map
         ("l" . accent-menu))
   :config
-  (setq accent-diacritics '((a (ą á))
-                            (e (ė é ë))
+  (setq accent-diacritics '((a (ą á à))
+                            (e (ė é è ë))
                             (i (į í))
                             (o (ó))
                             (u (ū ų ú ü))
                             (s (š))
                             (c (č))
                             (z (ž))
-                            (A (Ą Á))
-                            (E (Ė É))
+                            (A (Ą Á À))
+                            (E (€ Ė É È))
                             (I (Į Í))
                             (O (Ó))
                             (U (Ū Ų Ú Ü))
@@ -2342,10 +2341,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (setq simplenote2-password (string-trim-right (shell-command-to-string "security find-generic-password -a grantrosson@gmail.com -s simplenote -w")))
   (defun simplenote2-open ()
     (interactive)
-    (if (boundp 'simplenote2-notes-info)
-        (simplenote2-list)
-      (simplenote2-setup)
-      (simplenote2-list))))
+    (simplenote2-setup)
+    (simplenote2-list)))
 
 ;;;; chatgpt
 
@@ -2357,3 +2354,56 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
      (auth-source-pick-first-password :host "api.openai.com")))
   :config
   (add-to-list 'chatgpt-shell-system-prompts '("Writing" . "You are a large language model and a writing assistant.")))
+
+;;;; docsim
+
+(use-package docsim
+  ;; for finding similar notes, using docsim cli
+  :vc (:url "https://github.com/hrs/docsim.el"
+            :rev :newest)
+  :defer t
+  :after zk
+  :commands (docsim-search
+             docsim-search-buffer)
+  :config
+  (setq docsim-search-paths (list zk-directory))
+  (setq docsim-get-title-function 'gr/docsim--get-title-function-zk)
+
+  (defun gr/docsim--get-title-function-zk (path)
+    "Return a title determined by parsing the file at PATH."
+    (if (zk-file-p path)
+        (zk--parse-file 'title path)
+      path))
+
+  (defun gr/docsim-search (query)
+    "Search for notes similar to QUERY.
+
+This calls out to the external `docsim' tool to perform textual
+analysis on all the notes in `docsim-search-paths', score them by
+similarity to QUERY, and return the sorted results, best first.
+
+Include the similarity scores (between 0.0 and 1.0) of each note
+if `docsim-show-scores' is non-nil.
+
+Show at most `docsim-limit' results (or all of them, if
+`docsim-limit' is nil)."
+    (interactive (list (docsim--read-search-term)))
+    (let* ((results (docsim--query query))
+           (files (mapcar 'car results)))
+      (find-file
+       (funcall zk-select-file-function
+                "Similar Notes:"
+                results
+                'zk-docsim--group
+                'identity))))
+
+
+  (defun zk-docsim ()
+    "Find notes similar to current buffer using docsim."
+    (interactive)
+    (gr/docsim-search (current-buffer)))
+  )
+
+;;; variable resets
+
+(setq debug-on-error nil)
