@@ -48,8 +48,7 @@ Symbols and Diacritics
            (delete-other-windows))
           ((eq (current-buffer) buffer)
            nil)
-          (t (pop-to-buffer buffer
-                            '((display-buffer-at-bottom)))))
+          (t (pop-to-buffer-same-window buffer)))
     (gr/daily-notes-new-headline)))
 
 (defun gr/daily-notes-new-headline ()
@@ -60,7 +59,7 @@ Symbols and Diacritics
         (last-month (format-time-string "%B"
                                         (time-subtract
                                          (current-time)
-                                         (days-to-time 31)))))
+                                         (days-to-time 30)))))
     (goto-char (point-min))
     (unless (re-search-forward month nil t)
       (re-search-forward (concat "* " last-month))
@@ -77,13 +76,13 @@ Symbols and Diacritics
 (defun gr/calfw-open-org-calendar ()
   (interactive)
   (select-frame (make-frame-command))
-  (set-frame-position (selected-frame) 150 20)
-  (set-frame-size (selected-frame) 160 60)
+  ;; (set-frame-position (selected-frame) 150 20)
+  ;; (set-frame-size (selected-frame) 160 60)
   (save-excursion
     (let* ((source1 (calfw-org-create-source))
            (curr-keymap (if calfw-org-overwrite-default-keybinding calfw-org-custom-map calfw-org-schedule-map))
            (cp (calfw-create-calendar-component-buffer
-                :view 'two-weeks
+                :view 'week
                 :contents-sources (list source1)
                 :custom-map curr-keymap
                 :sorter 'calfw-org-schedule-sorter)))
