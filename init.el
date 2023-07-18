@@ -1378,41 +1378,45 @@ Finds first incorrect word before point, up to the beginning of
 buffer. Adds replacement, from list or input, to global abbrev.
 With prefix P, create local abbrev. Press `RET' with no input to
 add the word to `ispell-personal-dictionary'. Abort with `C-g'."
+    ;; FIX unfold org headings
     (interactive "P")
-    (let (bef aft)
-      (save-excursion
-        (while (if (setq bef (endless/simple-get-word))
-                   ;; Word was corrected or used quit.
-                   (if (ispell-word nil 'quiet)
-                       nil ; End the loop.
-                     ;; Also end if we reach `bob'.
+    (push-mark)
+    (unwind-protect
+        (progn
+          (let (bef aft)
+            (while (if (setq bef (endless/simple-get-word))
+                       ;; Word was corrected or used quit.
+                       (if (ispell-word nil 'quiet)
+                           nil ; End the loop.
+                         ;; Also end if we reach `bob'.
+                         (not (bobp)))
+                     ;; If there's no word at point, keep looking
+                     ;; until `bob'.
                      (not (bobp)))
-                 ;; If there's no word at point, keep looking
-                 ;; until `bob'.
-                 (not (bobp)))
-          (unless (backward-word)
-            (user-error "No typo at or before point"))
-          (backward-char))
-        (setq aft (endless/simple-get-word)))
-      (cond ((and aft bef (equal aft bef))
-             (progn
-               (ispell-send-string (concat "*" aft "\n"))
-               (setq ispell-pdict-modified-p '(t))
-               (ispell-pdict-save)))
-            ((and aft bef (not (equal aft bef)))
-             (let ((aft (downcase aft))
-                   (bef (downcase bef)))
-               (define-abbrev
-                 (if p local-abbrev-table global-abbrev-table)
-                 bef aft)
-               (message "\"%s\" now expands to \"%s\" %sally"
-                        bef aft (if p "loc" "glob")))))))
+              (unless (backward-word)
+                (user-error "No typo at or before point"))
+              (backward-char))
+            (setq aft (endless/simple-get-word))
+            (cond ((and aft bef (equal aft bef))
+                   (progn
+                     (ispell-send-string (concat "*" aft "\n"))
+                     (setq ispell-pdict-modified-p '(t))
+                     (ispell-pdict-save)))
+                  ((and aft bef (not (equal aft bef)))
+                   (let ((aft (downcase aft))
+                         (bef (downcase bef)))
+                     (define-abbrev
+                       (if p local-abbrev-table global-abbrev-table)
+                       bef aft)
+                     (message "\"%s\" now expands to \"%s\" %sally"
+                              bef aft (if p "loc" "glob")))))))
+      (forward-word -2)))
   )
 
 ;;; org-reveal
 
 (use-package ox-reveal
-  :defer 1
+  ;;:defer 1
   :config
   (add-to-list 'org-export-backends 'reveal)
   :custom
