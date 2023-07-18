@@ -18,7 +18,7 @@
    `(default ((,c (:family "JetBrains Mono" ;; "IBM Plex Mono"
                            ;;:foundry "IBM"
                            :width normal
-                           :height 1
+                           :height 110
                            :weight normal
                            :slant normal
                            :underline nil
