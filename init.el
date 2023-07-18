@@ -425,16 +425,13 @@
 
   :custom
   (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
-  (default-major-mode 'org-mode)
   (org-directory "~/Dropbox/org")
   (org-use-speed-commands t)
-  (org-speed-commands-user '(("k" . ignore) ("=" . ignore) ("o" . ignore)))
   (org-startup-indented t)
   (org-table-use-standard-references 'from)
-  (org-catch-invisible-edits 'smart)
+  (org-fold-catch-invisible-edits 'smart)
   (org-tags-column -67)
   (org-tag-alist '(("export")("noexport") ("noheadline")))
-  (org-goto-interface 'outline-path-completion)
   (org-outline-path-complete-in-steps nil)
   (org-hide-leading-stars t)
   (org-hide-emphasis-markers nil)
@@ -446,15 +443,12 @@
   (org-log-done 'time)
   ;; Sets spacing between headings in org-mode
   (org-cycle-separator-lines -1)
-  (org-blank-before-new-entry
-   '((heading . nil)
-     (plain-list-item . nil)))
   (org-emphasis-alist
    '(("*" bold)
      ("/" italic)
      ("_" underline)
      ("=" org-verbatim verbatim)
-     ("+" (t (:background "gray85" :height .9)))
+     ("+" (:background "gray85" :height .9))
      ("~" verbatim)))
   (org-fold-core-style 'text-properties)
   (org-startup-with-latex-preview nil)
@@ -462,13 +456,22 @@
   (org-edit-src-content-indentation 0)
   (org-src-preserve-indentation nil)
   (org-log-states-order-reversed nil)
-
   (org-refile-targets '((nil :maxlevel . 2)
                         (org-agenda-files :maxlevel . 2)))
-
-  (org-outline-path-complete-in-steps nil)
   (org-refile-use-outline-path 'file)
   (org-refile-allow-creating-parent-nodes 'confirm)
+
+  (org-speed-commands
+   '(("Outline Navigation")
+     ("n" . (org-speed-move-safe 'org-next-visible-heading))
+     ("p" . (org-speed-move-safe 'org-previous-visible-heading))
+     ("Outline Visibility")
+     ("i" . org-cycle)
+     ("Clock Commands")
+     ("I" . org-clock-in)
+     ("O" . org-clock-out)
+     ("Misc")
+     ("?" . org-speed-command-help)))
 
   :config
   (org-babel-do-load-languages
@@ -1012,6 +1015,9 @@ parses its input."
         ("z" . zk-search)
         ("k" . citar-copy-reference)
         ("s" . ex/search-pdf-contents))
+  :init
+  (setq citar-citeproc-csl-style
+        "chicago-fullnote-bibliography-short-title-subsequent.csl")
   :custom
   (citar-bibliography gr/bibliography)
   (citar-library-paths (list-dirs-recursively devonthink-dir))
@@ -1026,8 +1032,6 @@ parses its input."
   (citar-display-transform-functions nil)
   (citar-select-multiple t)
   (citar-open-resources '(:files :notes :create-notes))
-  (citar-citeproc-csl-style
-   "chicago-fullnote-bibliography-short-title-subsequent.csl")
 
   :config
 
