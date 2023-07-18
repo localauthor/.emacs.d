@@ -29,14 +29,13 @@ Accepts optional KEY to go to entry."
        (ebib-filters-cancel-filter)
        (message "Filters cancelled")))
     (default
-      (if (ebib--modified-p)
-          (when (yes-or-no-p "Save modified databases and quit? ")
-            (progn (ebib--save-database ebib--cur-db)
-                   (ebib-quit t)
-                   (delete-frame)))
-        (when (yes-or-no-p "Quit Ebib? ")
-          (progn (ebib-quit t)
-                 (delete-frame)))))))
+     (if (ebib--modified-p)
+         (when (yes-or-no-p "Save modified databases and quit? ")
+           (progn (ebib--save-database ebib--cur-db)
+                  (ebib-quit t)
+                  (delete-frame)))
+       (when (yes-or-no-p "Quit Ebib? ")
+         (ebib-quit t))))))
 
 ;;;###autoload
 (defun ebib-isbn-web-search (string)
