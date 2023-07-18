@@ -1966,29 +1966,23 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
         ("R" . prot-eww-readable)
         ("Q" . prot-eww-quit)))
 
-(defun eww-wiki ()
-  "Function used to search Wikipedia for the given text."
-  (interactive)
-  (let* ((word (if (use-region-p)
-                   (buffer-substring
-                    (region-beginning)
-                    (region-end))
-                 (thing-at-point 'word)))
-         (text (read-string "Wiki for: " nil nil word)))
-    (eww (format "https://en.m.wikipedia.org/wiki/Special:Search?search=%s"
-                 (url-encode-url text)))))
+(defmacro eww-make-search (name prompt url)
+  `(defun ,(intern (concat "eww-" (symbol-name name))) ()
+     (interactive)
+     (let* ((word (if (use-region-p)
+                      (buffer-substring
+                       (region-beginning)
+                       (region-end))
+                    (thing-at-point 'word)))
+            (text (read-string ,prompt nil nil word)))
+       (eww (format ,url
+                    (url-encode-url text))))))
 
-(defun eww-duckduckgo ()
-  "Function used to search DuckDuckGo for the given text."
-  (interactive)
-  (let* ((word (if (use-region-p)
-                   (buffer-substring
-                    (region-beginning)
-                    (region-end))
-                 (thing-at-point 'word)))
-         (text (read-string "DDG for: " nil nil word)))
-    (eww (format "https://duckduckgo.com/?q=%s"
-                 (url-encode-url text)))))
+(eww-make-search britannica "Britannica: " "https://www.britannica.com/search?query=%s")
+
+(eww-make-search wiki "Wiki: " "https://en.m.wikipedia.org/wiki/Special:Search?search=%s")
+
+(eww-make-search duckduckgo "DDG: " "https://duckduckgo.com/?q=%s")
 
 (defun gr/switch-browser (choice)
   (interactive (list (completing-read "Choose: " '(safari eww) nil t)))
