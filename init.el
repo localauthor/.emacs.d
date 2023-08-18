@@ -178,42 +178,43 @@
 (when (eq system-type 'darwin)
   (setq mac-right-command-modifier 'control))
 
-;; Bold, italics, underline functions
+;;;; Bold, italics, underline functions
 
-(defmacro surround-region (name symbol &optional symbol-two)
-  `(defun ,(intern (concat "surround-region-" (symbol-name name))) ()
-     (interactive)
-     (if (region-active-p)
-         (progn
-           (let ((beg (region-beginning))
-                 (end (1+ (region-end))))
-             (goto-char beg)
-             (insert ,symbol)
-             (goto-char end)
-             (insert ,(if symbol-two
-                          symbol-two
-                        symbol))))
-       (backward-word)
-       (insert ,symbol)
-       (forward-word)
-       (insert ,(if symbol-two
-                    symbol-two
-                  symbol)))))
+(defmacro surround (name key-bind symbol &optional symbol-two)
+  (let ((func-name (intern (concat "surround-" (symbol-name name)))))
+    `(progn
+       (defun ,func-name ()
+         (interactive)
+         (if (region-active-p)
+             (progn
+               (let ((beg (region-beginning))
+                     (end (1+ (region-end))))
+                 (goto-char beg)
+                 (insert ,symbol)
+                 (goto-char end)
+                 (insert ,(if symbol-two
+                              symbol-two
+                            symbol))))
+           (forward-char)
+           (backward-word)
+           (insert ,symbol)
+           (forward-word)
+           (insert ,(if symbol-two
+                        symbol-two
+                      symbol))))
+       (keymap-global-set ,key-bind ',func-name))))
 
-(surround-region quotes "\"")
-(surround-region bold "\*")
-(surround-region italics "\/")
-(surround-region underline "\_")
-(surround-region parens "\(" "\)")
-(surround-region brackets "\[" "\]")
+(surround quotes "s-\"" "\"")
+(surround bold "s-b" "\*")
+(surround italics "s-i" "\/")
+(surround underline "s-u" "\_")
+(surround parens "s-\(" "\(" "\)")
+(surround brackets "s-\[" "\[" "\]")
 
 (bind-keys*
- ("s-i" . surround-region-italics)
- ("s-b" . surround-region-bold)
- ("s-u" . surround-region-underline)
- ("s-\"" . surround-region-quotes)
- ("s-\(" . surround-region-parens)
- ("s-\[" . surround-region-brackets))
+ ("s-\/" . surround-italics)
+ ("s-\*" . surround-bold)
+ ("s-\_" . surround-underline))
 
 ;;;; Window and Frame Setup
 
@@ -289,7 +290,7 @@
              ("O" . link-hint-other-tab)
              ("i" . gr/open-init-file)
              ;;("C-t" . gr/open-tasks-file)
-             ("C-t" . gr/toggle-theme)
+             ("T" . gr/toggle-theme)
              ("f" . gr/open-fragments-file)
              ("C-f" . gr/open-fragments-file-other-frame)
              ("m" . mu4e)
@@ -298,6 +299,7 @@
              ("c" . gr/calfw-open-org-calendar)
              ("b" . consult-bookmark)
              ("g" . eww-duckduckgo)
+             ("l" . accent-menu)
              ("j" . gr/org-journal-new-entry)
              ("e" . ebib)
              ("W" . org-wc-display)
@@ -383,6 +385,7 @@
         ("RET" . scimax/org-return)
         ("C-c ;" . nil)
         ("<tab>" . org-cycle)
+        ("C-c ," . org-insert-structure-template)
         ("C-c C-<tab>" . org-force-cycle-archived)
         ("<M-S-left>" . nil)
         ("<M-S-right>" . nil)
@@ -697,7 +700,7 @@ promoting any children headlines to the level of the parent."
   (autoload 'gnus-dired-attach "gnus-dired")
 
   (defun embark-attach-file (file)
-    "Attach FILE to an  email message.
+    "Attach FILE to an email message.
 The message to which FILE is attached is chosen as for
 `gnus-dired-attach`, that is: if no message buffers are found a
 new email is started; if some message buffer exist you are asked
@@ -1746,6 +1749,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (delete-by-moving-to-trash t)
   (dired-hide-details-mode t)
   (dired-free-space nil)
+  (dired-clean-up-buffers-too t)
   :config
   (setq dired-kill-when-opening-new-dired-buffer t)
 
@@ -2198,8 +2202,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :config
   (defun gr/elisp-check-buffer ()
     (interactive)
-    (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-    (package-refresh-contents)
     (if (ignore-errors (or flycheck-mode
                            flymake-mode))
         (progn
@@ -2221,9 +2223,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; accent
 
 (use-package accent
-  :bind
-  (:map gr-map
-        ("l" . accent-menu))
+  ;; :bind
+  ;; (:map gr-map
+  ;;       ("l" . accent-menu))
   :config
   (setq accent-diacritics '((a (ą á à))
                             (e (ė é è ë))
@@ -2279,13 +2281,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   ("C-<up>" . move-text-up)
   ("C-<down>" . move-text-down))
 
-;;;; mastodon
-
-(use-package mastodon
-  :defer t
-  :custom
-  (mastodon-instance-url "https://zirk.us")
-  (mastodon-active-user "grantrosson"))
 
 ;;;; golden-ratio-scroll-screen
 
@@ -2323,8 +2318,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (:map gr-map
         ("N" . simplenote2-open))
   :config
-  (setq simplenote2-email "grantrosson@gmail.com")
-  (setq simplenote2-password (string-trim-right (shell-command-to-string "security find-generic-password -a grantrosson@gmail.com -s simplenote -w")))
+  (setq simplenote2-email user-mail-address)
+  (setq simplenote2-password (string-trim-right (shell-command-to-string (concat "security find-generic-password -a " user-mail-address " -s simplenote -w"))))
   (defun simplenote2-open ()
     (interactive)
     (simplenote2-setup)
