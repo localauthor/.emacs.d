@@ -495,10 +495,6 @@
   :after org
   :defer 1)
 
-(use-package org-gcal-setup
-  :ensure nil
-  :defer 1)
-
 (use-package gr-org-extras
   :ensure nil
   :defer 1)
@@ -560,6 +556,65 @@ promoting any children headlines to the level of the parent."
     data)
 
   )
+
+;;; Calendar
+
+;;(package-vc-install '(calfw . :url "https://github.com/localauthor/emacs-calfw"))
+
+(use-package calfw
+  :vc (:url "https://github.com/localauthor/emacs-calfw"
+            :rev :newest)
+  :defer t
+  :bind (:map calfw-calendar-mode-map
+              ("RET" . calfw-show-details-command)
+              ("<" . gr/calfw-prev)
+              (">" . gr/calfw-next)
+              ("g" . calfw-refresh-calendar-buffer)
+              ("v" . calfw-cycle-view)
+              ("V" . calfw-cycle-view-reverse))
+  :custom
+  (calfw-display-calendar-holidays nil))
+
+(use-package calfw-org
+  :ensure nil
+  :load-path "elpa/calfw"
+  :config
+  (setq calfw-org-capture-template
+        '("c" "calfw" entry (file "gcal-ruta.org")
+          "* %?\n:org-gcal:\n%(calfw-org-capture-day)\n:END:\n")))
+
+
+;;; FIX "<" and ">" keybindings
+;; currently "<" and ">" move by month
+;; these functions will move according to current view
+
+(defun gr/calfw-next ()
+  (interactive)
+  (let* ((cp (calfw-cp-get-component))
+         (view (calfw-cp-get-view cp)))
+    (pcase view
+      ('day (call-interactively #'calfw-navi-next-day-command))
+      ('week (call-interactively #'calfw-navi-next-week-command))
+      ('two-weeks (call-interactively #'calfw-navi-next-week-command))
+      ('month (call-interactively #'calfw-navi-next-month-command)))))
+
+(defun gr/calfw-prev ()
+  (interactive)
+  (let* ((cp (calfw-cp-get-component))
+         (view (calfw-cp-get-view cp)))
+    (pcase view
+      ('day (call-interactively #'calfw-navi-previous-day-command))
+      ('week (call-interactively #'calfw-navi-previous-week-command))
+      ('two-weeks (call-interactively #'calfw-navi-previous-week-command))
+      ('month (call-interactively #'calfw-navi-previous-month-command)))))
+
+;; There is a problem when multi-day events also have times, ie:
+;; <2022-04-23 Sat 10:00>--<2022-04-24 Sun 08:00>
+;; I think the issue is in the function calfw-org-get-timerange ?
+
+(use-package org-gcal-setup
+  :ensure nil
+  :defer 1)
 
 ;;; Completion
 
