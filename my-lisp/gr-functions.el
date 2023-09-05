@@ -63,7 +63,10 @@ Symbols and Diacritics
     (goto-char (point-min))
     (unless (re-search-forward month nil t)
       (re-search-forward (concat "* " last-month))
-      (beginning-of-line)
+      (forward-line 1)
+      (kill-whole-line)
+      (forward-line -1)
+      (org-cycle)
       (insert month "\n\n")
       (forward-line -2)
       (org-set-property "VISIBILITY" "all"))
@@ -467,6 +470,9 @@ Use a prefix arg to get regular RET. "
         (org-return)))
 
      ;; footnotes
+     ((or (org-footnote-at-reference-p)
+          (org-footnote-at-definition-p))
+      (org-footnote-action))
 
      ;; fall-through case
      (t
