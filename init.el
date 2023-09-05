@@ -375,7 +375,6 @@
 
 (use-package org
   :load-path "elpa/org/lisp"
-  :diminish
   :bind
   ("C-c c" . org-capture)
   ("C-c a" . org-agenda)
@@ -416,6 +415,8 @@
             ("C" . "center"))))
   (with-eval-after-load 'org-indent
     (diminish 'org-indent-mode))
+  (with-eval-after-load 'org-num-mode
+    (diminish 'org-num-mode))
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
@@ -434,7 +435,7 @@
   (org-table-use-standard-references 'from)
   (org-fold-catch-invisible-edits 'smart)
   (org-tags-column -67)
-  (org-tag-alist '(("export")("noexport") ("noheadline")))
+  (org-tag-alist '(("noexport")("noheadline")("nonum")("export")))
   (org-outline-path-complete-in-steps nil)
   (org-hide-leading-stars t)
   (org-hide-emphasis-markers nil)
@@ -442,6 +443,9 @@
   (org-link-search-must-match-exact-headline t)
   (org-support-shift-select nil)
   (org-return-follows-link t)
+  (org-num-skip-tags '("nonum"))
+  (org-num-skip-commented t)
+  (org-num-skip-footnotes t)
   (org-export-backends '(ascii html latex md odt org))
   (org-log-done 'time)
   ;; Sets spacing between headings in org-mode
@@ -463,7 +467,6 @@
                         (org-agenda-files :maxlevel . 2)))
   (org-refile-use-outline-path 'file)
   (org-refile-allow-creating-parent-nodes 'confirm)
-
   (org-speed-commands
    '(("Outline Navigation")
      ("n" . (org-speed-move-safe 'org-next-visible-heading))
@@ -475,7 +478,6 @@
      ("O" . org-clock-out)
      ("Misc")
      ("?" . org-speed-command-help)))
-
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages
