@@ -20,8 +20,6 @@
               (setq gc-cons-percentage default-gc-percentage
                     gc-cons-threshold default-gc-threshold))))
 
-(setq load-prefer-newer t)
-
 ;;; use-package
 
 (eval-and-compile
@@ -45,23 +43,10 @@
 
 ;;; setenv
 
+;; necessary for emacs to find gcc to native compilation
 (setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/current:/usr/local/opt/libgccjit/lib/gcc/current:")
 
-;;; emacs config
-
-(setq user-emacs-directory "~/.emacs.d/")
-
-;; set mode for *scratch* buffer
-(setq initial-major-mode 'lisp-interaction-mode)
-(setq initial-scratch-message nil)
-
-(pixel-scroll-precision-mode)
-
-;; for left and right fringe/margin
-(define-advice mwheel-scroll
-    (:override (event &optional arg) pixel-scroll-precision))
-
-(setq set-mark-command-repeat-pop t)
+;;; coding-system
 
 (prefer-coding-system 'utf-8)
 (setq-default buffer-file-coding-system 'utf-8
@@ -74,69 +59,98 @@
 (set-keyboard-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
 
-(setq dictionary-server "dict.org")
+;;; emacs config
+
+(setq user-emacs-directory "~/.emacs.d/")
+
+(setq custom-file (concat user-emacs-directory "custom.el"))
 
 (setq auto-save-default nil) ;; stop creating #autosave# files
 (setq create-lockfiles nil)  ;; stop creating .# files
 
-(auto-save-visited-mode 1)
+(setq inhibit-startup-screen t)
 
-(setq inhibit-splash-screen t)
-(desktop-save-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(setq scroll-bar-mode nil)
+(setq load-prefer-newer t)
 
-(setq confirm-kill-emacs 'y-or-n-p)
+(setq initial-major-mode 'lisp-interaction-mode) ;; mode for *scratch* buffer
+(setq initial-scratch-message nil)
+
+(setq set-mark-command-repeat-pop t)
 
 (setq use-dialog-box nil)
-
-;;(setq recenter-positions '(middle bottom top))
-
-(add-hook 'after-make-frame-functions
-          #'(lambda (frame)
-              (modify-frame-parameters frame
-                                       '((undecorated-round . t)
-                                         (vertical-scroll-bars . nil)
-                                         (horizontal-scroll-bars . nil)))))
-
-(global-auto-revert-mode t)
-
-(delete-selection-mode 1)
-;;(global-visual-line-mode 1)
-(global-hl-line-mode 0)
-
-(winner-mode 1)
-
-(transient-mark-mode 1)
+(setq confirm-kill-emacs 'y-or-n-p)
 
 (setq minibuffer-follows-selected-frame nil)
-
-(setq find-library-include-other-files nil)
 
 (setq-default indent-tabs-mode nil) ;; use spaces for tabs
 (setq sentence-end-double-space nil)
 
 (setq-default fill-column 77)
 
-(setq search-default-mode t) ;; use literal strings in isearch, not regexps
-(setq isearch-lazy-count t)
-
-(setq ad-redefinition-action 'accept)
-(setq warning-suppress-types (quote (bytecomp comp)))
-;; outshine uses cl; so this suppresses deprecated warning
-(setq byte-compile-warnings '((not cl-functions)))
-(setq native-comp-async-report-warnings-errors nil)
-(setq warning-minimum-level ':error)
-(setq ring-bell-function 'ignore)
+(setq find-library-include-other-files nil)
 
 (setq vc-follow-symlinks t)
 
+;;(setq recenter-positions '(middle bottom top))
+
 (add-to-list 'completion-ignored-extensions ".DS_Store")
 
-(setq custom-file (concat user-emacs-directory "custom.el"))
+(setq switch-to-buffer-obey-display-actions t)
 
-;; backups
+(blink-cursor-mode -1)
+
+;;;; set modes
+
+(auto-save-visited-mode 1)
+(desktop-save-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(global-auto-revert-mode t)
+(delete-selection-mode 1)
+(global-hl-line-mode 0)
+(winner-mode 1)
+(transient-mark-mode 1)
+;;(global-visual-line-mode 1)
+
+;;;; frame
+
+(setq frame-resize-pixelwise t)
+
+(add-hook 'after-make-frame-functions
+          #'(lambda (frame)
+              (modify-frame-parameters frame
+                                       '((undecorated . t)
+                                         (vertical-scroll-bars . nil)
+                                         (horizontal-scroll-bars . nil)))))
+
+(defun gr/make-frame ()
+  "Make frame, centered, on current monitor."
+  (interactive)
+  (make-frame-on-current-monitor)
+  (unless (eq 'maximised (frame-parameter nil 'fullscreen))
+    (modify-frame-parameters
+     (selected-frame) '((user-position . t) (top . 0.5) (left . 0.5)))))
+
+
+;;;; search, grep, xref
+
+(setq search-default-mode t) ;; use literal strings in isearch, not regexps
+(setq isearch-lazy-count t)
+(setq grep-use-headings t)
+(setq xref-search-program 'ugrep)
+(setq ad-redefinition-action 'accept)
+
+;;;; compilation
+
+(setq warning-suppress-types (quote (bytecomp comp)))
+(setq native-comp-async-report-warnings-errors 'silent)
+(setq warning-minimum-level ':error)
+(setq ring-bell-function 'ignore)
+;; ;; outshine uses cl; so this suppresses deprecated warning ;; maybe not necessary?
+;; (setq byte-compile-warnings '((not cl-functions)))
+
+;;;; backups
+
 (setq make-backup-files t)
 (setq vc-make-backup-files t)
 (setq version-control t ;; Use version numbers for backups.
@@ -183,17 +197,11 @@
 
 (add-hook 'before-save-hook 'force-backup-of-buffer)
 
-(setq epg-gpg-program "/usr/local/bin/gpg")
-(setq xref-search-program 'ugrep)
 
-(setq erc-server "irc.libera.chat"
-      erc-nick "localauthor"
-      erc-autojoin-channels-alist '(("#emacs" "#org-mode" "#systemcrafters")))
-
-;; yes-or-no function
+;;;; yes-or-no function
 
 (setq y-or-n-p-use-read-key t) ;; needed for embark
-(setq use-short-answers t) ;; new in emacs 28, replaces (fset 'yes-or-no-p 'y-or-n-p)
+(setq use-short-answers t)
 
 (defun y-or-n-p-with-return (orig-func &rest args)
   "All RET as affirmative to y-or-n-p."
@@ -205,7 +213,7 @@
 (advice-add 'y-or-n-p :around #'y-or-n-p-with-return)
 
 
-;; trash function
+;;;; trash function
 
 (setq delete-by-moving-to-trash t)
 (setq trash-directory "~/.Trash")
@@ -221,15 +229,8 @@
                    nil ;; Name of output buffer
                    "*Trash Error Buffer*")))
 
-(defun gr/make-frame ()
-  "Make frame, centered, on current monitor."
-  (interactive)
-  (make-frame-on-current-monitor)
-  (unless (eq 'maximised (frame-parameter nil 'fullscreen))
-    (modify-frame-parameters
-     (selected-frame) '((user-position . t) (top . 0.5) (left . 0.5)))))
 
-;; time and mode-line
+;;;; time and mode-line
 
 (setq display-time-24hr-format t
       display-time-day-and-date nil
@@ -265,3 +266,24 @@
                 "  "
                 mode-line-misc-info
                 mode-line-end-spaces))
+
+
+;;;; misc
+
+(pixel-scroll-precision-mode)
+
+;; for left and right fringe/margin
+(define-advice mwheel-scroll
+    (:override (event &optional arg) pixel-scroll-precision))
+
+(setq epg-gpg-program "gpg2")
+
+;; fixes a problem in 29.1
+;; per https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources
+(fset 'epg-wait-for-status 'ignore)
+
+(setq erc-server "irc.libera.chat"
+      erc-nick "localauthor"
+      erc-autojoin-channels-alist '(("#emacs" "#org-mode" "#systemcrafters")))
+
+(setq dictionary-server "dict.org")
