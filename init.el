@@ -1458,7 +1458,8 @@ add the word to `ispell-personal-dictionary'. Abort with `C-g'."
                        bef aft)
                      (message "\"%s\" now expands to \"%s\" %sally"
                               bef aft (if p "loc" "glob")))))))
-      (forward-word -2)))
+      (forward-word -1)
+      (forward-char -1)))
   )
 
 ;;; org-reveal
