@@ -88,7 +88,7 @@ org-mode
  "service:" n
  "- description: " (p "description") n
  "  details: " (p "word count") n
- "  price: " (p "price") n n 
+ "  price: " (p "price") n n
  "closingnote: |" n
  "  Please transfer the due amount to the following bank account within the next 14 days:" n n
  "    Grant Rosson  " n
@@ -123,7 +123,7 @@ org-mode
 (article
  "#+TITLE: " (p "title") n
  "#+AUTHOR: Grant Rosson" n
- "#+STARTUP: overview" n
+ "#+STARTUP: overview num" n
  "#+EXPORT_SELECT_TAGS: export" n
  "#+bibliography: ~/Dropbox/gr-bibliography.bib" n
  "#+cite_export: csl ~/.csl/chicago-note-bibliography.csl" n
@@ -146,7 +146,6 @@ org-mode
  "#+latex_header: \\raggedbottom" n
  "#+latex_header: \\setSingleSpace{1}" n
  "#+latex_header: \\SingleSpacing")
-
 
 (reveal
  "#+TITLE: " (p "title") n
