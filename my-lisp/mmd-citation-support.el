@@ -191,11 +191,17 @@ When in zk file, mmd format; when `org-mode', org-cite."
     (let ((gr/mmd-citation-use t) ;; org to mmd
           (pages (progn
                    (re-search-backward "\\[cite:")
-                   (re-search-forward " \\([0-9-]+\\)]")
-                   (match-string 1))))
+                   (if (re-search-forward " \\([0-9-]+\\)]" nil t)
+                       (match-string 1) ""))))
       (citar-org-delete-citation)
       (insert " ")
       (gr/citar-insert-citation key pages))))
+
+(defun gr/mmd-citation-convert-buffer ()
+  (interactive)
+  (while
+      (re-search-forward "\\[cite:")
+    (gr/mmd-citation-convert (citar-key-at-point))))
 
 ;;; link-hint integration
 
