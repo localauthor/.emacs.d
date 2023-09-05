@@ -41,14 +41,14 @@
 (use-package exec-path-from-shell
   :defer 1
   :init
-  (setq exec-path-from-shell-arguments '("-l"))
+  (setq exec-path-from-shell-arguments nil)
   (setq exec-path-from-shell-warn-duration-millis 800)
+  (setq exec-path-from-shell-variables '("PATH" "MANPATH" "PKG_CONFIG_PATH" "CPPFLAGS" "LDFLAGS"))
   :config
-  (exec-path-from-shell-copy-env "PKG_CONFIG_PATH")
   (exec-path-from-shell-initialize))
 
-(use-package diminish
-  :defer 1)
+  (use-package diminish
+    :defer 1)
 
 (use-package emacs
   :diminish
