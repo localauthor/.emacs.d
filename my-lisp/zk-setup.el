@@ -10,6 +10,8 @@
   :bind
   (:map zk-file-map
         ("G" . zk-luhmann-index-goto))
+  (:map embark-region-map
+        ("N" . zk-new-note))
   (:map zk-id-map
         ("s" . zk-search)
         ("z" . zk-grep) ;; zk-consult-grep does not work as embark action
@@ -23,6 +25,7 @@
   (zk-file-extension "md")
   (zk-tag-regexp "\\s#[a-zA-Z0-9]\\+")
   (zk-new-note-header-function #'gr/zk-new-note-header)
+  (zk-tag-insert-function 'gr/zk-insert-tag)
   (zk-link-and-title 'ask)
   (zk-new-note-link-insert 'ask)
   (zk-link-format "[[%s]]")
@@ -40,6 +43,16 @@
      (lambda (x) (delete-overlay (cdr x)))
      embark--selection)
     (setq-local embark--selection nil))
+
+  (defun gr/zk-insert-tag (tag)
+    (interactive)
+    (unless current-prefix-arg
+      (goto-char (point-min))
+      (when (re-search-forward "tags: " nil t)
+        (goto-char (match-beginning 0))
+        (end-of-line)
+        (insert " ")))
+    (insert tag))
 
   (with-eval-after-load 'embark
     (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
@@ -251,7 +264,7 @@ Optional ARG."
     ("I" ebib-auto-import)
     ("i" ebib-isbn-web-search)
     ("d" crossref-lookup)
-    ("c" gr/citar-mmd-insert-citation)
+    ("c" gr/citar-insert-citation)
     ("q" nil)))
 
 (eval-and-compile
