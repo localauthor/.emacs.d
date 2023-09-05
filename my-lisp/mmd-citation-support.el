@@ -51,7 +51,8 @@
                            '(font-lock-face font-lock-keyword-face
                                             help-echo mmd-tooltip))
     (add-text-properties beg end
-                         '(font-lock-face font-lock-warning-face))))
+                         '(font-lock-face font-lock-warning-face
+                                          help-echo "No record"))))
 
 
 (font-lock-add-keywords 'org-mode
@@ -90,10 +91,10 @@
            (title (or (citar-get-value "title" key)
                       (citar-get-value "booktitle" key)))
            (publisher (or (citar-get-value "publisher" key)
-                          (citar-get-value "journal" key))))
-      (if key
-          (format "%s\n%s\n%s" author title publisher)
-        (message "No record")))))
+                          (citar-get-value "journal" key)))
+           (notep (if (funcall (citar-has-notes) key) "✓" "✗"))
+           (filep (if (funcall (citar-has-files) key) "✓" "✗")))
+      (format "%s\n%s\n%s\nfile: %s note: %s" author title publisher filep notep))))
 
 ;;;###autoload
 (defun mmd-tooltip-toggle ()
