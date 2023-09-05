@@ -3,13 +3,13 @@
 ;;; Misc Startups
 
 (use-package gcmh
-  :load-path "~/.emacs.d/lisp/"
+  :load-path "lisp/"
   :diminish
   :config
   (gcmh-mode 1))
 
 (setq debug-on-error t)
-(setq inhibit-startup-echo-area-message "grantrosson")
+(setq inhibit-startup-echo-area-message (user-login-name))
 
 (defun efs/display-startup-time ()
   (message "Emacs loaded in %s with %d garbage collections."
@@ -63,6 +63,7 @@
   ("C-x e" . eval-last-sexp)
   ("C-x E" .  kmacro-end-and-call-macro)
   ("M-o" . other-window)
+  ("<f2>" . nil)
   (:map help-mode-map
         ("o" . link-hint-open-link))
   ;; rest of config in early-init.el
@@ -1062,7 +1063,8 @@ parses its input."
 (defvar gr/bibliography '("~/Dropbox/gr-bibliography.bib"))
 
 (use-package citar
-  :after (oc misc-file-handling devonthink-dir)
+  :after (oc devonthink-dir)
+  :functions list-dirs-recursively
   :bind
   (:map org-mode-map
         ("C-c \\" . gr/citar-insert-citation))
@@ -1075,12 +1077,14 @@ parses its input."
         ("z" . zk-search)
         ("k" . citar-copy-reference)
         ("s" . ex/search-pdf-contents))
+  (:map citar-org-citation-map
+        ("<mouse-1>" . nil)
+        ("<mouse-3>" . nil))
   :init
   (setq citar-citeproc-csl-style
         "chicago-fullnote-bibliography-short-title-subsequent.csl")
   :custom
   (citar-bibliography gr/bibliography)
-  (citar-library-paths (list-dirs-recursively devonthink-dir))
   (citar-notes-paths '("~/Dropbox/ZK/Zettels"))
   (citar-additional-fields '("doi" "url" "crossref"))
   (citar-library-file-extensions '("pdf" "epub"))
@@ -1095,6 +1099,23 @@ parses its input."
 
   :config
 
+  (defun list-dirs-recursively (dir &optional include-symlinks)
+    "Return list of all subdirectories of DIR recursively. Return absolute paths.
+Optionally call recursively on symlinks when INCLUDE-SYMLINKS is `t`."
+    (let ((result nil)
+          (tramp-mode (and tramp-mode (file-remote-p (expand-file-name dir)))))
+      (dolist (file (file-name-all-completions "" dir))
+        (when (and (directory-name-p file) (not (member file '("./" "../"))))
+          (setq result (nconc result (list (expand-file-name file dir))))
+          (let* ((leaf (substring file 0 (1- (length file))))
+                 (full-file (expand-file-name leaf dir)))
+            ;; Don't follow symlinks to other directories.
+            (unless (and (file-symlink-p full-file) (not include-symlinks))
+              (setq result
+                    (nconc result (list-dirs-recursively full-file)))))))
+      result))
+
+  (setq citar-library-paths (list-dirs-recursively devonthink-dir))
   (add-to-list 'citar-library-paths "~/Dropbox/Dickinson Primary/")
 
   (defun ex/search-pdf-contents (keys &optional str)
@@ -1663,10 +1684,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   :defer t
   :commands gr/elfeed-open-new-window)
 
-(use-package misc-file-handling
-  :ensure nil
-  :defer t)
-
 (use-package text-to-speech
   :ensure nil
   :defer t
@@ -1746,7 +1763,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                                           (not (name . "magit")))))
                   ("Writing" (or (and (filename . "/Writings/*")
                                       (not (name . "magit")))))
-                  ("Blue Oceans" (or (and (filename . "/Blue Oceans PR/*")
+                  ("PR Work" (or (and (filename . "/PR Work/*")
                                           (not (name . "magit")))))
                   ("ZK" (or (name . "*ZK")
                             (and (filename . "/Zettels/")
@@ -2076,7 +2093,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (add-to-list 'embark-keymap-alist '(password-store . embark-password-store-actions))
 
   (add-to-list 'marginalia-prompt-categories '("Password entry" . password-store))
-
   )
 
 ;;;; ace-window
