@@ -1,12 +1,14 @@
 ;;; zk-setup.el --- Setup for zk, zk-index, zk-luhmann, etc.  -*- lexical-binding: t; -*-
 
+(require 'gr-functions)
+(require 'embark)
+
 ;;;; zk
 
 (use-package zk
   :load-path "my-lisp/zk"
   :defer 1
-  ;;:after consult
-  :mode (("\\.md$" . org-mode))
+  :commands (zk-org-try-to-follow-link)
   :bind
   (:map zk-file-map
         ("G" . zk-luhmann-index-goto))
@@ -22,7 +24,7 @@
   (completion-at-point-functions . gr/mmd-citation-completion-at-point)
   :custom
   (zk-directory "~/Dropbox/ZK/Zettels")
-  (zk-file-extension "md")
+  (zk-file-extension "org")
   (zk-tag-regexp "\\s#[a-zA-Z0-9]\\+")
   (zk-new-note-header-function #'gr/zk-new-note-header)
   (zk-tag-insert-function 'gr/zk-insert-tag)
@@ -72,7 +74,7 @@ Optionally use ORIG-ID for backlink."
   (insert "===\n\n\n"))
 
 (defun zk-org-try-to-follow-link (fn &optional arg)
-  "When 'org-open-at-point' FN fails, try 'zk-follow-link-at-point'.
+  "When `org-open-at-point' FN fails, try `zk-follow-link-at-point'.
 Optional ARG."
   (let ((org-link-search-must-match-exact-headline t))
     (condition-case nil
@@ -154,6 +156,15 @@ Optional ARG."
 
 ;;;; zk-extras
 
+(use-package zk-extras
+  :load-path "my-lisp/zk"
+  :after zk-setup zk zk-luhmann zk-consult
+  :bind
+  (:map gr-map
+        ("O" . link-hint-other-tab))
+  (:map zk-index-mode-map
+        ("L" . zk-lit-notes-index)))
+
 (use-package zk-consult
   :load-path "my-lisp/zk"
   :after zk
@@ -204,12 +215,6 @@ Optional ARG."
     "s" #'zk-find-file-by-full-text-search))
 
 ;;;; zk hydras
-
-(use-package zk-extras
-  :load-path "my-lisp/zk"
-  :after zk zk-luhmann zk-consult
-  :bind (:map zk-index-mode-map
-              ("L" . zk-lit-notes-index)))
 
 (eval-and-compile
   (defhydra hydra-zk (:hint nil
