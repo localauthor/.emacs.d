@@ -70,7 +70,7 @@ org-mode
 
 
 (invoice
- "call org-babel-tangle [C-c C-v t]" n
+ "call org-babel-tangle [C-u C-c C-v t]" n
  "#+name: Invoice" n
  "#+begin_src yaml :tangle \"./invoice-boilerplate/details.yml\"" n
  "---" n
@@ -118,7 +118,11 @@ org-mode
  "cd ~/Dropbox/Proofreading/invoice-boilerplate" n
  "make" n
  "mv ./output.pdf '../Rosson - Invoice - " (s client-name) " " (s invoice-nr) ".pdf'" n
- "#+end_src")
+ "#+end_src"
+ n
+ n
+ "file: [[~/Dropbox/Proofreading/Rosson - Invoice - " (s client-name) " " (s invoice-nr) ".pdf]]"
+ )
 
 (article
  "#+TITLE: " (p "title") n
@@ -130,7 +134,13 @@ org-mode
  "#+OPTIONS: title:nil author:nil toc:nil num:nil date:nil ':t broken-links:t tags:nil" n
  "#+latex_class: article" n
  "#+latex_class_options: [a4paper,11pt]" n
- "#+latex_header: \\input{/Users/grantrosson/Dropbox/Academic/Articles/articleheader.tex}")
+ "#+latex_header: \\usepackage[doublespacing]{setspace}" n
+ "#+latex_header: \\usepackage{etoolbox}" n
+ "#+latex_header: \\usepackage{indentfirst}" n
+ "#+latex_header: \\usepackage[margin=1in]{geometry}" n
+ "#+latex_header: \\frenchspacing" n
+ "#+latex_header: \\BeforeBeginEnvironment{quote}{\par\begin{singlespace*}}" n
+ "#+latex_header: \\AfterEndEnvironment{quote}{\end{singlespace*}}")
 
 (fiction
  "#+TITLE: " (p "title") n
