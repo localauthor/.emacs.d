@@ -471,6 +471,19 @@
      ("Misc")
      ("?" . org-speed-command-help)))
   :config
+  (defun gr/org-export-spacing (backend)
+    "Single newline is not a paragraph break.
+Only double newline is a paragraph break."
+    (cond
+     ((eq 'latex backend)
+      (goto-char (point-min))
+      (while (progn
+               (forward-paragraph)
+               (not (eobp)))
+        (when (looking-at "^$")
+          (kill-line))))))
+
+  (add-hook 'org-export-before-processing-functions 'gr/org-export-spacing)
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
