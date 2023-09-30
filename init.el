@@ -54,8 +54,8 @@
   :config
   (exec-path-from-shell-initialize))
 
-  (use-package diminish
-    :defer 1)
+(use-package diminish
+  :defer 1)
 
 (use-package emacs
   :diminish
@@ -77,10 +77,17 @@
   :hook
   (prog-mode-hook . (lambda () (setq show-trailing-whitespace t)))
   (prog-mode-hook . visual-line-mode)
-  (text-mode-hook . visual-line-mode))
+  (text-mode-hook . visual-line-mode)
+  :custom-face
+  (fringe ((t (:background "grey90" :box (:line-width 1 :style released-button))))))
+
+(repeat-mode 1)
+
+(use-package markdown-mode
+  :defer 1)
 
 (use-package elec-pair
-  :disabled
+  ;; :disabled
   :init
   (electric-pair-mode)
   :custom
@@ -498,7 +505,6 @@ Only double newline is a paragraph break."
 (use-package org-agenda-setup
   :ensure nil
   :defer 1
-  :after org)
   :after org
   :bind
   (:map gr-map
@@ -663,6 +669,8 @@ promoting any children headlines to the level of the parent."
   :bind* (:map vertico-map
                ("C-j" . vertico-exit-input)
                ("C-g" . keyboard-escape-quit))
+  :hook
+  (rfn-eshadow-update-overlay-hook . vertico-directory-tidy)
   :custom
   (vertico-cycle t)
   (vertico-count 7)
@@ -756,7 +764,8 @@ promoting any children headlines to the level of the parent."
         ("G g" . eww-duckduckgo)
         ("z" . zk-search))
   (:map embark-url-map
-        ("s" . browse-url-generic))
+        ("s" . browse-url-generic)
+        ("f" . browse-url-firefox))
   :custom
   (embark-help-key "?")
   (embark-keymap-prompter-key ",")
@@ -769,8 +778,7 @@ promoting any children headlines to the level of the parent."
   (defun embark-act-noquit ()
     "Run action but don't quit the minibuffer afterwards."
     (interactive)
-    (let ((embark-quit-after-action nil))
-      (embark-act)))
+    (embark-act t))
 
   (setq prefix-help-command #'embark-prefix-help-command)
 
@@ -916,7 +924,7 @@ there, otherwise you are prompted for a message buffer."
   (embark-collect-mode-hook . consult-preview-at-point-mode)
   :custom
   (completion-in-region-function 'consult-completion-in-region)
-  (consult-fontify-preserve nil)
+  (consult-fontify-preserve t)
   (consult-project-function nil)
   (consult-async-split-style 'semicolon)
   (consult-preview-key "C-{")
@@ -947,8 +955,8 @@ there, otherwise you are prompted for a message buffer."
     (let ((current-prefix-arg '(4)))
       (call-interactively 'consult-ripgrep)))
 
-  (defun gr/consult-find-select-dir (p)
-    (interactive "P")
+  (defun gr/consult-find-select-dir ()
+    (interactive)
     (let ((current-prefix-arg '(4)))
       (call-interactively #'consult-find)))
   )
@@ -1040,6 +1048,7 @@ parses its input."
 
 (setq tab-always-indent 'complete)
 
+
 ;;;; savehist
 
 (use-package savehist
@@ -1048,6 +1057,7 @@ parses its input."
   (savehist-mode 1)
   (setq savehist-additional-variables
         '(citar-history search-ring regexp-search-ring)))
+
 
 ;;;; prescient / company-prescient
 
@@ -1102,7 +1112,7 @@ parses its input."
 (defvar gr/bibliography '("~/Dropbox/gr-bibliography.bib"))
 
 (use-package citar
-  :after (oc devonthink-dir)
+  :after (citar-org oc devonthink-dir)
   :functions list-dirs-recursively
   :bind
   (:map org-mode-map
@@ -1116,9 +1126,6 @@ parses its input."
         ("z" . zk-search)
         ("k" . citar-copy-reference)
         ("s" . ex/search-pdf-contents))
-  (:map citar-org-citation-map
-        ("<mouse-1>" . nil)
-        ("<mouse-3>" . nil))
   :init
   (setq citar-citeproc-csl-style
         "chicago-fullnote-bibliography-short-title-subsequent.csl")
@@ -1195,6 +1202,12 @@ following the key as group 3."
      (if extensions (regexp-opt extensions "\\(?2:") "\\(?2:[^.]*\\)")
      "\\'"))
 
+  (keymap-global-set
+   "C-\""
+   '(lambda ()
+      (interactive)
+      (let ((current-prefix-arg 4))
+        (gr/citar-insert-citation))))
   )
 
 (use-package citar-citeproc
@@ -1211,6 +1224,14 @@ following the key as group 3."
   :diminish
   :config
   (citar-embark-mode))
+
+(use-package citar-org
+  :ensure nil
+  :after (citar)
+  :bind
+  (:map citar-org-citation-map
+        ("<mouse-1>" . nil)
+        ("<mouse-3>" . nil)))
 
 ;;;; org-cite
 
@@ -1434,6 +1455,7 @@ following the key as group 3."
 
 (use-package zk-setup
   :ensure nil
+  :demand t
   :bind
   ("C-z" . hydra-zk/body))
 
@@ -1571,6 +1593,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 ;;;; pdf-tools
 
 (use-package pdf-tools
+  :disabled
   :bind
   (:map pdf-view-mode-map
         ("h" . pdf-annot-add-highlight-markup-annotation)
@@ -1776,6 +1799,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 (use-package esup
   :defer t
+  :defines vertico-mode
   :custom
   (esup-user-init-file (concat user-emacs-directory "init.el"))
   :config
@@ -1801,7 +1825,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
   (defun gr/ibuffer-set-filter-group ()
     (ibuffer-switch-to-saved-filter-groups "default")
-    (setq ibuffer-hidden-filter-groups (list "***" "ORG" "ZK" "el"))
+    (setq ibuffer-hidden-filter-groups (list "***" "helpful" "trees" "ORG" "ZK" "el" "Default"))
     (ibuffer-update nil t))
 
   (setq ibuffer-formats
@@ -1820,7 +1844,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                   ("Writing" (or (and (filename . "/Writings/*")
                                       (not (name . "magit")))))
                   ("PR Work" (or (and (filename . "/PR Work/*")
-                                          (not (name . "magit")))))
+                                      (not (name . "magit")))))
                   ("ZK" (or (name . "*ZK")
                             (and (filename . "/Zettels/")
                                  (not (name . "magit")))))
@@ -1839,6 +1863,7 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
                   ("dired" (mode . dired-mode))
                   ("eww" (mode . eww-mode))
                   ("helpful" (mode . helpful-mode))
+                  ("trees" (mode . org-side-tree-mode))
                   ("***" (or (name . "^\\*scratch")
                              (name . "init.el")
                              (name . "^\\*Messages")
@@ -1877,21 +1902,25 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (dired-mode-hook . force-truncate-lines)
   :custom
   (dired-listing-switches "-algho --group-directories-first")
-  (delete-by-moving-to-trash t)
   (dired-hide-details-mode t)
   (dired-free-space nil)
   (dired-clean-up-buffers-too t)
+  (dired-guess-shell-alist-user
+   '(("\\.pdf\\'" "open")
+     ("\\.docx\\'" "open")))
   :config
   (setq dired-kill-when-opening-new-dired-buffer t)
 
   (defun gr/dired-find-file-other-window ()
     "In dired, open directories in same window, files in other window."
     (interactive)
-    (let ((file (dired-get-file-for-visit)))
+    (let ((switch-to-buffer-obey-display-actions nil)
+          (file (dired-get-file-for-visit)))
       (if (file-directory-p file)
           (dired--find-possibly-alternative-file file)
         (dired--find-file #'find-file-other-window file))))
   )
+
 
 (use-package dired-x
   :ensure nil
@@ -1899,10 +1928,10 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (dired-mode-hook . dired-omit-mode)
   :config
   (setq dired-omit-files "\\.DS_Store\\|\\.dropbox\\|Icon\\\015")
-  ;; show backup and elc files
+  ;; show backup files
   (mapc
    (lambda (x) (delete x dired-omit-extensions))
-   '("~" ".elc")))
+   '("~")))
 
 ;; to allow --group-directories-first to work on osx
 (setq insert-directory-program "/usr/local/bin/gls")
@@ -2010,7 +2039,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
       (switch-to-buffer new-buffer))
     (link-hint-open-link-at-point))
 
-  (define-key isearch-mode-map (kbd "C-'") 'avy-isearch)
   )
 
 ;; (defun gr/avy-goto-char-timer ()
@@ -2161,8 +2189,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   )
 
 ;;;; ace-window
-
-;;(use-package posframe :defer 1)
 
 (use-package ace-window
   :bind
@@ -2388,9 +2414,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
     (setq-local cursor-type (or hide-cursor--original
                                 t))))
 
-(define-key global-map (kbd "<f7>") 'hide-cursor-mode)
-
-(add-hook 'mu4e-view-mode-hook 'hide-cursor-mode)
+(keymap-global-set "<f7>" 'hide-cursor-mode)
 
 ;;;; aggressive-indent
 
