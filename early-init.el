@@ -36,15 +36,16 @@
   (package-enable-at-startup t)
   (package-check-signature nil)
   (package-quickstart t)
-  (package-install-upgrade-built-in t)
+  (package-install-upgrade-built-in nil)
   (package-vc-allow-side-effects t)
+  (package-native-compile t)
   :config
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")))
 
 ;;; setenv
 
-;; necessary for emacs to find gcc to native compilation
-(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/current:/usr/local/opt/libgccjit/lib/gcc/current:")
+;; necessary for emacs to find gcc for native compilation
+(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/current:/usr/local/opt/libgccjit/lib/gcc/current:/usr/local/Cellar/glib/2.78.0/lib/glib-2.0/")
 
 ;;; coding-system
 
@@ -62,42 +63,24 @@
 ;;; emacs config
 
 (setq user-emacs-directory "~/.emacs.d/")
-
 (setq custom-file (concat user-emacs-directory "custom.el"))
-
 (setq auto-save-default nil) ;; stop creating #autosave# files
 (setq create-lockfiles nil)  ;; stop creating .# files
-
 (setq inhibit-startup-screen t)
-
 (setq load-prefer-newer t)
-
 (setq initial-major-mode 'lisp-interaction-mode) ;; mode for *scratch* buffer
 (setq initial-scratch-message nil)
-
 (setq set-mark-command-repeat-pop t)
-
 (setq use-dialog-box nil)
 (setq confirm-kill-emacs 'y-or-n-p)
-
 (setq minibuffer-follows-selected-frame nil)
-
 (setq-default indent-tabs-mode nil) ;; use spaces for tabs
 (setq sentence-end-double-space nil)
-
 (setq-default fill-column 77)
-
 (setq find-library-include-other-files nil)
-
 (setq vc-follow-symlinks t)
-
 ;;(setq recenter-positions '(middle bottom top))
-
 (add-to-list 'completion-ignored-extensions ".DS_Store")
-
-(setq switch-to-buffer-obey-display-actions t)
-
-(blink-cursor-mode -1)
 
 ;;;; set modes
 
@@ -110,6 +93,7 @@
 (global-hl-line-mode 0)
 (winner-mode 1)
 (transient-mark-mode 1)
+(blink-cursor-mode -1)
 ;;(global-visual-line-mode 1)
 
 ;;;; frame
@@ -229,7 +213,6 @@
                    nil ;; Name of output buffer
                    "*Trash Error Buffer*")))
 
-
 ;;;; time and mode-line
 
 (setq display-time-24hr-format t
@@ -278,9 +261,11 @@
 
 (setq epg-gpg-program "gpg2")
 
-;; fixes a problem in 29.1
+;; fixes a problem with emacs 29.1 and gnupg >2.41
 ;; per https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources
-(fset 'epg-wait-for-status 'ignore)
+;;(fset 'epg-wait-for-status 'ignore)
+;; I downgraded to gnupg 2.40 
+
 
 (setq erc-server "irc.libera.chat"
       erc-nick "localauthor"

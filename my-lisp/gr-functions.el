@@ -1,23 +1,23 @@
 ;;; gr-functions.el --- Miscellaneous helpful functions     -*- lexical-binding: t; -*-
 
-(with-eval-after-load 'hydra
-  (defhydra gr/symbol-menu (:hint nil :color blue)
-            "
-Symbols and Diacritics
-    _a_: ą   _e_: ė   _u_: ū   _U_: ų  _E_: €
-    _s_: š   _c_: č   _z_: ž   _i_: į
-    "
-            ("q" nil)
-            ("a" (insert "ą"))
-            ("e" (insert "ė"))
-            ("u" (insert "ū"))
-            ("U" (insert "ų"))
-            ("s" (insert "š"))
-            ("c" (insert "č"))
-            ("z" (insert "ž"))
-            ("i" (insert "į"))
-            ("E" (insert "€"))
-            ))
+;; (with-eval-after-load 'hydra
+;;   (defhydra gr/symbol-menu (:hint nil :color blue)
+;;     "
+;; Symbols and Diacritics
+;;     _a_: ą   _e_: ė   _u_: ū   _U_: ų  _E_: €
+;;     _s_: š   _c_: č   _z_: ž   _i_: į
+;;     "
+;;     ("q" nil)
+;;     ("a" (insert "ą"))
+;;     ("e" (insert "ė"))
+;;     ("u" (insert "ū"))
+;;     ("U" (insert "ų"))
+;;     ("s" (insert "š"))
+;;     ("c" (insert "č"))
+;;     ("z" (insert "ž"))
+;;     ("i" (insert "į"))
+;;     ("E" (insert "€"))
+;;     ))
 
 (defun gr/select-theme ()
   (interactive)
@@ -36,12 +36,12 @@ Symbols and Diacritics
       (load-theme 'gr-light :no-confirm))))
 
 ;;;###autoload
-(defun gr/daily-notes ()
+(defun gr/daily-notes (p)
   "Pop up dailynotes.org."
-  (interactive)
+  (interactive "P")
   (let ((buffer (find-file-noselect
                  (concat org-directory "/dailynotes.org"))))
-    (cond ((equal current-prefix-arg '(4))
+    (cond ((equal p '(4))
            (select-frame (make-frame-command))
            (find-file (concat org-directory "/dailynotes.org"))
            (set-frame-position (selected-frame) 845 20)
@@ -53,7 +53,7 @@ Symbols and Diacritics
 
 (defun gr/daily-notes-new-headline ()
   (interactive)
-  (org-set-startup-visibility)
+  (org-cycle-set-startup-visibility)
   (let ((date (concat "** " (format-time-string "%Y-%m-%d %A")))
         (month (concat "* " (format-time-string "%B %Y")))
         (last-month (format-time-string "%B"
@@ -75,21 +75,6 @@ Symbols and Diacritics
       (insert "\n" date "\n- |\n")
       (search-backward "|")
       (delete-char 1))))
-
-(defun gr/calfw-open-org-calendar ()
-  (interactive)
-  (select-frame (make-frame-command))
-  ;; (set-frame-position (selected-frame) 150 20)
-  ;; (set-frame-size (selected-frame) 160 60)
-  (save-excursion
-    (let* ((source1 (calfw-org-create-source))
-           (curr-keymap (if calfw-org-overwrite-default-keybinding calfw-org-custom-map calfw-org-schedule-map))
-           (cp (calfw-create-calendar-component-buffer
-                :view 'week
-                :contents-sources (list source1)
-                :custom-map curr-keymap
-                :sorter 'calfw-org-schedule-sorter)))
-      (switch-to-buffer (calfw-cp-get-buffer cp)))))
 
 (defun gr/word-count-subtree ()
   "Count words in org subtree at point."
@@ -215,7 +200,7 @@ https://discussions.apple.com/thread/7094207"
   (interactive)
   (shell-command "capslock -1"))
 
-(define-key global-map (kbd "<f12>") 'gr/toggle-capslock)
+(keymap-global-set "<f12>" 'gr/toggle-capslock)
 
 (defun gr/insert-line (p)
   (interactive "P")
@@ -232,13 +217,13 @@ https://discussions.apple.com/thread/7094207"
   (interactive)
   (let ((beg (region-beginning))
         (end (region-end)))
-  (kill-ring-save beg end t)
-  (comment-region beg end)
-  (goto-char end)
-  (forward-line 2)
-  (save-excursion
-    (yank)
-    (newline 2))))
+    (kill-ring-save beg end t)
+    (comment-region beg end)
+    (goto-char end)
+    (forward-line 2)
+    (save-excursion
+      (yank)
+      (newline 2))))
 
 (bind-key* (kbd "C-M-;") 'gr/comment-and-copy)
 

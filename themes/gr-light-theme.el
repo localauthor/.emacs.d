@@ -68,7 +68,7 @@
    `(button ((,c (:inherit (link)))))
    `(link ((,c (:underline (:color foreground-color :style line) :foreground "RoyalBlue3"))))
    `(link-visited ((,c (:inherit (link)))))
-   `(fringe ((,c (:background "grey95"))))
+   `(fringe ((,c (:background "grey90"))))
    `(header-line ((,c (:inherit (mode-line)))))
    `(tooltip ((,c (:foreground "black" :background "lightyellow"))))
    `(mode-line-buffer-id ((,c (:weight bold))))

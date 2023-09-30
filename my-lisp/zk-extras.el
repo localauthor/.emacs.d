@@ -7,9 +7,11 @@
 (require 'zk-index)
 (require 'zk-desktop)
 (require 'zk-luhmann)
+(require 'link-hint)
 
 ;;; xref
 
+;;;###autoload
 (defun zk-xref (string)
   "Use `xref' to search for STRING in all notes.
 Opens search results in an `xref' buffer."
@@ -50,6 +52,7 @@ Opens search results in an `xref' buffer."
 
 ;;; General Utilities
 
+;;;###autoload
 (defun link-hint-other-tab ()
   "Use avy to open a link in other-tab."
   (interactive)
