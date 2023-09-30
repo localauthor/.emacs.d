@@ -283,34 +283,15 @@
   (bind-keys :map global-map
              :prefix-map gr-map
              :prefix "C-."
-             ("C-." . avy-goto-char-timer)
              ("/" . switch-to-minibuffer-window)
              ("C-/" . exit-minibuffer)
              ("n" . gr/daily-notes)
-             ("o" . link-hint-aw-select)
-             ("O" . link-hint-other-tab)
              ("i" . gr/open-init-file)
-             ;;("C-t" . gr/open-tasks-file)
              ("T" . gr/toggle-theme)
-             ("f" . gr/open-fragments-file)
-             ("C-f" . gr/open-fragments-file-other-frame)
-             ("m" . mu4e)
-             ("M" . gr/open-mu4e)
-             ("a" . gr/org-agenda)
-             ("c" . gr/calfw-open-org-calendar)
-             ("b" . consult-bookmark)
-             ("g" . eww-duckduckgo)
-             ("l" . accent-menu)
-             ("j" . gr/org-journal-new-entry)
-             ("e" . ebib)
-             ("W" . org-wc-display)
-             ("w" . prot-eww-map)
              ("D" . gr/lookup-word-at-point)
-             ("d" . sdcv-search)
              ("L" . toggle-truncate-lines)
-             ("t" . google-translate-buffer)
-             ("s" . hydra-mac-speak/body)
-             ("p" . password-store-copy)))
+             ("m" . mu4e)
+             ("M" . gr/open-mu4e)))
 
 ;;;; isearch
 
@@ -490,6 +471,10 @@
   :ensure nil
   :defer 1
   :after org)
+  :after org
+  :bind
+  (:map gr-map
+        ("a" . gr/org-agenda)))
 
 (use-package org-capture-setup
   :ensure nil
@@ -579,6 +564,10 @@ promoting any children headlines to the level of the parent."
 (use-package calfw-org
   :ensure nil
   :load-path "elpa/calfw"
+  :defer t
+  :bind
+  (:map gr-map
+        ("c" . gr/calfw-open-org-calendar))
   :config
   (setq calfw-org-capture-template
         '("c" "calfw" entry (file "gcal-ruta.org")
@@ -869,6 +858,8 @@ there, otherwise you are prompted for a message buffer."
   ("M-s u" . consult-focus-lines)
   (:map consult-narrow-map
         ("?" . consult-narrow-help))
+  (:map gr-map
+        ("b" . consult-bookmark))
   :bind*
   ("C-c [" . consult-global-mark)
   ("C-:" . consult-imenu)
@@ -1203,6 +1194,8 @@ following the key as group 3."
 
 (use-package ebib
   :bind
+  (:map gr-map
+        ("e" . ebib))
   (:map ebib-index-mode-map
         ("?" . (lambda () (interactive) (embark-bindings-in-keymap ebib-index-mode-map)))
         ("h" . hydra-ebib/body)
@@ -1402,22 +1395,36 @@ following the key as group 3."
   :vc (:url "https://github.com/gucong/emacs-sdcv"
             :rev :newest)
   :defer 1
+  :bind
+  (:map gr-map
+        ("d" . sdcv-search))
   :custom
   (sdcv-buffer-name "*Dictionary*"))
 
 ;; note: dictionaries are in ~/.stardic/dic
 
-;;;; ispell
+;;;; ispell / abbrev custom
+
+(use-package abbrev
+  :ensure nil
+  :init
+  (abbrev-mode 1)
+  :custom
+  (save-abbrevs 'silently))
+
+(use-package hippie-expand
+  :ensure nil
+  :bind
+  ([remap dabbrev-expand] . hippie-expand)
+  :custom
+  (hippie-expand-verbose t))
 
 (use-package ispell
   :defer t
   :bind
-  ([remap dabbrev-expand] . hippie-expand)
   (:map ctl-x-map
         ("C-i" . endless/ispell-word-then-abbrev))
   :init
-  (setq save-abbrevs 'silently)
-  (setq-default abbrev-mode t)
   (setenv "DICTIONARY" "en_US")
   :commands endless/ispell-word-then-abbrev
   :custom
@@ -1669,9 +1676,10 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 
 (use-package org-wc
   :after org
-  :defer 1)
-
-;; org-wc-display is useful
+  :defer 1
+  :bind
+  (:map gr-map
+        ("W" . org-wc-display)))
 
 ;;;; emacs-benchmark
 
@@ -1857,10 +1865,12 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
 (use-package avy
   :bind
   ("M-g w" . avy-goto-word-1)
+  (:map gr-map
+        ("C-." . avy-goto-char-timer))
+  (:map isearch-mode-map
+        ("C-'" . avy-isearch))
   :bind*
-  ;;("C-l" . gr/avy-goto)
   ("C-. C-," . gr/avy-goto-string)
-  ("C-'" . gr/avy-goto-string)
   ;;("C-'" . avy-goto-char-timer)
   :custom
   (avy-timeout-seconds 0.4)
@@ -1996,6 +2006,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package eww
   :bind
+  (:map gr-map
+        ("g" . eww-duckduckgo))
   (:map eww-mode-map
         ("o" . link-hint-open-link))
   :config
@@ -2018,6 +2030,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :hook
   (prot-eww-history-mode-hook . hl-line-mode)
   :bind
+  (:map gr-map
+        ("w" . prot-eww-map))
   (:map prot-eww-map
         ("b" . prot-eww-visit-bookmark)
         ("e" . prot-eww-browse-dwim)
@@ -2073,6 +2087,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (use-package pass
   :defer t
   :after (embark consult)
+  :bind
+  (:map gr-map
+        ("P" . password-store-copy))
   :custom
   (password-store-password-length 12)
   :init
@@ -2206,6 +2223,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package google-translate
   :defer t
+  :bind
+  (:map gr-map
+        ("t" . gr/translate))
   :custom
   (google-translate-default-source-language "lt")
   (google-translate-default-target-language "en")
@@ -2307,9 +2327,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 ;;;; accent
 
 (use-package accent
-  ;; :bind
-  ;; (:map gr-map
-  ;;       ("l" . accent-menu))
+  :defer t
+  :bind
+  (:map gr-map
+        ("l" . accent-menu))
   :config
   (setq accent-diacritics '((a (ą á à))
                             (e (ė é è ë))
