@@ -340,6 +340,8 @@
   (:map gr-map
         ("o" . link-hint-aw-select))
   :config
+  (add-to-list 'link-hint-aw-select-ignored-buffers 'org-side-tree-mode)
+  (add-to-list 'link-hint-aw-select-ignored-buffers 'zk-index-mode)
   ;; open org-links in same window
   ;; allows link-hint--aw-select-org-link to work properly
   (with-eval-after-load 'org
@@ -2171,8 +2173,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?l))
   (aw-scope 'visible)
   (aw-dispatch-always t)
+  (aw-ignore-current nil)
+  (aw-ignore-on t)
   :config
-  ;;  (ace-window-posframe-mode 1)
+  ;; doesn't work with yabai
+  ;; (ace-window-posframe-mode -1)
   (setq aw-dispatch-alist
         '((?b aw-switch-buffer-in-window "Select Buffer in Target")
           (?w aw-swap-window "Swap Current and Target")

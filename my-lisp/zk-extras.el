@@ -72,7 +72,9 @@ Opens search results in an `xref' buffer."
 ;;;###autoload
 (defun zk-index-aw-select ()
   (interactive)
-  (let ((id (zk-index--button-at-point-p)))
+  ;; use link-hint--aw-select-button instead??
+  (let ((aw-ignored-buffers link-hint-aw-select-ignored-buffers)
+        (id (zk-index--button-at-point-p)))
     (link-hint--aw-select-zk-link id)))
 
 ;;;###autoload
