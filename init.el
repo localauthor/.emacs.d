@@ -233,52 +233,55 @@
 
 ;; if the whole window is 160 or more (char, not px), then a buffer will
 ;; split to the right, instead of below;
-(setq split-height-threshold nil)
-(setq split-width-threshold 160)
+;; (setq split-height-threshold nil)
+;; (setq split-width-threshold 160)
 
 ;;;; display-buffer-alist
 
-(setq switch-to-buffer-obey-display-actions nil)
-;; with t, popwin-dummy buffer shows up with elfeed-entry
+(setq switch-to-buffer-obey-display-actions t)
 
-(defun make-display-buffer-matcher-function (major-modes)
-  (lambda (buffer-name action)
-    (with-current-buffer buffer-name (apply #'derived-mode-p major-modes))))
-
-;; NOTE: windows designated as popups are controlled by popper, so these
-;; settings have no effect on them; eg zk-index, dired buffers, Messages;
-;; see 'gr/popper-select-buffer-at-bottom
+(defun gr/display-buffer-at-bottom-select (buffer alist)
+  (select-window (display-buffer-at-bottom buffer alist)))
 
 (setq display-buffer-alist
-      `(("*Async Shell Command*"
-         (display-buffer-no-window))
+      `(("*Org-Side-Tree*\\|^<tree>\\|\\*Embark Live"
+         (display-buffer-in-side-window)
+         (side . left))
 
-        ("\\*elfeed-entry"
-         (display-buffer-at-bottom)
+        ((major-mode . dired-mode)
+         (gr/display-buffer-at-bottom-select)
+         (window-height . 0.45))
+
+        ((major-mode . magit-status-mode)
+         (gr/display-buffer-at-bottom-select)
          (window-height . 0.6))
 
-        ("Dictionary"
+        ("\\*elfeed-entry\\|*info"
          (display-buffer-at-bottom)
          (window-height . 0.6))
 
         ("*mu4e-main*"
          (display-buffer-full-frame))
 
-        ("Org Links" display-buffer-no-window
+        ("*Async Shell Command*"
+         (display-buffer-no-window))
+
+        ("Org Links"
+         (display-buffer-no-window)
          (allow-no-window . t))
 
         (,(concat
            "\\*\\("
            (string-join
-            '("Completions""Backups:" "helpful"
-              "CAPTURE" "Pp Eval Output" "eshell" "Backtrace"
-              "Messages" "Metahelp" "Python"
+            '("ZK-Index" "Occur" "Completions" "Backups:" "helpful"
+              "CAPTURE" "Pp Eval Output" "eshell"
+              "Metahelp" "Messages" "Python"
               "Warnings" "Go Translate" "Google Translate"
               "Org Select" "Compile-Log" "[Hh]elp" "annotations"
               "calfw-details" "Embark Collect")
             "\\|") "\\)")
-         (display-buffer-at-bottom)
-         (window-height . 0.45))
+         (gr/display-buffer-at-bottom-select)
+         (window-height . 0.4))
         ))
 
 ;;;; gr-functions and gr-map
@@ -2152,64 +2155,32 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
            (ido-switch-buffer))
           (t
            (call-interactively 'consult-buffer))))
-
   )
 
 ;;;; popper
 
 (use-package popper
-  :bind (("C-\\"   . popper-toggle-latest)
+  :bind (("C-\\"   . popper-toggle)
          ("M-\\"   . popper-cycle)
          ("C-M-\\" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
-        `("^magit\\:"
-          "Output"
-          ,(concat
-            "\\*\\("
-            (string-join
-             '("chatgpt" "Messages" "Warnings" "Dictionary"
-               "Outline" "Occur" "sdcv" "vterm"
-               "xref" "Backtrace" "ZK-Index" "Apropos"
-               "eshell" "PDF-Occur" "Org Agenda"
-               "compilation" "elfeed-entry" "calfw-details"
-               "Python" "grep" "undo-tree" "Async Shell Command"
-               "Embark Collect" "Google Translate" "annotations"
-               "Ilist" "Backups")
-             "\\|") "\\)")
+        '("\\*xref\\*"
+          "elfeed-entry"
           dired-mode
-          undo-tree-mode
+          magit-status-mode
+          zk-index-mode
+          org-side-tree-mode
+          occur-mode
+          grep-mode
+          eshell-mode
+          sdcv-mode
+          org-agenda-mode
           compilation-mode))
 
-  (defun gr/popper-zk-index ()
-    ;; doesn't really work
-    (interactive)
-    (cond ((zk-file-p)
-           (pop-to-buffer zk-index-buffer-name))
-          ((eq (current-buffer) (get-buffer "*ZK-Index*"))
-           (delete-window))
-          (t
-           (popper-toggle-latest))))
+  (setq popper-display-control nil)
 
-  (defun gr/popper-select-buffer-at-bottom (buffer &optional alist)
-    (let ((height (cond
-                   ((or (string-match "magit.*\\|\\*ZK-Index\\*"
-                                      (buffer-name buffer))
-                        (with-current-buffer buffer
-                          (derived-mode-p 'dired-mode)))
-                    '(window-height . 0.45))
-                   (t
-                    '(window-height . 0.4)))))
-      (select-window (display-buffer-at-bottom
-                      buffer
-                      (append alist
-                              `(,height))))))
-
-  (setq popper-display-control t)
-  (setq popper-display-function #'gr/popper-select-buffer-at-bottom)
-
-  (setq popper-echo-dispatch-keys '(?a ?s ?d ?f ?j ?k ?l))
-  (setq popper-echo-dispatch-persist nil)
+  (setq popper-group-function #'popper-group-by-directory)
 
   (popper-mode 1))
 
