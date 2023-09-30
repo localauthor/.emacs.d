@@ -407,41 +407,29 @@
             ("C" . "center"))))
   (with-eval-after-load 'org-indent
     (diminish 'org-indent-mode))
-  (with-eval-after-load 'org-num-mode
+  (with-eval-after-load 'org-num
     (diminish 'org-num-mode))
   :config
   (unbind-key "C-," org-mode-map)
   (unbind-key "C-'" org-mode-map)
   (add-to-list 'org-file-apps '("\\.docx\\'" . default) 'append)
-
   :custom-face
   (org-drawer ((t (:height .8))))
   (org-special-keyword ((t (:height .8))))
   (org-hide ((t (:foreground "white"))))
 
   :custom
-  (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
+
   (org-directory "~/Dropbox/org")
-  (org-use-speed-commands t)
-  (org-startup-indented t)
-  (org-table-use-standard-references 'from)
-  (org-fold-catch-invisible-edits 'smart)
-  (org-tags-column -67)
-  (org-tag-alist '(("noexport")("noheadline")("nonum")("export")))
-  (org-outline-path-complete-in-steps nil)
+  (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
   (org-hide-leading-stars t)
-  (org-hide-emphasis-markers nil)
-  (org-link-keep-stored-after-insertion t)
-  (org-link-search-must-match-exact-headline t)
-  (org-support-shift-select nil)
-  (org-return-follows-link t)
-  (org-num-skip-tags '("nonum"))
-  (org-num-skip-commented t)
-  (org-num-skip-footnotes t)
+  (org-startup-indented t)
   (org-export-backends '(ascii html latex md odt org))
+  (org-tag-alist '(("noexport")("noheadline")("nonum")("export")))
+  (org-tags-column -67)
+  (org-use-fast-todo-selection 'expert)
   (org-log-done 'time)
-  ;; Sets spacing between headings in org-mode
-  (org-cycle-separator-lines -1)
+  (org-log-states-order-reversed nil)
   (org-emphasis-alist
    '(("*" bold)
      ("/" italic)
@@ -449,20 +437,17 @@
      ("=" org-verbatim verbatim)
      ("+" (:background "gray85" :height .9))
      ("~" verbatim)))
-  (org-fold-core-style 'text-properties)
-  (org-startup-with-latex-preview nil)
-  (org-use-fast-todo-selection 'expert)
-  (org-edit-src-content-indentation 0)
-  (org-src-preserve-indentation nil)
-  (org-log-states-order-reversed nil)
-  (org-refile-targets '((nil :maxlevel . 2)
-                        (org-agenda-files :maxlevel . 2)))
-  (org-refile-use-outline-path 'file)
-  (org-refile-allow-creating-parent-nodes 'confirm)
+
+  ;; org-cycle
+  (org-cycle-separator-lines -1)  ;; spacing between headings
+
+  ;; org-keys
+  (org-return-follows-link t)
+  (org-use-speed-commands t)
   (org-speed-commands
    '(("Outline Navigation")
-     ("n" . (org-speed-move-safe 'org-next-visible-heading))
-     ("p" . (org-speed-move-safe 'org-previous-visible-heading))
+     ("n" . gr/org-next-heading)
+     ("p" . gr/org-previous-heading)
      ("Outline Visibility")
      ("i" . org-cycle)
      ("Clock Commands")
@@ -470,7 +455,25 @@
      ("O" . org-clock-out)
      ("Misc")
      ("?" . org-speed-command-help)))
+
+  ;; ol
+  (org-link-keep-stored-after-insertion t)
+  (org-link-search-must-match-exact-headline t)
+
+  ;; org-num
+  (org-num-skip-tags '("nonum"))
+  (org-num-skip-commented t)
+  (org-num-skip-footnotes t)
+
+  ;; org-refile
+  (org-refile-targets '((nil :maxlevel . 2)
+                        (org-agenda-files :maxlevel . 2)))
+  (org-refile-use-outline-path 'file)
+  (org-refile-allow-creating-parent-nodes 'confirm)
+  (org-outline-path-complete-in-steps nil)
+
   :config
+
   (defun gr/org-export-spacing (backend)
     "Single newline is not a paragraph break.
 Only double newline is a paragraph break."
