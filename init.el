@@ -34,9 +34,16 @@
 
 ;;;; Emacs
 
-(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "lisp")))
-(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "my-lisp")))
-(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "priv-lisp")))
+
+(dolist (dir '("lisp" "my-lisp" "priv-lisp"))
+  (let ((exp-dir (expand-file-name (concat user-emacs-directory dir))))
+    (add-to-list 'load-path exp-dir)))
+
+(add-hook 'after-init-hook
+          (lambda ()
+            (dolist (dir '("lisp" "my-lisp" "priv-lisp"))
+              (let ((exp-dir (expand-file-name (concat user-emacs-directory dir))))
+                (byte-recompile-directory exp-dir 0 nil t)))))
 
 (use-package exec-path-from-shell
   :defer 1
