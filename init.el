@@ -496,6 +496,27 @@ Only double newline is a paragraph break."
           (kill-line))))))
 
   (add-hook 'org-export-before-processing-functions 'gr/org-export-spacing)
+
+  (defun gr/org-next-heading ()
+    (interactive)
+    (let (org-side-tree-narrow-on-jump)
+      (if (org-buffer-narrowed-p)
+          (progn
+            (setq org-side-tree-narrow-on-jump t)
+            (org-side-tree-next-heading))
+        (org-speed-move-safe 'org-next-visible-heading)
+        (org-side-tree-update))))
+
+  (defun gr/org-previous-heading ()
+    (interactive)
+    (let (org-side-tree-narrow-on-jump)
+      (if (org-buffer-narrowed-p)
+          (progn
+            (setq org-side-tree-narrow-on-jump t)
+            (org-side-tree-previous-heading))
+        (org-speed-move-safe 'org-previous-visible-heading)
+        (org-side-tree-update))))
+
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
@@ -518,6 +539,35 @@ Only double newline is a paragraph break."
 (use-package gr-org-extras
   :ensure nil
   :defer 1)
+
+;;;; org-side-tree
+
+(use-package org-side-tree
+  :load-path "my-lisp/org-side-tree"
+  :ensure nil
+  :defer t
+  :hook
+  (org-side-tree-mode-hook . org-indent-mode)
+  :bind
+  (:map gr-map
+        ("s" . org-side-tree))
+  (:map org-side-tree-mode-map
+        ("S-<right>" . org-side-tree-next-todo)
+        ("S-<left>" . org-side-tree-previous-todo)
+        ("S-<up>" . org-side-tree-priority-up)
+        ("S-<down>" . org-side-tree-priority-down)
+        ("C-<left>" . org-side-tree-do-promote)
+        ("C-<right>" . org-side-tree-do-demote)
+        ("C-S-<down>" . org-side-tree-move-subtree-down)
+        ("C-S-<up>" . org-side-tree-move-subtree-up)
+        ("C-S-<left>" . org-side-tree-promote-subtree)
+        ("C-S-<right>" . org-side-tree-demote-subtree))
+  :custom-face
+  (org-side-tree-heading-face ((t (:inherit font-lock-builtin-face))))
+  :custom
+  (org-side-tree-persistent t)
+  (org-side-tree-narrow-on-jump nil)
+  (org-side-tree-timer-delay .3))
 
 ;;;; org-superstar
 
