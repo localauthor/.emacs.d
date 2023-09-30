@@ -2269,26 +2269,36 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (use-package melpazoid
   :vc (:url "https://github.com/riscy/melpazoid"
-            :main-file "melpazoid/melpazoid.el"
+            :lisp-dir "melpazoid"
             :rev :newest)
-  :defer t
   :commands gr/elisp-check-buffer
+  :bind
+  (:map gr-map
+        ("E" . gr/elisp-check-buffer))
   :config
   (defun gr/elisp-check-buffer ()
     (interactive)
-    (if (ignore-errors (or flycheck-mode
-                           flymake-mode))
+    (let ((melpa-buf (get-buffer "*melpazoid*"))
+          (pl-buf (get-buffer "*Package-Lint*")))
+      (if (ignore-errors (or melpa-buf
+                             pl-buf
+                             flycheck-mode
+                             flymake-mode))
+          (progn
+            (flycheck-mode -1)
+            (flymake-mode -1)
+            (when melpa-buf
+              (kill-buffer melpa-buf))
+            (when pl-buf
+              (kill-buffer pl-buf))
+            (message "Elisp checks off"))
         (progn
-          (flycheck-mode -1)
-          (flymake-mode -1)
-          (message "Elisp checks off"))
-      (progn
-        (flycheck-mode)
-        (flycheck-list-errors)
-        (flymake-mode)
-        (flymake-show-buffer-diagnostics)
-        (package-lint-current-buffer)
-        (melpazoid)))))
+          (flycheck-mode)
+          ;;(flycheck-list-errors)
+          (flymake-mode)
+          ;;(flymake-show-buffer-diagnostics)
+          ;;(package-lint-current-buffer) ;; melpazoid runs this anyway
+          (melpazoid))))))
 
 (add-hook 'flymake-mode-hook
           (lambda () (setq elisp-flymake-byte-compile-load-path load-path)))
