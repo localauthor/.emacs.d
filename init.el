@@ -569,13 +569,15 @@ promoting any children headlines to the level of the parent."
 
   )
 
-;;; Calendar
+;;; Calendar / Calfw
 
 ;;(package-vc-install '(calfw . :url "https://github.com/localauthor/emacs-calfw"))
 
 (use-package calfw
+  ;; :ensure nil
   :vc (:url "https://github.com/localauthor/emacs-calfw"
             :rev :newest)
+  :load-path "elpa/calfw"
   :defer t
   :bind (:map calfw-calendar-mode-map
               ("RET" . calfw-show-details-command)
@@ -594,10 +596,28 @@ promoting any children headlines to the level of the parent."
   :bind
   (:map gr-map
         ("c" . gr/calfw-open-org-calendar))
+  :custom
+  (calfw-org-capture-template
+   '("x" "[calfw-auto]" entry (file "gcal-ruta.org")
+     "* %?\n:org-gcal:\n%(calfw-org-capture-day)\n:END:\n" :empty-lines 1))
   :config
-  (setq calfw-org-capture-template
-        '("c" "calfw" entry (file "gcal-ruta.org")
-          "* %?\n:org-gcal:\n%(calfw-org-capture-day)\n:END:\n")))
+
+  (defun gr/calfw-open-org-calendar (p)
+    (interactive "P")
+    (when p
+      (select-frame (make-frame-command)))
+    ;; (set-frame-position (selected-frame) 150 20)
+    ;; (set-frame-size (selected-frame) 160 60)
+    (save-excursion
+      (let* ((source1 (calfw-org-create-source))
+             (curr-keymap (if calfw-org-overwrite-default-keybinding calfw-org-custom-map calfw-org-schedule-map))
+             (cp (calfw-create-calendar-component-buffer
+                  :view 'week
+                  :contents-sources (list source1)
+                  :custom-map curr-keymap
+                  :sorter 'calfw-org-schedule-sorter)))
+        (switch-to-buffer (calfw-cp-get-buffer cp)))))
+  )
 
 
 ;;; FIX "<" and ">" keybindings
