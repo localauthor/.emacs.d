@@ -2325,13 +2325,29 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   (google-translate-default-source-language "lt")
   (google-translate-default-target-language "en")
   (google-translate-backend-method 'curl)
-  (google-translate-pop-up-buffer-set-focus t))
+  (google-translate-pop-up-buffer-set-focus t)
 
-(with-eval-after-load 'google-translate-core-ui
-  ;; override to prevent insertion of original text
-  (define-advice google-translate--translating-text
-      (:override (gtos format))
-    " "))
+  :config
+
+  (with-eval-after-load 'google-translate-core-ui
+    ;; override to prevent insertion of original text
+    (define-advice google-translate--translating-text
+        (:override (gtos format))
+      " "))
+
+  (defun gr/translate (p)
+    (interactive "P")
+    (if p
+        (if (use-region-p)
+            (let ((google-translate-output-destination 'paragraph-insert))
+              (google-translate-at-point-reverse))
+          (google-translate-query-translate-reverse))
+      (if (use-region-p)
+          (google-translate-at-point)
+        (if (derived-mode-p 'mu4e-view-mode)
+            (google-translate-buffer)
+          (google-translate-query-translate)))))
+  )
 
 (use-package google-translate-smooth-ui
   :ensure nil
