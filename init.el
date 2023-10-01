@@ -250,9 +250,12 @@
 (defun gr/display-buffer-at-bottom-select (buffer alist)
   (select-window (display-buffer-at-bottom buffer alist)))
 
+(defun gr/display-buffer-in-side-window-select (buffer alist)
+  (select-window (display-buffer-in-side-window buffer alist)))
+
 (setq display-buffer-alist
       `(("*Org-Side-Tree*\\|^<tree>\\|\\*Embark Live"
-         (display-buffer-in-side-window)
+         (gr/display-buffer-in-side-window-select)
          (side . left))
 
         ((major-mode . dired-mode)
