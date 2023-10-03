@@ -176,12 +176,19 @@ Optional ARG."
    '(zk-current-notes
      zk-consult-grep
      zk-unlinked-notes))
+
   (zk-select-file-function 'zk-consult-select-file)
   :config
   (add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
+
+  (consult-customize
+   zk-consult-grep
+   :preview-key '(any))
+
   (consult-customize
    zk-find-file zk-find-file-by-full-text-search zk-network zk-backlinks zk-links-in-note
-   :preview-key '("C-{")))
+   :preview-key '("C-{"))
+  )
 
 (use-package zk-citar
   :load-path "my-lisp/zk"
