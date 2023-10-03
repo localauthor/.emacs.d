@@ -1,4 +1,4 @@
-;;; -*- lexical-binding: t -*-
+;;; early-init.el -*- lexical-binding: t -*-
 
 (defvar file-name-handler-alist-original file-name-handler-alist)
 (setq file-name-handler-alist nil)
@@ -28,7 +28,7 @@
   (setq use-package-enable-imenu-support t)
   (setq use-package-hook-name-suffix nil))
 
-;;; package
+;;; package.el
 
 (use-package package
   :ensure nil

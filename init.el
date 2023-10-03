@@ -1,4 +1,4 @@
-;; init.el                    -*- lexical-binding: t; -*-
+;;; init.el                    -*- lexical-binding: t; -*-
 
 ;;; Misc Startups
 
@@ -20,7 +20,7 @@
 
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
-;;; safe-local-variable-values
+;;;; safe-local-variable-values
 
 (setq safe-local-variable-values
       '((eval gr/daily-notes-new-headline)
@@ -30,10 +30,22 @@
         (eval . (gr/toggle-capslock))
         (eval . (text-scale-adjust 10))))
 
+;;;; vc fixes?
+
+;; FIX :vc packages sometimes not found? need to add :load-path
+;; FIX :vc keyword doesn't work as expected when use-package-always-ensure is non-nil; maybe this helps?
+
+;; (defun use-package-vc-override-:ensure (func name-symbol keyword ensure rest state)
+;;   (let ((ensure (if (plist-member rest :vc)
+;;                     nil
+;;                   ensure)))
+;;     (funcall func name-symbol keyword ensure rest state)))
+
+;; (advice-add 'use-package-handler/:ensure :around #'use-package-vc-override-:ensure)
+
 ;;; Basics
 
 ;;;; Emacs
-
 
 (dolist (dir '("lisp" "my-lisp" "priv-lisp"))
   (let ((exp-dir (expand-file-name (concat user-emacs-directory dir))))
@@ -283,14 +295,22 @@
         (,(concat
            "\\*\\("
            (string-join
-            '("ZK-Index" "Occur" "Completions" "Backups:" "helpful"
-              "CAPTURE" "Pp Eval Output" "eshell"
-              "Metahelp" "Messages" "Python"
-              "Warnings" "Go Translate" "Google Translate"
-              "Org Select" "Compile-Log" "[Hh]elp" "annotations"
-              "calfw-details" "Embark Collect")
+            '("ZK-Index" "Occur" "Completions" "Backups:"
+              "helpful"  "CAPTURE" "Pp Eval Output"
+              "eshell"  "Google Translate"  "Org Select"
+              "annotations" "Embark Collect")
             "\\|") "\\)")
          (gr/display-buffer-at-bottom-select)
+         (window-height . 0.4))
+
+        (,(concat
+           "\\*\\("
+           (string-join
+            '("Messages" "trace-output"
+              "Warnings" "Compile-Log" "[Hh]elp"
+              "calfw-details")
+            "\\|") "\\)")
+         (display-buffer-at-bottom)
          (window-height . 0.4))
         ))
 
@@ -312,6 +332,32 @@
              ("L" . toggle-truncate-lines)
              ("m" . mu4e)
              ("M" . gr/open-mu4e)))
+
+(use-package text-to-speech
+  :ensure nil
+  :defer t
+  :commands hydra-mac-speak/body)
+
+(use-package devonthink-dir
+  :ensure nil
+  :defer 1)
+
+(use-package dickinson
+  :ensure nil
+  :defer 1)
+
+;;;; expand-region
+
+(use-package expand-region
+  :bind ("C-=" . er/expand-region))
+
+;;;; bookmark
+
+(use-package bookmark
+  :defer t
+  :init
+  (setq bookmark-bmenu-toggle-filenames nil
+        bookmark-save-flag 1))
 
 ;;;; isearch
 
@@ -372,6 +418,16 @@
   :defer 1
   :config
   (recentf-mode))
+
+;;;; savehist
+
+(use-package savehist
+  :defer 1
+  :config
+  (savehist-mode 1)
+  (setq savehist-additional-variables
+        '(citar-history search-ring regexp-search-ring)))
+
 
 ;;; Org
 
@@ -543,34 +599,6 @@ Only double newline is a paragraph break."
   :ensure nil
   :defer 1)
 
-;;;; org-side-tree
-
-(use-package org-side-tree
-  :load-path "my-lisp/org-side-tree"
-  :ensure nil
-  :defer t
-  :hook
-  (org-side-tree-mode-hook . org-indent-mode)
-  :bind
-  (:map gr-map
-        ("s" . org-side-tree))
-  (:map org-side-tree-mode-map
-        ("S-<right>" . org-side-tree-next-todo)
-        ("S-<left>" . org-side-tree-previous-todo)
-        ("S-<up>" . org-side-tree-priority-up)
-        ("S-<down>" . org-side-tree-priority-down)
-        ("C-<left>" . org-side-tree-do-promote)
-        ("C-<right>" . org-side-tree-do-demote)
-        ("C-S-<down>" . org-side-tree-move-subtree-down)
-        ("C-S-<up>" . org-side-tree-move-subtree-up)
-        ("C-S-<left>" . org-side-tree-promote-subtree)
-        ("C-S-<right>" . org-side-tree-demote-subtree))
-  :custom-face
-  (org-side-tree-heading-face ((t (:inherit font-lock-builtin-face))))
-  :custom
-  (org-side-tree-persistent t)
-  (org-side-tree-narrow-on-jump nil)
-  (org-side-tree-timer-delay .3))
 
 ;;;; org-superstar
 
@@ -627,91 +655,7 @@ promoting any children headlines to the level of the parent."
       info nil)
     (org-extra--merge-sections data backend info)
     data)
-
   )
-
-;;; Calendar / Calfw
-
-;;(package-vc-install '(calfw . :url "https://github.com/localauthor/emacs-calfw"))
-
-(use-package calfw
-  ;; :ensure nil
-  :vc (:url "https://github.com/localauthor/emacs-calfw"
-            :rev :newest)
-  :load-path "elpa/calfw"
-  :defer t
-  :bind (:map calfw-calendar-mode-map
-              ("RET" . calfw-show-details-command)
-              ("<" . gr/calfw-prev)
-              (">" . gr/calfw-next)
-              ("g" . calfw-refresh-calendar-buffer)
-              ("v" . calfw-cycle-view)
-              ("V" . calfw-cycle-view-reverse))
-  :custom
-  (calfw-display-calendar-holidays nil))
-
-(use-package calfw-org
-  :ensure nil
-  :load-path "elpa/calfw"
-  :defer t
-  :bind
-  (:map gr-map
-        ("c" . gr/calfw-open-org-calendar))
-  :custom
-  (calfw-org-capture-template
-   '("x" "[calfw-auto]" entry (file "gcal-ruta.org")
-     "* %?\n:org-gcal:\n%(calfw-org-capture-day)\n:END:\n" :empty-lines 1))
-  :config
-
-  (defun gr/calfw-open-org-calendar (p)
-    (interactive "P")
-    (when p
-      (select-frame (make-frame-command)))
-    ;; (set-frame-position (selected-frame) 150 20)
-    ;; (set-frame-size (selected-frame) 160 60)
-    (save-excursion
-      (let* ((source1 (calfw-org-create-source))
-             (curr-keymap (if calfw-org-overwrite-default-keybinding calfw-org-custom-map calfw-org-schedule-map))
-             (cp (calfw-create-calendar-component-buffer
-                  :view 'week
-                  :contents-sources (list source1)
-                  :custom-map curr-keymap
-                  :sorter 'calfw-org-schedule-sorter)))
-        (switch-to-buffer (calfw-cp-get-buffer cp)))))
-  )
-
-
-;;; FIX "<" and ">" keybindings
-;; currently "<" and ">" move by month
-;; these functions will move according to current view
-
-(defun gr/calfw-next ()
-  (interactive)
-  (let* ((cp (calfw-cp-get-component))
-         (view (calfw-cp-get-view cp)))
-    (pcase view
-      ('day (call-interactively #'calfw-navi-next-day-command))
-      ('week (call-interactively #'calfw-navi-next-week-command))
-      ('two-weeks (call-interactively #'calfw-navi-next-week-command))
-      ('month (call-interactively #'calfw-navi-next-month-command)))))
-
-(defun gr/calfw-prev ()
-  (interactive)
-  (let* ((cp (calfw-cp-get-component))
-         (view (calfw-cp-get-view cp)))
-    (pcase view
-      ('day (call-interactively #'calfw-navi-previous-day-command))
-      ('week (call-interactively #'calfw-navi-previous-week-command))
-      ('two-weeks (call-interactively #'calfw-navi-previous-week-command))
-      ('month (call-interactively #'calfw-navi-previous-month-command)))))
-
-;; There is a problem when multi-day events also have times, ie:
-;; <2022-04-23 Sat 10:00>--<2022-04-24 Sun 08:00>
-;; I think the issue is in the function calfw-org-get-timerange ?
-
-(use-package org-gcal-setup
-  :ensure nil
-  :defer 1)
 
 ;;; Completion
 
@@ -975,6 +919,8 @@ there, otherwise you are prompted for a message buffer."
   ("C-;" . consult-outline)
   :hook
   (embark-collect-mode-hook . consult-preview-at-point-mode)
+  :custom-face
+  (consult-preview-line ((t (:inherit default))))
   :custom
   (completion-in-region-function 'consult-completion-in-region)
   (consult-fontify-preserve t)
@@ -986,12 +932,11 @@ there, otherwise you are prompted for a message buffer."
 
   ;; consult-preview settings
 
-  ;; (consult-customize
-  ;;  consult-git-grep consult-grep consult-global-mark consult-ripgrep
-  ;;  consult-bookmark consult--source-buffer consult-recent-file consult-xref
-  ;;  consult--source-bookmark consult-buffer
-  ;;  :preview-key '("C-{"
-  ;;                 :debounce 1.5 any))
+  (consult-customize
+   consult-git-grep consult-grep
+   consult-xref consult-global-mark consult-ripgrep
+   :preview-key '("C-{"
+                  :debounce .5 any))
 
   ;;make C-s and C-r search forward and backward in consult-line
   ;;changed to make C-s call previous search term
@@ -1100,16 +1045,6 @@ parses its input."
       completion-ignore-case t)
 
 (setq tab-always-indent 'complete)
-
-
-;;;; savehist
-
-(use-package savehist
-  :defer 1
-  :config
-  (savehist-mode 1)
-  (setq savehist-additional-variables
-        '(citar-history search-ring regexp-search-ring)))
 
 
 ;;;; prescient / company-prescient
@@ -1490,6 +1425,98 @@ following the key as group 3."
 
 ;;; Writing
 
+
+;;;; zk
+
+(use-package zk-setup
+  :ensure nil
+  :demand t
+  :bind
+  ("C-z" . hydra-zk/body))
+
+;;;; org-side-tree
+
+(use-package org-side-tree
+  :load-path "my-lisp/org-side-tree"
+  :ensure nil
+  :defer t
+  ;; :hook
+  ;; (org-side-tree-mode-hook . org-indent-mode)
+  :bind
+  (:map gr-map
+        ("s" . org-side-tree))
+  (:map org-side-tree-mode-map
+        ("S-<right>" . org-side-tree-next-todo)
+        ("S-<left>" . org-side-tree-previous-todo)
+        ("S-<up>" . org-side-tree-priority-up)
+        ("S-<down>" . org-side-tree-priority-down)
+        ("C-<left>" . org-side-tree-promote)
+        ("C-<right>" . org-side-tree-demote)
+        ("C-S-<down>" . org-side-tree-move-subtree-down)
+        ("C-S-<up>" . org-side-tree-move-subtree-up)
+        ("C-S-<left>" . org-side-tree-promote-subtree)
+        ("C-S-<right>" . org-side-tree-demote-subtree))
+  :custom-face
+  (org-side-tree-heading-face ((t (:inherit font-lock-builtin-face))))
+  :custom
+  (org-side-tree-persistent t)
+  (org-side-tree-fontify t)
+  (org-side-tree-narrow-on-jump nil)
+  (org-side-tree-timer-delay .3))
+
+;;;; outline-minor-mode
+
+(use-package outline
+  :ensure nil
+  :diminish outline-minor-mode
+  :bind
+  (:map outline-minor-mode-map
+        ("C-S-<right>" . gr/outline-demote-subtree)
+        ("C-S-<left>" . gr/outline-promote-subtree)
+        ("C-S-<up>" . outline-move-subtree-up)
+        ("C-S-<down>" . outline-move-subtree-down)
+        ("C-<right>" . outline-demote)
+        ("C-<left>" . outline-promote))
+  (:map outline-minor-mode-cycle-map
+        ("<backtab>" . outline-cycle-buffer)
+        ("<left-margin> <mouse-1>" . nil)
+        ("<left-margin> S-<mouse-1>" . nil)
+        ("<right-margin> <mouse-1>" . nil)
+        ("<right-margin> S-<mouse-1>" . nil))
+  :hook
+  (prog-mode-hook . outline-minor-mode)
+  ;; (emacs-lisp-mode-hook . outline-minor-mode)
+  ;; (emacs-lisp-mode-hook . (lambda () (setq-local outline-regexp ";;;\\(;* [^   \t\n]\\)")))
+  ;; see:  https://github.com/clojure-emacs/clojure-mode/issues/550
+  :custom
+  (outline-blank-line t)
+  (outline-minor-mode-highlight 'override)
+  (outline-minor-mode-cycle t)
+  :config
+
+  (defun gr/outline-demote-subtree ()
+    (interactive)
+    (outline-demote 'subtree))
+
+  (defun gr/outline-promote-subtree ()
+    (interactive)
+    (outline-promote 'subtree))
+
+  (add-hook 'emacs-lisp-mode-hook
+            (lambda ()
+              ;; prevent `outline-level' from being overwritten by `lispy'
+              ;; (setq-local outline-level #'outline-level)
+              ;; setup heading regexp specific to `emacs-lisp-mode'
+              (setq-local outline-regexp ";;;\\(;* \\)")
+              ;; heading alist allows for subtree-like folding
+              (setq-local outline-heading-alist
+                          '((";;; " . 1)
+                            (";;;; " . 2)
+                            (";;;;; " . 3)
+                            (";;;;;; " . 4)
+                            (";;;;;;; " . 5)))))
+  )
+
 ;;;; olivetti mode
 
 (use-package olivetti
@@ -1504,13 +1531,6 @@ following the key as group 3."
   (setq olivetti-recall-visual-line-mode-entry-state t)
   (set-fringe-mode 8))
 
-;;;; zk
-
-(use-package zk-setup
-  :ensure nil
-  :demand t
-  :bind
-  ("C-z" . hydra-zk/body))
 
 ;;;; sdcv-mode - stardict dictionary
 
@@ -1613,7 +1633,7 @@ add the word to `ispell-personal-dictionary'. Abort with `C-g'."
       (forward-char -1)))
   )
 
-;;; org-reveal
+;;;; org-reveal
 
 (use-package ox-reveal
   ;;:defer 1
@@ -1783,19 +1803,6 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
       nil)
     (browse-url "http://localhost:1313/")))
 
-(defun gr/bluepencil-deploy ()
-  (interactive)
-  (shell-command "cd ~/Dropbox/Sites/bluepencil/bluepencil-web && ./deploy.sh"))
-
-(defun gr/bluepencil-test ()
-  (interactive)
-  (let ((browse-url-browser-function 'browse-url-default-browser))
-    (if
-        (equal 1 (shell-command "pgrep 'hugo'"))
-        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/Sites/bluepencil/bluepencil-web && hugo server")
-      nil)
-    (browse-url "http://localhost:1313/")))
-
 ;;;; org-wc
 
 (use-package org-wc
@@ -1805,37 +1812,145 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (:map gr-map
         ("W" . org-wc-display)))
 
-;;;; emacs-benchmark
+;;;; docsim
 
-(use-package elisp-benchmarks :defer t)
-
-;;; my-lisp
-
-(use-package elfeed-setup
-  :ensure nil
+(use-package docsim
+  ;; for finding similar notes, using docsim cli
+  :vc (:url "https://github.com/hrs/docsim.el"
+            :rev :newest)
   :defer t
-  :commands gr/elfeed-open-new-window)
+  :after zk
+  :commands (docsim-search
+             docsim-search-buffer)
+  :config
+  (setq docsim-search-paths (list zk-directory))
+  (setq docsim-get-title-function 'gr/docsim--get-title-function-zk)
 
-(use-package text-to-speech
-  :ensure nil
+  (defun gr/docsim--get-title-function-zk (path)
+    "Return a title determined by parsing the file at PATH."
+    (if (zk-file-p path)
+        (zk--parse-file 'title path)
+      path))
+
+  (defun gr/docsim-search (query)
+    "Search for notes similar to QUERY.
+
+This calls out to the external `docsim' tool to perform textual
+analysis on all the notes in `docsim-search-paths', score them by
+similarity to QUERY, and return the sorted results, best first.
+
+Include the similarity scores (between 0.0 and 1.0) of each note
+if `docsim-show-scores' is non-nil.
+
+Show at most `docsim-limit' results (or all of them, if
+                                        `docsim-limit' is nil)."
+    (interactive (list (docsim--read-search-term)))
+    (let* ((results (docsim--query query))
+           (files (mapcar 'car results)))
+      (find-file
+       (funcall zk-select-file-function
+                "Similar Notes:"
+                results
+                'zk-docsim--group
+                'identity))))
+
+
+  (defun zk-docsim ()
+    "Find notes similar to current buffer using docsim."
+    (interactive)
+    (gr/docsim-search (current-buffer)))
+  )
+
+;;; Packages
+
+;;;; Calendar / Calfw
+
+;;(package-vc-install '(calfw . :url "https://github.com/localauthor/emacs-calfw"))
+
+(use-package calfw
+  ;; :ensure nil
+  :vc (:url "https://github.com/localauthor/emacs-calfw"
+            :rev :newest)
+  :load-path "elpa/calfw"
   :defer t
-  :commands hydra-mac-speak/body)
+  :bind (:map calfw-calendar-mode-map
+              ("RET" . calfw-show-details-command)
+              ("<" . gr/calfw-prev)
+              (">" . gr/calfw-next)
+              ("g" . calfw-refresh-calendar-buffer)
+              ("v" . calfw-cycle-view)
+              ("V" . calfw-cycle-view-reverse))
+  :custom
+  (calfw-display-calendar-holidays nil))
 
-(use-package devonthink-dir
+(use-package calfw-org
+  :ensure nil
+  :load-path "elpa/calfw"
+  :defer t
+  :bind
+  (:map gr-map
+        ("c" . gr/calfw-open-org-calendar))
+  :custom
+  (calfw-org-capture-template
+   '("x" "[calfw-auto]" entry (file "gcal-ruta.org")
+     "* %?\n:org-gcal:\n%(calfw-org-capture-day)\n:END:\n" :empty-lines 1))
+  :config
+
+  (defun gr/calfw-open-org-calendar (p)
+    (interactive "P")
+    (when p
+      (select-frame (make-frame-command)))
+    ;; (set-frame-position (selected-frame) 150 20)
+    ;; (set-frame-size (selected-frame) 160 60)
+    (save-excursion
+      (let* ((source1 (calfw-org-create-source))
+             (curr-keymap (if calfw-org-overwrite-default-keybinding calfw-org-custom-map calfw-org-schedule-map))
+             (cp (calfw-create-calendar-component-buffer
+                  :view 'week
+                  :contents-sources (list source1)
+                  :custom-map curr-keymap
+                  :sorter 'calfw-org-schedule-sorter)))
+        (switch-to-buffer (calfw-cp-get-buffer cp)))))
+  )
+
+
+;; FIX "<" and ">" keybindings
+;; currently "<" and ">" move by month
+;; these functions will move according to current view
+
+(defun gr/calfw-next ()
+  (interactive)
+  (let* ((cp (calfw-cp-get-component))
+         (view (calfw-cp-get-view cp)))
+    (pcase view
+      ('day (call-interactively #'calfw-navi-next-day-command))
+      ('week (call-interactively #'calfw-navi-next-week-command))
+      ('two-weeks (call-interactively #'calfw-navi-next-week-command))
+      ('month (call-interactively #'calfw-navi-next-month-command)))))
+
+(defun gr/calfw-prev ()
+  (interactive)
+  (let* ((cp (calfw-cp-get-component))
+         (view (calfw-cp-get-view cp)))
+    (pcase view
+      ('day (call-interactively #'calfw-navi-previous-day-command))
+      ('week (call-interactively #'calfw-navi-previous-week-command))
+      ('two-weeks (call-interactively #'calfw-navi-previous-week-command))
+      ('month (call-interactively #'calfw-navi-previous-month-command)))))
+
+;; There is a problem when multi-day events also have times, ie:
+;; <2022-04-23 Sat 10:00>--<2022-04-24 Sun 08:00>
+;; I think the issue is in the function calfw-org-get-timerange ?
+
+(use-package org-gcal-setup
   :ensure nil
   :defer 1)
 
-;;;; priv-lisp
-
-(use-package dickinson
-  :ensure nil
-  :defer 1)
+;;;; mu4e
 
 (use-package mu4e-setup
   :ensure nil
   :defer 1)
-
-;;; Packages
 
 ;;;; magit
 
@@ -1857,6 +1972,13 @@ Uses 'inliner' npm utility to inline CSS, images, and javascript."
   (esup-user-init-file (concat user-emacs-directory "init.el"))
   :config
   (setq esup-depth 0))
+
+;;;; elfeed
+
+(use-package elfeed-setup
+  :ensure nil
+  :defer t
+  :commands gr/elfeed-open-new-window)
 
 ;;;; ibuffer
 
@@ -2304,19 +2426,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
   (popper-mode 1))
 
-;;;; expand-region
-
-(use-package expand-region
-  :bind ("C-=" . er/expand-region))
-
-;;;; bookmark
-
-(use-package bookmark
-  :defer t
-  :init
-  (setq bookmark-bmenu-toggle-filenames nil
-        bookmark-save-flag 1))
-
 ;;;; google-translate
 
 (use-package google-translate
@@ -2360,28 +2469,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
    '(("lt" . "en")
      ("en" . "lt"))))
 
-;;;; outline-minor-mode
-
-(use-package outline
-  :ensure nil
-  :diminish outline-minor-mode
-  :bind
-  ("C-S-<right>" . outline-demote)
-  ("C-S-<left>" . outline-promote)
-  ("C-<right>" . outline-demote)
-  ("C-<left>" . outline-promote)
-  (:map outline-minor-mode-cycle-map
-        ("<backtab>" . outline-cycle-buffer)
-        ("<left-margin> <mouse-1>" . nil)
-        ("<left-margin> S-<mouse-1>" . nil)
-        ("<right-margin> <mouse-1>" . nil)
-        ("<right-margin> S-<mouse-1>" . nil))
-  :hook
-  (emacs-lisp-mode-hook . outline-minor-mode)
-  (emacs-lisp-mode-hook . (lambda () (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\)")))
-  :custom
-  (outline-minor-mode-highlight 'override)
-  (outline-minor-mode-cycle t))
 
 ;;;; whitespace-mode
 
@@ -2390,52 +2477,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :custom
   (whitespace-style '(face trailing lines)))
 
-;;;; flycheck and package-lint
-
-(use-package flycheck-package
-  :defer 1
-  :custom
-  (flycheck-emacs-lisp-load-path 'inherit))
-
-(use-package package-lint :defer t)
-
-;;;; melpazoid
-
-(use-package melpazoid
-  :vc (:url "https://github.com/riscy/melpazoid"
-            :lisp-dir "melpazoid"
-            :rev :newest)
-  :commands gr/elisp-check-buffer
-  :bind
-  (:map gr-map
-        ("E" . gr/elisp-check-buffer))
-  :config
-  (defun gr/elisp-check-buffer ()
-    (interactive)
-    (let ((melpa-buf (get-buffer "*melpazoid*"))
-          (pl-buf (get-buffer "*Package-Lint*")))
-      (if (ignore-errors (or melpa-buf
-                             pl-buf
-                             flycheck-mode
-                             flymake-mode))
-          (progn
-            (flycheck-mode -1)
-            (flymake-mode -1)
-            (when melpa-buf
-              (kill-buffer melpa-buf))
-            (when pl-buf
-              (kill-buffer pl-buf))
-            (message "Elisp checks off"))
-        (progn
-          (flycheck-mode)
-          ;;(flycheck-list-errors)
-          (flymake-mode)
-          ;;(flymake-show-buffer-diagnostics)
-          ;;(package-lint-current-buffer) ;; melpazoid runs this anyway
-          (melpazoid))))))
-
-(add-hook 'flymake-mode-hook
-          (lambda () (setq elisp-flymake-byte-compile-load-path load-path)))
 
 
 ;;;; accent
@@ -2470,8 +2511,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (define-minor-mode hide-cursor-mode
   "Hide or show the cursor.
 
-    When the cursor is hidden `scroll-lock-mode' is enabled, so that
-    the buffer works like a pager."
+When the cursor is hidden `scroll-lock-mode' is enabled, so that
+the buffer works like a pager."
   :global nil
   (if hide-cursor-mode
       (progn
@@ -2485,11 +2526,6 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 
 (keymap-global-set "<f7>" 'hide-cursor-mode)
 
-;;;; aggressive-indent
-
-(use-package aggressive-indent
-  :diminish
-  :hook (prog-mode-hook))
 
 ;;;; move-text
 
@@ -2553,55 +2589,66 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
   :config
   (add-to-list 'chatgpt-shell-system-prompts '("Writing" . "You are a large language model and a writing assistant.")))
 
-;;;; docsim
+;;; Dev
 
-(use-package docsim
-  ;; for finding similar notes, using docsim cli
-  :vc (:url "https://github.com/hrs/docsim.el"
+;;;; emacs-benchmark
+
+(use-package elisp-benchmarks :defer t)
+
+;;;; melpazoid
+
+(use-package melpazoid
+  :vc (:url "https://github.com/riscy/melpazoid"
+            :lisp-dir "melpazoid"
             :rev :newest)
-  :defer t
-  :after zk
-  :commands (docsim-search
-             docsim-search-buffer)
+  :commands gr/elisp-check-buffer
+  :bind
+  (:map gr-map
+        ("E" . gr/elisp-check-buffer))
   :config
-  (setq docsim-search-paths (list zk-directory))
-  (setq docsim-get-title-function 'gr/docsim--get-title-function-zk)
-
-  (defun gr/docsim--get-title-function-zk (path)
-    "Return a title determined by parsing the file at PATH."
-    (if (zk-file-p path)
-        (zk--parse-file 'title path)
-      path))
-
-  (defun gr/docsim-search (query)
-    "Search for notes similar to QUERY.
-
-This calls out to the external `docsim' tool to perform textual
-analysis on all the notes in `docsim-search-paths', score them by
-similarity to QUERY, and return the sorted results, best first.
-
-Include the similarity scores (between 0.0 and 1.0) of each note
-if `docsim-show-scores' is non-nil.
-
-Show at most `docsim-limit' results (or all of them, if
-`docsim-limit' is nil)."
-    (interactive (list (docsim--read-search-term)))
-    (let* ((results (docsim--query query))
-           (files (mapcar 'car results)))
-      (find-file
-       (funcall zk-select-file-function
-                "Similar Notes:"
-                results
-                'zk-docsim--group
-                'identity))))
-
-
-  (defun zk-docsim ()
-    "Find notes similar to current buffer using docsim."
+  (defun gr/elisp-check-buffer ()
     (interactive)
-    (gr/docsim-search (current-buffer)))
-  )
+    (let ((melpa-buf (get-buffer "*melpazoid*"))
+          (pl-buf (get-buffer "*Package-Lint*")))
+      (if (ignore-errors (or melpa-buf
+                             pl-buf
+                             flycheck-mode
+                             flymake-mode))
+          (progn
+            (flycheck-mode -1)
+            (flymake-mode -1)
+            (when melpa-buf
+              (kill-buffer melpa-buf))
+            (when pl-buf
+              (kill-buffer pl-buf))
+            (message "Elisp checks off"))
+        (progn
+          (flycheck-mode)
+          ;;(flycheck-list-errors)
+          (flymake-mode)
+          ;;(flymake-show-buffer-diagnostics)
+          ;;(package-lint-current-buffer) ;; melpazoid runs this anyway
+          (melpazoid))))))
+
+(add-hook 'flymake-mode-hook
+          (lambda () (setq elisp-flymake-byte-compile-load-path load-path)))
+
+;;;; flycheck and package-lint
+
+(use-package flycheck-package
+  :defer 1
+  :custom
+  (flycheck-emacs-lisp-load-path 'inherit))
+
+(use-package package-lint :defer t)
+
+;;;; aggressive-indent
+
+(use-package aggressive-indent
+  :diminish
+  :hook (prog-mode-hook))
 
 ;;; variable resets
 
 (setq debug-on-error nil)
+(put 'list-timers 'disabled nil)
