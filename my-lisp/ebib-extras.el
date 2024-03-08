@@ -104,8 +104,8 @@ Includes duplicate handling."
   "In 'ebib' buffers, call 'citar-open' on reference at point."
   (interactive)
   (if (or (derived-mode-p 'ebib-index-mode 'ebib-entry-mode))
-    (let ((key (list (ebib--get-key-at-point))))
-      (citar-open key))
+      (let ((key (list (ebib--get-key-at-point))))
+        (citar-open key))
     (user-error "Not in ebib")))
 
 (defun embark-target-ebib-citar-key-at-point ()

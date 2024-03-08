@@ -76,35 +76,10 @@ Opens search results in an `xref' buffer."
 (defun zk-index-aw-select ()
   (interactive)
   ;; use link-hint--aw-select-button instead??
-  (let ((aw-ignored-buffers link-hint-aw-select-ignored-buffers)
+  (let ((aw-ignore-current t)
+        (aw-ignored-buffers link-hint-aw-select-ignored-buffers)
         (id (zk-index--button-at-point-p)))
     (link-hint--aw-select-zk-link id)))
-
-;;;###autoload
-(defun zk-luhmann-insert-link (id &optional title)
-  (interactive (list (zk--parse-file 'id (funcall zk-select-file-function "Insert link: "))))
-  (let* ((pref-arg current-prefix-arg)
-         (title (or title
-                    (zk--parse-id 'title id)))
-         (luhmann-id (when (string-match (zk-luhmann-id-regexp) title)
-                       (match-string 0 title))))
-    (cond
-     ((or (and (not pref-arg) (eq 't zk-link-and-title))
-          (and pref-arg (not zk-link-and-title)))
-      (zk--insert-link-and-title id title))
-     ((and (not pref-arg) (eq 'ask zk-link-and-title))
-      (if (y-or-n-p "Include title? ")
-          (zk--insert-link-and-title id title)
-        (progn
-          (when luhmann-id
-            (insert luhmann-id " "))
-          (zk--insert-link id))))
-     ((or t
-          (and pref-arg (eq 't zk-link-and-title)))
-      (progn
-        (when luhmann-id
-          (insert luhmann-id " "))
-        (zk--insert-link id))))))
 
 
 ;;;###autoload
@@ -166,7 +141,7 @@ Optionally takes list of FILES."
 (defun zk-lit-notes-index ()
   "List lit notes in ZK-Index, by size."
   (interactive)
-  (zk-index (zk-lit-notes-list) nil #'zk-index--sort-size)
+  (zk-index (zk-lit-notes-list) nil #'zk-index--sort-modified)
   (zk-index--reset-mode-line))
 
 ;;;###autoload
@@ -307,14 +282,19 @@ Takes ZK-ALIST."
 
 ;;;###autoload
 (defun gr/zk-unlinked-notes ()
-  "Find unlinked notes, minus ED notes."
+  "Find unlinked notes, minus ED and lit notes."
   (interactive)
   (let* ((zk-alist (zk--alist))
-         (ids (gr/zk--unlinked-notes-list zk-alist)))
+         (ids (gr/zk--unlinked-notes-list zk-alist))
+         (lit-notes (zk-lit-notes-list)))
     (if-let (notes (zk--parse-id 'file-path ids zk-alist))
-        (find-file (zk--select-file "Unlinked notes: " notes))
+        (progn
+          (mapc (lambda (x)
+                  (when (member x lit-notes)
+                    (delq x notes)))
+                notes)
+          (find-file (zk--select-file "Unlinked notes: " notes)))
       (user-error "No unlinked notes found"))))
-
 
 (provide 'zk-extras)
 ;;; zk-extras.el ends here

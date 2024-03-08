@@ -2,6 +2,7 @@
 
 (require 'gr-functions)
 (require 'embark)
+(require 'hydra)
 
 ;;;; zk
 
@@ -31,7 +32,7 @@
   (zk-link-and-title 'ask)
   (zk-new-note-link-insert 'ask)
   (zk-link-format "[[%s]]")
-  (zk-link-and-title-format "%t [[%i]]")
+  (zk-link-and-title-format "%t: [[%i]]")
   (zk-completion-at-point-format "%t [[%i]]")
   (zk-search-function #'zk-xref) ;; #'zk-consult-grep) ;; #'zk-grep ;;
   (zk-current-notes-function nil)
@@ -57,10 +58,15 @@
     (insert tag))
 
   (with-eval-after-load 'embark
-    (add-to-list 'embark-become-keymaps 'embark-become-zk-file-map)
-    (add-to-list 'embark-post-action-hooks '(zk-index-narrow zk-index-embark-clear-selection))
-    (add-to-list 'embark-post-action-hooks '(zk-index-insert-link zk-index-embark-clear-selection))
-    (add-to-list 'embark-post-action-hooks '(zk-copy-link-and-title     zk-index-embark-clear-selection))))
+    (add-to-list 'embark-become-keymaps
+                 'embark-become-zk-file-map)
+    (add-to-list 'embark-post-action-hooks
+                 '(zk-index-narrow zk-index-embark-clear-selection))
+    (add-to-list 'embark-post-action-hooks
+                 '(zk-index-insert-link zk-index-embark-clear-selection))
+    (add-to-list 'embark-post-action-hooks
+                 '(zk-copy-link-and-title
+                   zk-index-embark-clear-selection))))
 
 (defun gr/zk-new-note-header (title new-id &optional orig-id)
   "Insert header in new notes with args TITLE and NEW-ID.
@@ -69,7 +75,7 @@ Optionally use ORIG-ID for backlink."
   (when (ignore-errors (zk--parse-id 'title orig-id)) ;; check for file
     (progn
       (insert "===\n<- ")
-      (zk--insert-link-and-title orig-id (zk--parse-id 'title orig-id))
+      (zk--insert-link-and-title orig-id)
       (newline)))
   (insert "===\n\n\n"))
 
@@ -90,6 +96,8 @@ Optional ARG."
   :load-path "my-lisp/zk"
   :after zk
   :bind
+  (:map gr-map
+        ("." . zk-index))
   (:map zk-index-mode-map
         ("n". zk-index-next-line)
         ("p" . zk-index-previous-line)
@@ -148,11 +156,14 @@ Optional ARG."
               ("b" . zk-luhmann-index-back)
               ("C-t" . zk-luhmann-index-unfold)
               ("t" . zk-luhmann-index-top))
-  :hook (completion-at-point-functions . zk-luhmann-completion-at-point)
   :custom
   (zk-luhmann-id-prefix "{")
   (zk-luhmann-id-postfix "}")
-  (zk-luhmann-indent-index t))
+  (zk-luhmann-indent-index t)
+  (zk-luhmann-link-formatting t)
+  (zk-luhmann-link-and-title-format "%t: %l [[%i]]")
+  :config
+  (add-hook 'completion-at-point-functions 'zk-luhmann-completion-at-point))
 
 ;;;; zk-extras
 
@@ -172,9 +183,11 @@ Optional ARG."
   :defer 1
   :custom
   (zk-tag-search-function #'zk-consult-grep-tag-search) ;; #'zk-grep #'zk-xref
+  ;; this is overridden by something...
   (zk-consult-preview-functions
    '(zk-current-notes
      zk-consult-grep
+     zk-consult-grep-tag-search
      zk-unlinked-notes))
 
   (zk-select-file-function 'zk-consult-select-file)
@@ -183,10 +196,13 @@ Optional ARG."
 
   (consult-customize
    zk-consult-grep
+   zk-consult-grep-tag-search
    :preview-key '(any))
 
   (consult-customize
-   zk-find-file zk-find-file-by-full-text-search zk-network zk-backlinks zk-links-in-note
+   zk-find-file
+   zk-find-file-by-full-text-search
+   zk-network zk-backlinks zk-links-in-note
    :preview-key '("C-{"))
   )
 
@@ -197,6 +213,7 @@ Optional ARG."
   :config
   (setq citar-notes-source 'zk)
   :custom
+  (zk-citar-title-template "${=key=} - ${title} (${year})")
   (zk-citar-citekey-regexp "[a-z]+[0-9]\\{4\\}[a-z]?"))
 
 (use-package zk-link-hint
@@ -238,9 +255,11 @@ Optional ARG."
     ("h s" (zk-find-file-by-id "201801180002"))
     ("N" zk-new-note)
     ("r" zk-rename-note)
-    ("i" zk-luhmann-insert-link)
+    ("i" zk-insert-link)
     ("e" ebib-open)
     ("B" hydra-bib/body)
+    ("'" zk-index)
+    ("C-'" zk-index)
     ("I" zk-index)
     ("l" (progn (zk-index) (zk-luhmann-index-top)))
     ("G" zk-luhmann-index-goto)
@@ -249,7 +268,7 @@ Optional ARG."
     ("C" zk-current-notes)
     ("m" zk-make-link-buttons)
     ("o" link-hint-aw-select)
-    ("b" zk-network)
+    ("b" zk-backlinks)
     ("S" zk-desktop-select)
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)

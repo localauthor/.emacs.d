@@ -72,7 +72,7 @@ org-mode
 (invoice
  "call org-babel-tangle [C-u C-c C-v t]" n
  "#+name: Invoice" n
- "#+begin_src yaml :tangle \"./invoice-boilerplate/details.yml\"" n
+ "#+begin_src yaml :tangle \"~/Dropbox/Proofreading/invoice-boilerplate/details.yml\"" n
  "---" n
  "invoice-nr: " (p "invoice number" invoice-nr) n
  "author: Grant Rosson" n
@@ -92,9 +92,9 @@ org-mode
  "closingnote: |" n
  "  Please transfer the due amount to the following bank account within the next 14 days:" n n
  "    Grant Rosson  " n
- "    Revolut Bank  " n
- "    IBAN: LT71 3250 0002 3787 5480  " n
- "    BIC: REVOLT21  " n
+ "    Swedbank   " n
+ "    IBAN: LT067300010173698430  " n
+ "    BIC: HABALT22  " n
  "    " n
  "    INDIVIDUALIOS VEIKLOS VYKDYMO PAŽYMA Nr. 1116106  " n
  "    " n
@@ -117,30 +117,40 @@ org-mode
  "#+begin_src shell :results none" n
  "cd ~/Dropbox/Proofreading/invoice-boilerplate" n
  "make" n
- "mv ./output.pdf '../Rosson - Invoice - " (s client-name) " " (s invoice-nr) ".pdf'" n
+ "mv ./output.pdf " (concat "'" default-directory "Rosson - Invoice - ") (s client-name) " " (s invoice-nr) ".pdf'" n
  "#+end_src"
  n
  n
- "file: [[~/Dropbox/Proofreading/Rosson - Invoice - " (s client-name) " " (s invoice-nr) ".pdf]]"
+ (concat "file: [[" default-directory "Rosson - Invoice - ") (s client-name) " " (s invoice-nr) ".pdf][Rosson - Invoice - " (s client-name) " " (s invoice-nr) ".pdf]]"
  )
 
 (article
  "#+TITLE: " (p "title") n
  "#+AUTHOR: Grant Rosson" n
  "#+STARTUP: overview num" n
+ "#+language: en-us" n
  "#+EXPORT_SELECT_TAGS: export" n
  "#+bibliography: ~/Dropbox/gr-bibliography.bib" n
  "#+cite_export: csl ~/.csl/chicago-note-bibliography.csl" n
  "#+OPTIONS: title:nil author:nil toc:nil num:nil date:nil ':t broken-links:t tags:nil" n
- "#+latex_class: article" n
- "#+latex_class_options: [a4paper,11pt]" n
+ "#+latex_class: article" n.m
+ "#+latex_class_options: [a4paper,12pt]" n
  "#+latex_header: \\usepackage[doublespacing]{setspace}" n
  "#+latex_header: \\usepackage{etoolbox}" n
  "#+latex_header: \\usepackage{indentfirst}" n
+ "#+latex_header: \\usepackage{titlesec}" n
+ "#+latex_header: \\titleformat{\\section}" n
+ "#+latex_header:   {\\normalfont\\normalsize\\bfseries}{\\thesection.}{1em}{}" n
+ "#+latex_header: \\titleformat{\\section}" n
+ "#+latex_header:   {\\normalfont\\normalsize\\bfseries}{\\thesection.}{1em}{}" n
+ "#+latex_header: \\titleformat{\\subsection}" n
+ "#+latex_header:   {\\normalfont\\normalsize\\itshape}{\\thesubsection.}{1em}{}" n
+ "#+latex_header: \\titleformat{\\subsubsection}" n
+ "#+latex_header:   {\\normalfont\\normalsize\\itshape}{\\thesubsubsection.}{1em}{}" n
  "#+latex_header: \\usepackage[margin=1in]{geometry}" n
  "#+latex_header: \\frenchspacing" n
- "#+latex_header: \\BeforeBeginEnvironment{quote}{\par\begin{singlespace*}}" n
- "#+latex_header: \\AfterEndEnvironment{quote}{\end{singlespace*}}")
+ "#+latex_header: \\BeforeBeginEnvironment{quote}{\\par\\begin{singlespace*}}" n
+ "#+latex_header: \\AfterEndEnvironment{quote}{\\end{singlespace*}}")
 
 (fiction
  "#+TITLE: " (p "title") n

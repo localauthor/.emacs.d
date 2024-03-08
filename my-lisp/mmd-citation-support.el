@@ -130,6 +130,8 @@
   "Insert cite-key, format depending on context.
 When in zk file, mmd format; when `org-mode', org-cite."
   (interactive)
+  (unless (derived-mode-p 'text-mode)
+    (error "Not a text mode"))
   (let ((key (or key
                  (if (and gr/last-mmd-citation-key
                           current-prefix-arg)
@@ -147,15 +149,14 @@ When in zk file, mmd format; when `org-mode', org-cite."
                                  zk-desktop-directory)
             gr/mmd-citation-use)
         (insert (gr/format-mmd-citation key pages))
-      (condition-case nil
-          (progn
-            (citar-insert-citation (list key))
-            (unless (or (not pages)
-                        (string= "" pages))
-              (save-excursion
-                (forward-char -1)
-                (insert " " pages))))
-        (error (insert (gr/format-mmd-citation key pages)))))
+      (citar-insert-citation (list key))
+      (unless (or (not pages)
+                  (string= "" pages))
+        (if (citar-citation-at-point)
+            (save-excursion
+              (forward-char -1)
+              (insert " " pages))
+          (insert (gr/format-mmd-citation key pages)))))
     (setq gr/last-mmd-citation-key key)))
 
 (defun gr/mmd-citation-at-point ()
@@ -171,32 +172,35 @@ When in zk file, mmd format; when `org-mode', org-cite."
   "Convert citation at point to/from org and mmd."
   (interactive (list (or (citar-key-at-point)
                          (gr/mmd-citation-at-point))))
-  (if (not (citar-key-at-point))
-      (let* ((beg (save-excursion
-                    (re-search-backward " ")
-                    (point)))
-             (end (save-excursion
-                    (re-search-forward "]")
-                    (point)))
-             (pages (progn
-                      (re-search-backward "\\[\\([0-9-]+\\)]\\["
-                                          beg t)
-                      (match-string 1))))
+  (let* ((beg (save-excursion
+                (re-search-backward "[^]\\]\\(\\[\\)\\|\\(\\[\\)c")
+                (or (match-beginning 1)
+                    (match-beginning 2))))
+         (end (save-excursion
+                (re-search-forward "]")
+                (point)))
+         (post (save-excursion
+                 (if (citar-key-at-point)
+                     (progn
+                       (goto-char beg)
+                       (if (re-search-forward " \\(.*\\)]" end t)
+                           (match-string 1) ""))
+                   (progn
+                     (goto-char beg)
+                     (re-search-forward "\\[\\(.*\\)]\\["
+                                        end t)
+                     (match-string 1))))))
+    (if (not (citar-key-at-point))
+        (progn
+          (delete-region beg end)
+          (citar-org-insert-citation (list key))
+          (when post
+            (forward-char -1)
+            (insert " " post)
+            (forward-char 1)))
+      (let ((gr/mmd-citation-use t)) ;; org to mmd
         (delete-region beg end)
-        (insert " ")
-        (citar-org-insert-citation (list key))
-        (when pages
-          (forward-char -1)
-          (insert " " pages)
-          (forward-char 1)))
-    (let ((gr/mmd-citation-use t) ;; org to mmd
-          (pages (progn
-                   (re-search-backward "\\[cite:")
-                   (if (re-search-forward " \\([0-9-]+\\)]" nil t)
-                       (match-string 1) ""))))
-      (citar-org-delete-citation)
-      (insert " ")
-      (gr/citar-insert-citation key pages))))
+        (gr/citar-insert-citation key post)))))
 
 (defun gr/mmd-citation-convert-buffer ()
   (interactive)
@@ -333,7 +337,6 @@ Optional FILE."
     (if file
         (kill-buffer))
     ))
-
 
 (defun gr/convert-citations-mmd-to-org-cite (&optional file)
   "Convert citations in buffer from mmd to pandoc style.

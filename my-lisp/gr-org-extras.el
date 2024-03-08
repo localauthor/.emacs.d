@@ -1,37 +1,206 @@
 ;;; org-gr-extras.el --- Extra functions for org-mode   -*- lexical-binding: t; -*-
 
-;;;; org move item/heading up/do
+(defun gr/org-next-heading ()
+  (interactive)
+  (let (org-side-tree-narrow-on-jump)
+    (if (org-buffer-narrowed-p)
+        (progn
+          (setq org-side-tree-narrow-on-jump t)
+          (org-side-tree-next-heading))
+      (org-speed-move-safe 'org-next-visible-heading)
+      (org-side-tree-update))))
 
-;; Distinguishes between item and heading
-;; replaced with move-text package
+(defun gr/org-previous-heading ()
+  (interactive)
+  (let (org-side-tree-narrow-on-jump)
+    (if (org-buffer-narrowed-p)
+        (progn
+          (setq org-side-tree-narrow-on-jump t)
+          (org-side-tree-previous-heading))
+      (org-speed-move-safe 'org-previous-visible-heading)
+      (org-side-tree-update))))
 
-;; (defun move-line-up ()
-;;   "Move up the current line."
-;;   (interactive)
-;;   (if (and (derived-mode-p 'org-mode)
-;;            (org-at-heading-p))
-;;       (call-interactively #'org-move-subtree-up)
-;;     (when (derived-mode-p 'prog-mode 'text-mode)
-;;       (progn (transpose-lines 1)
-;;              (forward-line -2)
-;;              (indent-according-to-mode))
-;;       )))
+;;; gr/org-return
 
-;; (defun move-line-down ()
-;;   "Move down the current line."
-;;   (interactive)
-;;   (if (and (derived-mode-p 'org-mode)
-;;            (org-at-heading-p))
-;;       (call-interactively #'org-move-subtree-down)
-;;     (when (derived-mode-p 'prog-mode 'text-mode)
-;;       (progn (forward-line 1)
-;;              (transpose-lines 1)
-;;              (forward-line -1)
-;;              (indent-according-to-mode))
-;;       )))
+;; derived from scimax/org-return
+;; a better return; inserts list item with RET instead of M-RET
+
+(defun gr/org-return (&optional ignore)
+  "Add new list item, heading or table row with RET.
+A double return on an empty element deletes it.
+Use a prefix arg to get regular RET. "
+  (interactive "P")
+  (if ignore
+      (org-return)
+    (cond
+
+     ((eq 'line-break (car (org-element-context)))
+      (org-return t))
+
+     ;; Open links like usual, unless point is at the end of a line.
+     ;; and if at beginning of line, just press enter.
+     ((or (and (eq 'link (car (org-element-context))) (not (eolp)))
+          (bolp))
+      (org-return))
+
+     ;; checkboxes - add new or delete empty
+     ((org-at-item-checkbox-p)
+      (cond
+       ;; at the end of a line.
+       ((and (eolp)
+             (not (eq 'item (car (org-element-context)))))
+        (org-insert-todo-heading nil))
+       ;; no content, delete
+       ((and (eolp) (eq 'item (car (org-element-context))))
+        (delete-region (line-beginning-position) (line-end-position)))
+       ((eq 'paragraph (car (org-element-context)))
+        (goto-char (org-element-property :end (org-element-context)))
+        (org-insert-todo-heading nil))
+       (t
+        (org-return))))
+
+     ;; lists end with two blank lines, so we need to make sure we are also not
+     ;; at the beginning of a line to avoid a loop where a new entry gets
+     ;; created with only one blank line.
+     ((org-in-item-p)
+      (cond
+       ;; empty definition list
+       ((and (looking-at " ::")
+             (looking-back "- " 3))
+        (beginning-of-line)
+        (delete-region (line-beginning-position) (line-end-position)))
+       ;; empty item
+       ((and (looking-at "$")
+             (or
+              (looking-back "- " 3)
+              (looking-back "+ " 3)
+              (looking-back " \\* " 3)))
+        (beginning-of-line)
+        (delete-region (line-beginning-position) (line-end-position)))
+       ;; numbered list
+       ((and (looking-at "$")
+             (looking-back "^[0-9]+. " (line-beginning-position)))
+        (beginning-of-line)
+        (delete-region (line-beginning-position) (line-end-position)))
+       ;; insert new item
+       (t
+        (if (not (looking-at "$"))
+            (org-return)
+          (end-of-line)
+          (org-insert-item)))))
+
+     ;; org-heading
+     ((org-at-heading-p)
+      (if (not (string= "" (org-element-property :title (org-element-context))))
+          (if (not (looking-at "$"))
+              (org-return)
+            (progn
+              ;; Go to end of subtree suggested by Pablo GG on Disqus post.
+              ;;(org-end-of-subtree)
+              (org-meta-return)
+              ;;(org-metaright)
+              ;;(org-insert-heading-respect-content)
+              (outline-show-entry)
+              ))
+        ;; The heading was empty, so we delete it
+        (beginning-of-line)
+        (delete-region (line-beginning-position) (line-end-position))))
+
+     ;; tables
+     ((org-at-table-p)
+      (if (-any?
+           (lambda (x) (not (string= "" x)))
+           (nth
+            (- (org-table-current-dline) 1)
+            (remove 'hline (org-table-to-lisp))))
+          (org-return)
+        ;; empty row
+        (beginning-of-line)
+        (delete-region (line-beginning-position) (line-end-position))
+        (org-return)))
+
+     ;; footnotes
+     ((or (org-footnote-at-reference-p)
+          (org-footnote-at-definition-p))
+      (org-footnote-action))
+
+     ;; fall-through case
+     (t
+      (org-return)))))
 
 
-;;;; org narrow/widen
+;;; org-export
+
+;;   (defun gr/org-export-spacing (backend)
+;;     "Single newline is not a paragraph break.
+;; Only double newline is a paragraph break."
+;;     (cond
+;;      ((eq 'latex backend)
+;;       (goto-char (point-min))
+;;       (while (progn
+;;                (forward-paragraph)
+;;                (not (eobp)))
+;;         (when (looking-at "^$\\|# ")
+;;           (kill-line))))))
+
+;;  (defun gr/org-export-spacing (backend)
+;;    "Single newline is not a paragraph break.
+;; Only double newline is a paragraph break."
+;;    (cond
+;;     ((eq 'latex backend)
+;;      (goto-char (point-min))
+;;      (while (progn
+;;               (forward-paragraph)
+;;               (not (eobp)))
+;;        (while (and (looking-at "^$\\|# ")
+;;                    (save-excursion
+;;                      (forward-line)
+;;                      (looking-at ".")))
+;;          (kill-line))))))
+
+(defun gr/org-export-spacing (backend)
+  "Single newline is not a paragraph break.
+  Only double newline is a paragraph break."
+  (goto-char (point-min))
+  (while (re-search-forward ":noheadline:" nil t)
+    (forward-line)
+    (insert "\\newline \\indent"))
+  (goto-char (point-min))
+  (while (progn
+           (forward-paragraph)
+           (not (eobp)))
+    (while (cond ((and (looking-at "^$")
+                       (save-excursion
+                         (forward-line)
+                         (looking-at ".")))
+                  (kill-line)
+                  t)
+                 ((and (looking-at "# ")
+                       (save-excursion
+                         (forward-line)
+                         (looking-at "^$")))
+                  (kill-line 2)
+                  t)
+                 ((and (looking-at "# ")
+                       (save-excursion
+                         (forward-line)
+                         (looking-at ".")))
+                  (kill-line)
+                  t)))))
+
+(add-hook 'org-export-before-processing-functions #'gr/org-export-spacing)
+
+(with-eval-after-load 'ox
+  (add-to-list
+   'org-export-smart-quotes-alist
+   '("en-us" (primary-opening :utf-8 "“" :html "&ldquo;" :latex "``" :texinfo "``")
+     (primary-closing :utf-8 "”" :html "&rdquo;" :latex "''" :texinfo "''")
+     (secondary-opening :utf-8 "‘" :html "&lsquo;" :latex "`" :texinfo "`")
+     (secondary-closing :utf-8 "’" :html "&rsquo;" :latex "'" :texinfo "'")
+     (apostrophe :utf-8 "’" :html "&rsquo;"))))
+
+
+;;; org narrow/widen
 
 ;; Simplified/smart narrow-widen, bound to `C-x n`; call prefix argument `C-u` to narrow further
 
@@ -44,7 +213,7 @@
   With prefix P, don't widen, just narrow even if buffer
   is already narrowed."
   (interactive "P")
-  (declare (interactive-only))
+  ;;(declare (interactive-only))
   (cond ((and (buffer-narrowed-p) (not p)) (widen))
         ((region-active-p)
          (narrow-to-region (region-beginning)
@@ -74,7 +243,13 @@
 ;;(global-set-key (kbd "C-x n") 'narrow-or-widen-dwim)
 (global-set-key (kbd "C-c n") 'narrow-or-widen-dwim)
 
-;;;; org-archive
+;;; org-archive
+
+(defun gr/org-mark-done-and-archive-datetree ()
+  (interactive)
+  (let ((org-archive-location "%s_archive::datetree/"))
+    (org-todo 'done)
+    (org-archive-subtree)))
 
 (defun gr/org-archive (arg)
   "Without C-u: mark heading DONE and archive to datetree.
@@ -82,14 +257,6 @@ With C-u: archive subtree to same hierarchy as in original file."
   (interactive "P")
   (cond ((equal arg '(4)) (gr/org-archive-subtree-hierarchy))
         (t (gr/org-mark-done-and-archive-datetree))))
-
-(setq org-archive-location "%s_archive::")
-
-(defun gr/org-mark-done-and-archive-datetree ()
-  (interactive)
-  (let ((org-archive-location "%s_archive::datetree/"))
-    (org-todo 'done)
-    (org-archive-subtree)))
 
 ;; Archive subtrees under the same hierarchy as the original org file.
 ;; Link: https://gist.github.com/Fuco1/e86fb5e0a5bb71ceafccedb5ca22fcfb
@@ -316,7 +483,7 @@ direct children of this heading."
     (if (looking-at "^[ \t]*$")
         (outline-next-visible-heading 1))))
 
-(use-package dash :defer t)
+;; (use-package dash :defer t)
 
 (defadvice gr/org-archive-subtree-hierarchy (around fix-hierarchy activate)
   (let* ((fix-archive-p (and (not current-prefix-arg)
@@ -381,7 +548,7 @@ direct children of this heading."
 
 
 
-;;;; Indirect Buffer -> Split Outline
+;;; Indirect Buffer -> Split Outline
 
 ;;Functions for Using a Split Outline in Org-Mode
 
