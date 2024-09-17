@@ -9,42 +9,55 @@
   (let ((buffer (find-file-noselect
                  (concat org-directory "/dailynotes.org"))))
     (cond ((equal p '(4))
-           (pop-to-buffer-same-window buffer)
-           (goto-char (point-min))
-           (org-next-visible-heading 1))
-          ((equal p '(16))
            (select-frame (make-frame-command))
            (find-file (concat org-directory "/dailynotes.org"))
            (delete-other-windows))
+          ((equal p '(16))
+           (pop-to-buffer-same-window buffer)
+           (goto-char (point-min))
+           (org-next-visible-heading 1))
           ((or (eq (current-buffer) buffer)
                t)
            (pop-to-buffer-same-window buffer)
-           (gr/daily-notes-new-headline)))))
+           (gr/daily-notes-new-dateline)))))
 
-(defun gr/daily-notes-new-headline ()
-  (interactive)
-  (org-cycle-set-startup-visibility)
-  (let ((date (concat "** " (format-time-string "%Y-%m-%d %A")))
-        (month (concat "* " (format-time-string "%B %Y")))
-        (last-month (format-time-string "%B"
-                                        (time-subtract
-                                         (current-time)
-                                         (days-to-time 30)))))
-    (goto-char (point-min))
-    (unless (re-search-forward month nil t)
-      (re-search-forward (concat "* " last-month))
-      (forward-line 1)
-      (kill-whole-line)
-      (forward-line -1)
-      (org-cycle)
-      (insert month "\n\n")
-      (forward-line -2)
-      (org-set-property "VISIBILITY" "all"))
-    (unless (re-search-forward date nil t)
-      (forward-line 4)
-      (insert "\n" date "\n- |\n")
-      (search-backward "|")
-      (delete-char 1))))
+(defun gr/daily-notes-new-dateline ()
+  "Create new date headline for daily note.
+When called interactively, select date."
+  (interactive "")
+  (if (interactive-p)
+      (let* ((org-display-custom-times t)
+             (org-time-stamp-formats
+              '("%Y-%m-%d %A" . "%Y-%m-%d %A %H:%M"))
+             (date (with-temp-buffer
+                     (insert "** ")
+                     (org-time-stamp nil
+                                     'no-brackets)
+                     (buffer-string))))
+        (insert date))
+    (org-cycle-set-startup-visibility)
+    (let ((date (concat "** "
+                        (format-time-string "%Y-%m-%d %A")))
+          (month (concat "* " (format-time-string "%B %Y")))
+          (last-month (format-time-string "%B"
+                                          (time-subtract
+                                           (current-time)
+                                           (days-to-time 30)))))
+      (goto-char (point-min))
+      (unless (re-search-forward month nil t)
+        (re-search-forward (concat "* " last-month))
+        (forward-line 1)
+        (kill-whole-line)
+        (forward-line -1)
+        (org-cycle)
+        (insert month "\n\n")
+        (forward-line -2)
+        (org-set-property "VISIBILITY" "all"))
+      (unless (re-search-forward date nil t)
+        (forward-line 4)
+        (insert "\n" date "\n- |\n")
+        (search-backward "|")
+        (delete-char 1)))))
 
 
 ;;; frame functions
@@ -75,10 +88,9 @@
 (defun gr/open-init-file (p)
   "Open myinit.org in new frame. With universal argument, open in current window."
   (interactive "P")
-  (cond ((equal p '(4))
-         (gr/make-frame)
-         (find-file (concat user-emacs-directory "init.el")))
-        (t (find-file (concat user-emacs-directory "init.el")))))
+  (if (equal p '(4))
+      (find-file (concat user-emacs-directory "init.el"))
+    (find-file-other-tab (concat user-emacs-directory "init.el"))))
 
 ;;; bluetooth
 
@@ -140,6 +152,19 @@ https://discussions.apple.com/thread/7094207"
   (shell-command "capslock -1")
   (message "Capslock toggled"))
 
+
+;;; select from alist
+
+(defun gr/select-from-alist (alist &optional input)
+  "Use 'completing-read' to return a value from a list of keys ALIST.
+Optional initial INPUT."
+  (alist-get
+   (completing-read "Choose: " alist nil t input)
+   alist nil nil 'equal))
+
+(defun gr/open-file-externally (alist &optional input)
+  (embark-open-externally (gr/select-from-alist alist input)))
+
 ;;; comment and copy
 
 (defun gr/comment-and-copy ()
@@ -191,18 +216,19 @@ https://discussions.apple.com/thread/7094207"
   (let* ((input (buffer-substring (region-beginning)
                                   (region-end)))
          (words (split-string input))
-         (first (pop words))
-         (last (car(last words)))
+         (first (capitalize (pop words)))
+         (last (car (last words)))
          (do-not-capitalize '("a" "an" "and" "as" "at" "but" "by" "en" "for" "if" "in" "of" "on" "or" "the" "to" "via"))
-         (output (concat (capitalize first)
-                         " "
-                         (mapconcat (lambda (w)
-                                      (if (not(member (downcase w) do-not-capitalize))
-                                          (capitalize w)(downcase w)))
-                                    (butlast words) " ")
-                         " " (capitalize last))))
+         (mid (mapconcat (lambda (w)
+                           (if (not (member (downcase w) do-not-capitalize))
+                               (capitalize w)(downcase w)))
+                         (butlast words) " "))
+         (output (concat first
+                         (unless (string-empty-p mid)
+                           (concat " " mid))
+                         (when last
+                           (concat " " (capitalize last))))))
     (replace-string input output nil (region-beginning)(region-end))))
-
 
 (defun ct/word-boundary-at-point-or-region (&optional callback)
   "Return the boundary (beginning and end) of the word at point, or region, if any.

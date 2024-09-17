@@ -51,3 +51,9 @@ custom.el
 /.elfeed/
 /emojis/
 /my-lisp/org-side-tree/
+/my-lisp/tab-sets/
+/my-lisp/priv-lisp/
+/my-lisp/pdf-pagelabels/
+/my-lisp/org-gcal/
+/lisp/melpazoid.el
+/etc/

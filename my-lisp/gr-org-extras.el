@@ -1,30 +1,11 @@
-;;; org-gr-extras.el --- Extra functions for org-mode   -*- lexical-binding: t; -*-
-
-(defun gr/org-next-heading ()
-  (interactive)
-  (let (org-side-tree-narrow-on-jump)
-    (if (org-buffer-narrowed-p)
-        (progn
-          (setq org-side-tree-narrow-on-jump t)
-          (org-side-tree-next-heading))
-      (org-speed-move-safe 'org-next-visible-heading)
-      (org-side-tree-update))))
-
-(defun gr/org-previous-heading ()
-  (interactive)
-  (let (org-side-tree-narrow-on-jump)
-    (if (org-buffer-narrowed-p)
-        (progn
-          (setq org-side-tree-narrow-on-jump t)
-          (org-side-tree-previous-heading))
-      (org-speed-move-safe 'org-previous-visible-heading)
-      (org-side-tree-update))))
+;;; gr-org-extras.el --- Extra functions for org-mode   -*- lexical-binding: t; -*-
 
 ;;; gr/org-return
 
 ;; derived from scimax/org-return
 ;; a better return; inserts list item with RET instead of M-RET
 
+;;;###autoload
 (defun gr/org-return (&optional ignore)
   "Add new list item, heading or table row with RET.
 A double return on an empty element deletes it.
@@ -158,35 +139,37 @@ Use a prefix arg to get regular RET. "
 ;;                      (looking-at ".")))
 ;;          (kill-line))))))
 
+
 (defun gr/org-export-spacing (backend)
   "Single newline is not a paragraph break.
   Only double newline is a paragraph break."
-  (goto-char (point-min))
-  (while (re-search-forward ":noheadline:" nil t)
-    (forward-line)
-    (insert "\\newline \\indent"))
-  (goto-char (point-min))
-  (while (progn
-           (forward-paragraph)
-           (not (eobp)))
-    (while (cond ((and (looking-at "^$")
-                       (save-excursion
-                         (forward-line)
-                         (looking-at ".")))
-                  (kill-line)
-                  t)
-                 ((and (looking-at "# ")
-                       (save-excursion
-                         (forward-line)
-                         (looking-at "^$")))
-                  (kill-line 2)
-                  t)
-                 ((and (looking-at "# ")
-                       (save-excursion
-                         (forward-line)
-                         (looking-at ".")))
-                  (kill-line)
-                  t)))))
+  (when (eq 'latex backend)
+    (goto-char (point-min))
+    (while (re-search-forward ":noheadline:" nil t)
+      (forward-line)
+      (insert "\\newline \\indent"))
+    (goto-char (point-min))
+    (while (progn
+             (forward-paragraph)
+             (not (eobp)))
+      (while (cond ((and (looking-at "^$")
+                         (save-excursion
+                           (forward-line)
+                           (looking-at ".")))
+                    (kill-line)
+                    t)
+                   ((and (looking-at "# ")
+                         (save-excursion
+                           (forward-line)
+                           (looking-at "^$")))
+                    (kill-line 2)
+                    t)
+                   ((and (looking-at "# ")
+                         (save-excursion
+                           (forward-line)
+                           (looking-at ".")))
+                    (kill-line)
+                    t))))))
 
 (add-hook 'org-export-before-processing-functions #'gr/org-export-spacing)
 
@@ -204,6 +187,7 @@ Use a prefix arg to get regular RET. "
 
 ;; Simplified/smart narrow-widen, bound to `C-x n`; call prefix argument `C-u` to narrow further
 
+;;;###autoload
 (defun narrow-or-widen-dwim (p)
   "Widen if buffer is narrowed, narrow-dwim otherwise.
   Dwim means: region, org-src-block, org-subtree, or
