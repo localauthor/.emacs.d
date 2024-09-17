@@ -2,7 +2,7 @@
 
 (require 'gr-functions)
 (require 'embark)
-(require 'hydra)
+;; (require 'hydra)
 
 ;;;; zk
 
@@ -16,10 +16,12 @@
   (:map embark-region-map
         ("N" . zk-new-note))
   (:map zk-id-map
+        ("n" . gr/zk-find-file-other-frame)
+        ("t" . gr/zk-find-file-other-tab)
         ("s" . zk-search)
         ("z" . zk-grep) ;; zk-consult-grep does not work as embark action
         ("G" . zk-luhmann-index-goto)
-        ("o" . link-hint-aw-select))
+        ("o" . link-hint--aw-select-zk-link))
   :hook
   (completion-at-point-functions . zk-completion-at-point)
   (completion-at-point-functions . gr/mmd-citation-completion-at-point)
@@ -33,7 +35,7 @@
   (zk-new-note-link-insert 'ask)
   (zk-link-format "[[%s]]")
   (zk-link-and-title-format "%t: [[%i]]")
-  (zk-completion-at-point-format "%t [[%i]]")
+  (zk-completion-at-point-format "%t: [[%i]]")
   (zk-search-function #'zk-xref) ;; #'zk-consult-grep) ;; #'zk-grep ;;
   (zk-current-notes-function nil)
   :config
@@ -68,6 +70,18 @@
                  '(zk-copy-link-and-title
                    zk-index-embark-clear-selection))))
 
+(defun gr/zk-find-file-other-tab (&optional _id)
+  (interactive)
+  (let* ((id (zk--id-at-point)) ;; hack
+         (filename (zk--parse-id 'file-path id)))
+    (find-file-other-tab filename)))
+
+(defun gr/zk-find-file-other-frame (&optional _id)
+  (interactive)
+  (let* ((id (zk--id-at-point)) ;; hack
+         (filename (zk--parse-id 'file-path id)))
+    (find-file-other-frame filename)))
+
 (defun gr/zk-new-note-header (title new-id &optional orig-id)
   "Insert header in new notes with args TITLE and NEW-ID.
 Optionally use ORIG-ID for backlink."
@@ -99,6 +113,8 @@ Optional ARG."
   (:map gr-map
         ("." . zk-index))
   (:map zk-index-mode-map
+        ("C-<up>" . nil) ;; unbind move-text
+        ("C-<down>" . nil) ;; unbind move-text
         ("n". zk-index-next-line)
         ("p" . zk-index-previous-line)
         ("C-n" . next-line)
@@ -117,8 +133,15 @@ Optional ARG."
   :config
   (zk-index-setup-embark)
   :custom
+  (zk-index-cursor 'bar)
   (zk-index-help-echo-function nil)
-  (zk-index-prefix " "))
+  (zk-index-prefix " ")
+  (zk-index-view-mode-lighter (list
+                               " "
+                               (propertize "ZK-View"
+                                           'face
+                                           '( :background "yellow"
+                                              :foreground "black")))))
 
 ;;;; zk-desktop
 
@@ -187,6 +210,7 @@ Optional ARG."
   (zk-consult-preview-functions
    '(zk-current-notes
      zk-consult-grep
+     zk-docsim
      zk-consult-grep-tag-search
      zk-unlinked-notes))
 
@@ -195,11 +219,12 @@ Optional ARG."
   (add-to-list 'consult-buffer-sources 'zk-consult-source 'append)
 
   (consult-customize
-   zk-consult-grep
+   ;;zk-consult-grep
    zk-consult-grep-tag-search
    :preview-key '(any))
 
   (consult-customize
+   zk-consult-grep
    zk-find-file
    zk-find-file-by-full-text-search
    zk-network zk-backlinks zk-links-in-note
@@ -254,6 +279,7 @@ Optional ARG."
     ("h i" (zk-find-file-by-id "201801180001"))
     ("h s" (zk-find-file-by-id "201801180002"))
     ("N" zk-new-note)
+    ("n" zk-capture)
     ("r" zk-rename-note)
     ("i" zk-insert-link)
     ("e" ebib-open)
@@ -268,7 +294,7 @@ Optional ARG."
     ("C" zk-current-notes)
     ("m" zk-make-link-buttons)
     ("o" link-hint-aw-select)
-    ("b" zk-backlinks)
+    ("b" zk-network)
     ("S" zk-desktop-select)
     ("f" zk-find-file)
     ("F" zk-find-file-by-full-text-search)

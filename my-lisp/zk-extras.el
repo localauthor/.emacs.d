@@ -9,6 +9,35 @@
 (require 'zk-luhmann)
 (require 'link-hint)
 
+;;; custom note capture
+
+;; (defun zk-capture ()
+;;   (interactive)
+;;   ;; why not use org-capture?
+;;   (let* ((region (when (use-region-p)
+;;                    (buffer-substring (region-beginning)
+;;                                      (region-end))))
+;;          (buffer (org-get-indirect-buffer
+;;                   (find-file-noselect
+;;                    (zk--parse-id 'file-path "201801190001")))))
+;;     (pop-to-buffer buffer '(display-buffer-in-side-window
+;;                             (window-height . 0.4)
+;;                             (post-command-select-window t)
+;;                             (side . bottom)))
+;;     (goto-char (point-min))
+;;     (widen)
+;;     (re-search-forward "* New Notes")
+;;     (forward-line 2)
+;;     (insert "** # New note\n\n\n\n")
+;;     (forward-line -2)
+;;     (org-narrow-to-subtree)
+;;     (when region (insert region))
+;;     (popper-toggle-type)))
+
+(defun zk-capture ()
+  (interactive)
+  (org-capture nil "z"))
+
 ;;; xref
 
 ;;;###autoload
@@ -35,8 +64,9 @@ Opens search results in an `xref' buffer."
           (end (match-end 1))
           (tag (match-string 1))
           (map (make-sparse-keymap)))
-      (define-key map [mouse-1] `(lambda () (interactive) (zk-tag-search ,tag)))
-      (define-key map (kbd "RET") `(lambda () (interactive) (zk-tag-search ,tag)))
+      (define-key map (kbd "<mouse-3>")
+                  `(lambda () (interactive)
+                     (zk-tag-search ,tag)))
       (funcall 'zk-tag-fontify tag beg end map)
       t)))
 
@@ -44,7 +74,7 @@ Opens search results in an `xref' buffer."
   (add-text-properties beg end
                        `(face link
                               mouse-face highlight
-                              help-echo "Click to search tag"
+                              help-echo "Right click to search tag"
                               keymap ,map)))
 
 (font-lock-add-keywords 'org-mode
