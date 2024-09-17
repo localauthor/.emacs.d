@@ -51,11 +51,11 @@ The entry is stored in the current database, and the identifier
 can be DOI, ISBN, PMID, or arXiv ID."
   (interactive "MDOI or ISBN: ")
   (let ((entry (ebib-zotero-translate identifier "search"))
-        (entry-type)
-        (key))
-    (kill-new identifier)
+        entry-type
+        key)
     (unless entry
-      (error "Identifier not found: %s" identifier))
+      (error "No source found for identifier: %s" identifier))
+    (kill-new identifier)
     (ebib--execute-when
       (no-database ;; check that database is loaded
        (ebib-open)))
@@ -70,13 +70,75 @@ can be DOI, ISBN, PMID, or arXiv ID."
     (ebib-generate-autokey)
     (ebib--update-entry-buffer)
     (when (y-or-n-p "Correct entry? ")
-      (ebib-save-all-databases)
-      (when file
-        (ebib-zotero-rename-file (ebib--db-get-current-entry-key ebib--cur-db) file)))))
+      (ebib-save-all-databases)))
+  (when file (ebib--import-pdf file)))
 
-(defun ebib-zotero-rename-file (key file)
-  (let ((ext (file-name-extension file t)))
-  (rename-file file (concat "~/DT3 Academic/" key ext))))
+(defun ebib--import-pdf (file)
+  (let* ((key (ebib--get-key-at-point))
+         (shorttitle (ebib-zotero-cleanup-string
+                      (ebib-get-field-value
+                       "shorttitle" key ebib--cur-db t)))
+         (title (ebib-zotero-cleanup-string
+                 (ebib-get-field-value "title" key ebib--cur-db t)))
+         (year (ebib-zotero-cleanup-string
+                (ebib-get-field-value "year" key ebib--cur-db t)))
+         (author (ebib-zotero-cleanup-string
+                  (ebib-get-field-value "author"
+                                        key ebib--cur-db t)))
+         (editor (unless author
+                   (ebib-zotero-cleanup-string
+                    (ebib-get-field-value "editor"
+                                          key ebib--cur-db t))))
+         (author2 (when author
+                    (with-temp-buffer
+                      (insert author)
+                      (re-search-backward ", ")
+                      (delete-char 1)
+                      (transpose-words 1)
+                      (buffer-string))))
+         (filename (read-string "Name: "
+                                (concat key " - "
+                                        (or author2 editor)
+                                        " - "
+                                        (or shorttitle title)
+                                        " (" year ")"
+                                        (file-name-extension file t)))))
+    (rename-file file (concat "~/DT3 Academic/"
+                              filename))
+    (message "File added: %s" filename)))
+
+(defun ebib-zotero-cleanup-string (string)
+  (setq string
+        (ignore-errors
+          (replace-regexp-in-string "{\\|}" "" string)))
+  (setq string
+        (ignore-errors
+          (replace-regexp-in-string "\"\\|\\“\\|”" "'" string)))
+  (ignore-errors
+    (replace-regexp-in-string ":" "-" string)))
+
+;;;###autoload
+(defun ebib-zotero-import-pdf (file)
+  "Import FILE to ebib and devothink."
+  (interactive (list (let ((completion-ignored-extensions
+                            (append '(".localized") completion-ignored-extensions)))
+                       (read-file-name "File: " "~/Downloads/"))))
+  (let* ((source (completing-read "DOI/ISBN: " '(doi-search isbn-search this-entry)))
+         id)
+    (cond ((string= source "doi-search")
+           (biblio-lookup 'biblio-crossref-backend))
+          ((string= source "isbn-search")
+           (call-interactively #'ebib-isbn-web-search))
+          ((string= source "this-entry")
+           (ebib--import-pdf file))
+          (t (setq id source)))
+    (unless (or (string= source "this-entry")
+                (string= id source))
+      (setq id (read-string "DOI/ISBN: ")))
+    (ebib-zotero-import-identifier id file)))
+
+;;;###autoload
+(defalias 'ebib-import-pdf 'ebib-zotero-import-pdf)
 
 ;;;###autoload
 (defalias 'ebib-auto-import 'ebib-zotero-import-identifier)

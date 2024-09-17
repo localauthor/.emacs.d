@@ -15,10 +15,8 @@ Accepts optional KEY to go to entry."
   (interactive)
   (if (get-buffer-window "*Ebib-entry*" 'visible)
       (ebib nil key)
-    (progn
-      (make-frame-on-current-monitor)
-      (ebib nil key)
-      (set-frame-size (selected-frame) 110 46))))
+    (tab-bar-new-tab)
+    (ebib nil key)))
 
 (defun ebib-smart-quit ()
   "Cancel filter or quit."
@@ -33,9 +31,10 @@ Accepts optional KEY to go to entry."
          (when (yes-or-no-p "Save modified databases and quit? ")
            (progn (ebib--save-database ebib--cur-db)
                   (ebib-quit t)
-                  (delete-frame)))
+                  (tab-close)))
        (when (yes-or-no-p "Quit Ebib? ")
-         (ebib-quit t))))))
+         (ebib-quit t)
+         (tab-close))))))
 
 ;;;###autoload
 (defun ebib-isbn-web-search (string)
