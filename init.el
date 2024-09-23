@@ -2321,27 +2321,37 @@ Show at most `docsim-limit' results (or all of them, if
   (dired-clean-up-buffers-too t)
   (dired-create-destination-dirs 'ask)
   (dired-create-destination-dirs-on-trailing-dirsep t)
-  (dired-guess-shell-alist-user
-   '(("\\.pdf\\'" "open")
-     ("\\.docx\\'" "open")))
   (dired-kill-when-opening-new-dired-buffer t)
   :config
   (add-to-list 'completion-ignored-extensions ".DS_Store")
+
+  (defvar gr/dired-open-externally-regexp
+    (rx (or "pdf"
+            "docx")))
 
   (defun gr/dired-find-file-other-window ()
     "In dired, open directories in same window, files in other window."
     (interactive)
     (let ((switch-to-buffer-obey-display-actions nil)
           (file (dired-get-file-for-visit)))
-      (if (file-directory-p file)
-          (dired--find-possibly-alternative-file file)
-        (dired--find-file #'find-file-other-window file))))
+      (cond ((file-directory-p file)
+             (dired--find-possibly-alternative-file file))
+            ((and (not current-prefix-arg)
+                  (string-match gr/dired-open-externally-regexp
+                                (file-name-extension file)))
+             (embark-open-externally file))
+            (t
+             (dired--find-file #'find-file-other-window file)))))
   )
 
 (use-package dired-x
   :ensure nil
   :hook
   (dired-mode-hook . dired-omit-mode)
+  :custom
+  (dired-guess-shell-alist-user
+   '(("\\.pdf\\'" "open")
+     ("\\.docx\\'" "open")))
   :config
   (setq dired-omit-files "\\.DS_Store\\|\\.dropbox\\|Icon\\\015")
   ;; show backup files
