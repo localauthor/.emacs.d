@@ -3099,6 +3099,42 @@ the buffer works like a pager."
   :hook (prog-mode-hook))
 
 ;;;; gc-auto-commit
+;;;; popup-capture
+
+;; Run commands in a popup frame
+
+(defun gr/window-delete-popup-frame (&rest _)
+  "Kill selected selected frame if it has parameter `gr/window-popup-frame'.
+Use this function via a hook."
+  (when (frame-parameter nil 'gr/window-popup-frame)
+    (delete-frame)))
+
+(defun gr/window-popup-org-capture ()
+  "Run `org-capture' in a popup frame with `gr/window-popup-frame' parameter.
+Also see `gr/window-delete-popup-frame'."
+  (interactive)
+  (let* ((display-buffer-alist '(("*Org Select*" (display-buffer-full-frame))))
+         (frame (make-frame
+                 ;; prevent yabai management
+                 ;; name defined in ~/Dropbox/Code/lh_script.sh
+                 '((title . "capture-popup")
+                   (window-system . ns)
+                   (gr/window-popup-frame . t)))))
+    (select-frame frame)
+    (switch-to-buffer " gr/window-hidden-buffer-for-popup-frame")
+    (condition-case nil
+        (progn
+          (call-interactively 'org-capture)
+          (delete-other-windows))
+      ((quit error user-error)
+       (delete-frame frame)))))
+
+(declare-function org-capture "org-capture" (&optional goto keys))
+(defvar org-capture-after-finalize-hook)
+
+(add-hook 'org-capture-after-finalize-hook #'gr/window-delete-popup-frame)
+
+;; emacsclient -e '(gr/window-popup-org-capture)'
 
 (use-package git-auto-commit-mode)
 
