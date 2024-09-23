@@ -1587,7 +1587,7 @@ following the key as group 3."
     (defhydra hydra-ebib (:hint nil :color blue)
       "
   _j_: Jump to Entry   _k_: Add Keyword    _!_: Auto-Citekey     _s_: DOI Lookup
-  _O_: Apply Filter    _F_: Import File    _E_: Edit Citekey     _S_: ISBN Lookup
+  _O_: Apply Filter    _F_: Import PDF     _E_: Edit Citekey     _S_: ISBN Lookup
   _C_: Cancel Filter   _D_: Delete Field   _X_: Delete Entry     _I_: Auto Import
   "
       ("k" ebib-add-keywords-to-entry)
@@ -1601,17 +1601,17 @@ following the key as group 3."
       ("o" ebib-citar-open-resource)
       ("C" ebib-filters-cancel-filter)
       ;; ("s" ebib-save-current-database)
-      ("I" ebib-zotero-import-identifier)
+      ("I" ebib-import-from-doi-or-isbn)
       ("S" ebib-isbn-web-search)
       ("s" crossref-lookup)
       ("q" nil))))
 
 (use-package ebib-zotero
   :ensure nil
-  :commands (ebib-auto-import ebib-import-pdf)
+  :commands (ebib-import-from-doi-or-isbn ebib-import-pdf)
   :bind
   (:map ebib-index-mode-map
-        ("I" . ebib-zotero-import-identifier)))
+        ("I" . ebib-import-from-doi-or-isbn)))
 
 (use-package pdf-drop-mode
   :ensure nil
@@ -1680,7 +1680,7 @@ following the key as group 3."
 
   (defun gr/biblio--import-to-ebib (entry)
     (let ((doi (biblio-alist-get 'doi entry)))
-      (ebib-auto-import doi)))
+      (ebib-import-from-doi-or-isbn doi)))
 
   (setq biblio-selection-mode-actions-alist
         '(("Import to ebib" . gr/biblio--import-to-ebib)
