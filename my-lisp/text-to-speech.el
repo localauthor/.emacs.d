@@ -2,10 +2,10 @@
 
 (require 'hydra)
 
-(defvar words-voice "Ava"
+(defvar words-voice "Evan"
   "Mac voice to use for speaking.")
 
-(defvar words-rate "250")
+(defvar words-rate "200")
 
 (defun words-set-rate (rate)
   "Set WPM rate for mac-speak function."
@@ -103,6 +103,7 @@
 (define-key mac-speak-keymap (vector ?w) 'mac-say-word)
 (define-key mac-speak-keymap (vector ?s) 'mac-say-sentence)
 (define-key mac-speak-keymap (vector ?p) 'mac-say-paragraph)
+(define-key mac-speak-keymap (vector ?l) 'words-speak)
 (define-key mac-speak-keymap (vector ?h) 'hydra-mac-speak/body)
 (global-set-key (kbd "\C-cr") 'mac-speak-keymap)
 

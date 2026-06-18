@@ -13,104 +13,176 @@ Use a prefix arg to get regular RET. "
   (interactive "P")
   (if ignore
       (org-return)
-    (cond
-
-     ((eq 'line-break (car (org-element-context)))
-      (org-return t))
-
-     ;; Open links like usual, unless point is at the end of a line.
-     ;; and if at beginning of line, just press enter.
-     ((or (and (eq 'link (car (org-element-context))) (not (eolp)))
-          (bolp))
-      (org-return))
-
-     ;; checkboxes - add new or delete empty
-     ((org-at-item-checkbox-p)
+    (let* ((context (if org-return-follows-link (org-element-context)
+		      (org-element-at-point)))
+           (element-type (org-element-type context)))
       (cond
-       ;; at the end of a line.
-       ((and (eolp)
-             (not (eq 'item (car (org-element-context)))))
-        (org-insert-todo-heading nil))
-       ;; no content, delete
-       ((and (eolp) (eq 'item (car (org-element-context))))
-        (delete-region (line-beginning-position) (line-end-position)))
-       ((eq 'paragraph (car (org-element-context)))
-        (goto-char (org-element-property :end (org-element-context)))
-        (org-insert-todo-heading nil))
-       (t
-        (org-return))))
 
-     ;; lists end with two blank lines, so we need to make sure we are also not
-     ;; at the beginning of a line to avoid a loop where a new entry gets
-     ;; created with only one blank line.
-     ((org-in-item-p)
-      (cond
-       ;; empty definition list
-       ((and (looking-at " ::")
-             (looking-back "- " 3))
-        (beginning-of-line)
-        (delete-region (line-beginning-position) (line-end-position)))
-       ;; empty item
-       ((and (looking-at "$")
-             (or
-              (looking-back "- " 3)
-              (looking-back "+ " 3)
-              (looking-back " \\* " 3)))
-        (beginning-of-line)
-        (delete-region (line-beginning-position) (line-end-position)))
-       ;; numbered list
-       ((and (looking-at "$")
-             (looking-back "^[0-9]+. " (line-beginning-position)))
-        (beginning-of-line)
-        (delete-region (line-beginning-position) (line-end-position)))
-       ;; insert new item
-       (t
-        (if (not (looking-at "$"))
-            (org-return)
-          (end-of-line)
-          (org-insert-item)))))
+       ((eq 'line-break element-type)
+        (org-return t))
 
-     ;; org-heading
-     ((org-at-heading-p)
-      (if (not (string= "" (org-element-property :title (org-element-context))))
+       ;; Open links like usual, unless point is at the end of a line.
+       ;; and if at beginning of line, just press enter.
+       ((or (and (eq 'link element-type) (not (eolp)))
+            (bolp))
+        (org-return))
+
+       ;; checkboxes - add new or delete empty
+       ((org-at-item-checkbox-p)
+        (cond
+         ;; at the end of a line.
+         ((and (eolp)
+               (not (eq 'item element-type)))
+          (org-insert-todo-heading nil))
+         ;; no content, delete
+         ((and (eolp) (eq 'item element-type))
+          (delete-region (line-beginning-position) (line-end-position)))
+         ;; mid-item, add new item
+         ((or (eq 'paragraph element-type)
+              (eq 'item element-type))
+          (goto-char (org-element-property :end context))
+          (org-insert-todo-heading nil))
+         (t
+          (org-return))))
+
+       ((org-in-item-p)
+        (cond
+         ;; empty definition list
+         ((and (looking-at " ::")
+               (looking-back "- " 3))
+          (beginning-of-line)
+          (delete-region (line-beginning-position) (line-end-position)))
+         ;; empty item
+         ((and (looking-at "$")
+               (or
+                (looking-back "- " 3)
+                (looking-back "+ " 3)
+                (looking-back " \\* " 3)))
+          (beginning-of-line)
+          (delete-region (line-beginning-position) (line-end-position)))
+         ;; numbered list
+         ((and (looking-at "$")
+               (looking-back "^[0-9]+. " (line-beginning-position)))
+          (beginning-of-line)
+          (delete-region (line-beginning-position) (line-end-position)))
+         ;; insert new item
+         (t
           (if (not (looking-at "$"))
               (org-return)
-            (progn
-              ;; Go to end of subtree suggested by Pablo GG on Disqus post.
+            (end-of-line)
+            (org-insert-item)))))
+
+       ;; org-heading
+       ((org-at-heading-p)
+        (if (not (string-empty-p (org-element-property :title context)))
+            (if (not (looking-at "$"))
+                (progn
+                  ;; (org-return)
+                  ;; don’t split headline
+                  (end-of-line)
+                  (org-fold-show-entry 'hide-drawers)
+                  (newline))
+              ;; Go to end of subtree
               ;;(org-end-of-subtree)
               (org-meta-return)
               ;;(org-metaright)
               ;;(org-insert-heading-respect-content)
-              (outline-show-entry)
-              ))
-        ;; The heading was empty, so we delete it
-        (beginning-of-line)
-        (delete-region (line-beginning-position) (line-end-position))))
+              (outline-show-entry))
+          ;; The heading was empty, so we delete it
+          (beginning-of-line)
+          (delete-region (line-beginning-position) (line-end-position))))
 
-     ;; tables
-     ((org-at-table-p)
-      (if (-any?
-           (lambda (x) (not (string= "" x)))
-           (nth
-            (- (org-table-current-dline) 1)
-            (remove 'hline (org-table-to-lisp))))
-          (org-return)
-        ;; empty row
-        (beginning-of-line)
-        (delete-region (line-beginning-position) (line-end-position))
-        (org-return)))
+       ;; tables
+       ((org-at-table-p)
+        (if (-any?
+             (lambda (x) (not (string= "" x)))
+             (nth
+              (- (org-table-current-dline) 1)
+              (remove 'hline (org-table-to-lisp))))
+            (org-return)
+          ;; empty row
+          (beginning-of-line)
+          (delete-region (line-beginning-position) (line-end-position))
+          (org-return)))
 
-     ;; footnotes
-     ((or (org-footnote-at-reference-p)
-          (org-footnote-at-definition-p))
-      (org-footnote-action))
+       ;; footnotes
+       ((or (eq 'footnote-reference element-type)
+            (eq 'footnote-definition element-type))
+        (org-footnote-action))
 
-     ;; fall-through case
-     (t
-      (org-return)))))
+       ;; fall-through case
+       (t
+        (org-return))))))
 
 
-;;; org-export
+;;; org-export ignore heading
+
+;;;; org-contrib
+
+;; (use-package org-contrib)
+
+;; (remove-hook 'org-mode-hook #'org-eldoc-load)
+
+;; (use-package ox-extra
+;;   :ensure nil
+;;   :defer 1
+;;   :config
+;;   (ox-extras-activate '(latex-header-blocks ignore-headlines))
+
+;; taken from ox-extra, the only part of org-contrib I used
+
+(defun gr/org-export-ignore-headlines (data backend info)
+  "Remove headlines tagged \"ignore\" or \"noheadline\" retaining
+contents and promoting children. Each headline tagged \"ignore\"
+or \"noheadline\" will be removed retaining its contents and
+promoting any children headlines to the level of the parent."
+  (org-element-map data 'headline
+    (lambda (object)
+      (when (or (member "noheadline" (org-element-property :tags object))
+                (member "ignore" (org-element-property :tags object)))
+        (let ((level-top (org-element-property :level object))
+              level-diff)
+          (mapc (lambda (el)
+                  ;; recursively promote all nested headlines
+                  (org-element-map el 'headline
+                    (lambda (el)
+                      (when (equal 'headline (org-element-type el))
+                        (unless level-diff
+                          (setq level-diff (- (org-element-property :level el)
+                                              level-top)))
+                        (org-element-put-property el
+                                                  :level (- (org-element-property :level el)
+                                                            level-diff)))))
+                  ;; insert back into parse tree
+                  (org-element-insert-before el object))
+                (org-element-contents object)))
+        (org-element-extract-element object)))
+    info nil)
+  (org-extra--merge-sections data backend info)
+  data)
+
+(defun org-extra--merge-sections (data _backend info)
+  (org-element-map data 'headline
+    (lambda (hl)
+      (let ((sections
+             (cl-loop
+              for el in (org-element-map (org-element-contents hl)
+                            '(headline section) #'identity info)
+              until (eq (org-element-type el) 'headline)
+              collect el)))
+        (when (and sections
+                   (> (length sections) 1))
+          (apply #'org-element-adopt-elements
+                 (car sections)
+                 (cl-mapcan (lambda (s) (org-element-contents s))
+                            (cdr sections)))
+          (mapc #'org-element-extract-element (cdr sections)))))
+    info))
+
+(add-hook 'org-export-filter-parse-tree-functions #'gr/org-export-ignore-headlines)
+
+
+;;; org-export spacing
 
 ;;   (defun gr/org-export-spacing (backend)
 ;;     "Single newline is not a paragraph break.
@@ -139,48 +211,63 @@ Use a prefix arg to get regular RET. "
 ;;                      (looking-at ".")))
 ;;          (kill-line))))))
 
+(defun gr/org-export-dashes (_backend)
+  "Replace three dashes with em-dash, two with en."
+  (goto-char (point-min))
+  (replace-regexp "---" "—") ; em-dash
+  (goto-char (point-min))
+  (replace-regexp "--" "–")) ; en-dash
 
-(defun gr/org-export-spacing (backend)
+(add-hook 'org-export-before-processing-functions #'gr/org-export-dashes)
+
+(defvar gr/org-article-spacing t)
+
+(defun gr/org-article-spacing (backend)
   "Single newline is not a paragraph break.
   Only double newline is a paragraph break."
-  (when (eq 'latex backend)
-    (goto-char (point-min))
-    (while (re-search-forward ":noheadline:" nil t)
-      (forward-line)
-      (insert "\\newline \\indent"))
-    (goto-char (point-min))
-    (while (progn
-             (forward-paragraph)
-             (not (eobp)))
-      (while (cond ((and (looking-at "^$")
-                         (save-excursion
-                           (forward-line)
-                           (looking-at ".")))
-                    (kill-line)
-                    t)
-                   ((and (looking-at "# ")
-                         (save-excursion
-                           (forward-line)
-                           (looking-at "^$")))
-                    (kill-line 2)
-                    t)
-                   ((and (looking-at "# ")
-                         (save-excursion
-                           (forward-line)
-                           (looking-at ".")))
-                    (kill-line)
-                    t))))))
+  (when (and (or (eq 'latex backend)
+                 (eq 'odt backend))
+             gr/org-article-spacing)
+    (when (eq 'latex backend)
+      (goto-char (point-min))
+      (while (re-search-forward ":noheadline:" nil t)
+        (forward-line)
+        (insert "\\newline \\indent"))
+      (goto-char (point-min)))
+    (when (or (eq 'latex backend)
+              (eq 'odt backend))
+      (while (progn
+               (forward-paragraph)
+               (not (eobp)))
+        (while (cond ((and (looking-at "^$")
+                           (save-excursion
+                             (forward-line)
+                             (looking-at ".")))
+                      (kill-line)
+                      t)
+                     ((and (looking-at "# ")
+                           (save-excursion
+                             (forward-line)
+                             (looking-at "^$")))
+                      (kill-line 2)
+                      t)
+                     ((and (looking-at "# ")
+                           (save-excursion
+                             (forward-line)
+                             (looking-at ".")))
+                      (kill-line)
+                      t)))))))
 
-(add-hook 'org-export-before-processing-functions #'gr/org-export-spacing)
+(add-hook 'org-export-before-processing-functions #'gr/org-article-spacing)
 
 (with-eval-after-load 'ox
   (add-to-list
    'org-export-smart-quotes-alist
    '("en-us" (primary-opening :utf-8 "“" :html "&ldquo;" :latex "``" :texinfo "``")
-     (primary-closing :utf-8 "”" :html "&rdquo;" :latex "''" :texinfo "''")
-     (secondary-opening :utf-8 "‘" :html "&lsquo;" :latex "`" :texinfo "`")
-     (secondary-closing :utf-8 "’" :html "&rsquo;" :latex "'" :texinfo "'")
-     (apostrophe :utf-8 "’" :html "&rsquo;"))))
+  (primary-closing :utf-8 "”" :html "&rdquo;" :latex "''" :texinfo "''")
+  (secondary-opening :utf-8 "‘" :html "&lsquo;" :latex "`" :texinfo "`")
+  (secondary-closing :utf-8 "’" :html "&rsquo;" :latex "'" :texinfo "'")
+  (apostrophe :utf-8 "’" :html "&rsquo;"))))
 
 
 ;;; org narrow/widen
@@ -229,10 +316,11 @@ Use a prefix arg to get regular RET. "
 
 ;;; org-archive
 
-(defun gr/org-mark-done-and-archive-datetree ()
+(defun gr/org-mark-done-and-archive ()
   (interactive)
-  (let ((org-archive-location "%s_archive::datetree/"))
-    (org-todo 'done)
+  (org-todo 'done)
+  (if (member "pr" (org-get-tags))
+      (gr/pr-refile)
     (org-archive-subtree)))
 
 (defun gr/org-archive (arg)
@@ -241,6 +329,13 @@ With C-u: archive subtree to same hierarchy as in original file."
   (interactive "P")
   (cond ((equal arg '(4)) (gr/org-archive-subtree-hierarchy))
         (t (gr/org-mark-done-and-archive-datetree))))
+
+(defun gr/org-mark-done-and-archive-datetree ()
+  (interactive)
+  (let ((org-archive-location "%s_archive::datetree/"))
+    (org-todo 'done)
+    (org-archive-subtree)))
+
 
 ;; Archive subtrees under the same hierarchy as the original org file.
 ;; Link: https://gist.github.com/Fuco1/e86fb5e0a5bb71ceafccedb5ca22fcfb

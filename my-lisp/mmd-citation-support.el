@@ -8,7 +8,7 @@
 ;; mmd-citations are in the style [#AuthorYEAR] or [23-25][#AuthorYEAR]
 
 ;; (require 'devonthink-dir)
-;; (require 'ebib-extras)
+;; (require 'gr-ebib-extras)
 
 ;;; Code:
 
@@ -16,7 +16,7 @@
 (require 'citar-file)
 (require 'citar-citeproc)
 
-(require 'ebib-extras)
+(require 'gr-ebib-extras)
 
 (require 'oc-csl)
 (require 'thingatpt)
@@ -40,20 +40,24 @@
   (when (re-search-forward gr/full-mmd-citation-regexp limit t)
     (let ((beg (- (match-beginning 4) 1)) ;; -1 to match the #
           (end (match-end 4))
-          (key (match-string 4)))
+          (key (match-string-no-properties 4)))
       (funcall 'gr/mmd-citation-fontify key beg end)
       t)))
 
+(defface gr/mmd-citation
+  '((t :inherit org-cite :underline nil))
+  "Face used for mmd-citations.")
+
 (defun gr/mmd-citation-fontify (key beg end)
   "Fontify mmd-citation KEY, from BEG to END."
-  (if (member key (hash-table-keys (citar-get-entries)))
+  (if (citar-get-entry key)
+      ;; uses cache; so if errors, use (hash-table-keys (citar-get-entries))
       (add-text-properties beg end
-                           '(font-lock-face font-lock-keyword-face
+                           '(font-lock-face gr/mmd-citation
                                             help-echo mmd-tooltip))
     (add-text-properties beg end
                          '(font-lock-face font-lock-warning-face
                                           help-echo "No record"))))
-
 
 (font-lock-add-keywords 'org-mode
                         '((gr/mmd-citation-activate)))
@@ -67,9 +71,9 @@
 ;; or: (org-cite-basic--all-keys) ;; (require 'oc)
 ;; (hash-table-keys (citar-get-entries)) FAST
 
-(defvar mmd-tooltip-enable t)
+(defvar mmd-tooltip-enable nil)
 
-(setq tooltip-delay 0.1)
+(setq tooltip-delay 0.2)
 
 ;; auto show tooltip in echo area
 ;; (progn
@@ -77,24 +81,33 @@
 ;;   (setq help-at-pt-timer-delay 0.5)
 ;;   (help-at-pt-set-timer))
 
+(defun mmd-citation-details ()
+  "Reveal in author, title, publisher, file, and note."
+  (interactive)
+  (let* ((key (progn
+                (when (thing-at-point-looking-at "[#|\\[]")
+                  (forward-char 2))
+                (thing-at-point 'symbol t)))
+         (author (or (citar-get-value "author" key)
+                     (citar-get-value "editor" key)))
+         (title (or (citar-get-value "title" key)
+                    (citar-get-value "booktitle" key)))
+         (publisher (or (citar-get-value "publisher" key)
+                        (citar-get-value "journal" key)))
+         (notep (if (funcall (citar-has-notes) key) "✓" "✗"))
+         (filep (if (funcall (citar-has-files) key) "✓" "✗"))
+         (details (format "Author: %s\nTitle:  %s\nPubl:   %s\n  File: %s\n  Note: %s" author title publisher filep notep)))
+    (if (called-interactively-p)
+        (message details)
+      details)))
+
 ;;;###autoload
 (defun mmd-tooltip (_win _obj pos)
   "Generate tooltip for mmd-citation at POS."
-  (save-excursion
-    (goto-char pos)
-    (let* ((key (progn
-                  (when (thing-at-point-looking-at "[#|\\[]")
-                    (forward-char 2))
-                  (thing-at-point 'symbol t)))
-           (author (or (citar-get-value "author" key)
-                       (citar-get-value "editor" key)))
-           (title (or (citar-get-value "title" key)
-                      (citar-get-value "booktitle" key)))
-           (publisher (or (citar-get-value "publisher" key)
-                          (citar-get-value "journal" key)))
-           (notep (if (funcall (citar-has-notes) key) "✓" "✗"))
-           (filep (if (funcall (citar-has-files) key) "✓" "✗")))
-      (format "%s\n%s\n%s\nfile: %s note: %s" author title publisher filep notep))))
+  (when mmd-tooltip-enable
+    (save-excursion
+      (goto-char pos)
+      (mmd-citation-details))))
 
 ;;;###autoload
 (defun mmd-tooltip-toggle ()
@@ -110,7 +123,8 @@
 
 ;;; citar integration
 
-(defvar gr/last-mmd-citation-key nil)
+(defvar-local gr/last-mmd-citation-key nil)
+(defvar-local gr/last-mmd-citation-pages nil)
 (defvar-local gr/mmd-citation-use nil)
 
 ;;;###autoload
@@ -128,18 +142,20 @@
 ;;;###autoload
 (defun gr/citar-insert-citation (&optional key pages)
   "Insert cite-key, format depending on context.
-When in zk file, mmd format; when `org-mode', org-cite."
+  When in zk file, mmd format; when `org-mode', org-cite."
   (interactive)
   (unless (derived-mode-p 'text-mode)
     (error "Not a text mode"))
-  (let ((key (or key
-                 (if (and gr/last-mmd-citation-key
-                          current-prefix-arg)
-                     gr/last-mmd-citation-key
-                   (citar-select-ref))))
-        (pages (or pages
-                   (unless (looking-back "]" (- (point) 1))
-                     (read-from-minibuffer "Pages: ")))))
+  (let* ((key (or key
+                  (citar-select-ref)))
+         (last-pages (when (eq this-command
+                               'gr/citar-insert-previous-citation)
+                       gr/last-mmd-citation-pages))
+         (pages (or pages
+                    (unless (looking-back "]" (- (point) 1))
+                      (read-from-minibuffer
+                       (format "Cite %s: " key)
+                       last-pages)))))
     (if (or (zk-file-p)
             (string= "*scratch*" (buffer-name))
             (file-in-directory-p (or buffer-file-name
@@ -157,7 +173,24 @@ When in zk file, mmd format; when `org-mode', org-cite."
               (forward-char -1)
               (insert " " pages))
           (insert (gr/format-mmd-citation key pages)))))
-    (setq gr/last-mmd-citation-key key)))
+    (setq-local gr/last-mmd-citation-pages pages)
+    (setq-local gr/last-mmd-citation-key key)))
+
+(defun gr/citar-insert-previous-citation ()
+  "Insert previously used cite-key."
+  (interactive)
+  (if-let* ((key (or gr/last-mmd-citation-key
+                     (gr/mmd-citation-previous-citation))))
+      (gr/citar-insert-citation key)
+    (gr/citar-insert-citation)))
+
+(defun gr/mmd-citation-previous-citation ()
+  (interactive)
+  (save-excursion
+    (ignore-errors
+      (re-search-backward
+       gr/full-mmd-citation-regexp)
+      (match-string-no-properties 4))))
 
 (defun gr/mmd-citation-at-point ()
   "When mmd-citation is at point, return citekey."
@@ -204,9 +237,11 @@ When in zk file, mmd format; when `org-mode', org-cite."
 
 (defun gr/mmd-citation-convert-buffer ()
   (interactive)
-  (while
-      (re-search-forward "\\[cite:")
-    (gr/mmd-citation-convert (citar-key-at-point))))
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (re-search-forward "\\[cite:" nil t)
+      (gr/mmd-citation-convert (citar-key-at-point)))))
 
 ;;; link-hint integration
 
@@ -287,7 +322,7 @@ Collects mmd-citation keys from current buffer."
   (interactive)
   (unless citar-citeproc-csl-style
     (citar-citeproc-select-csl-style))
-  (if-let ((keys (gr/list-buffer-mmd-citations)))
+  (if-let* ((keys (gr/list-buffer-mmd-citations)))
       (let* ((heading (ignore-errors (org-find-olp '("Bibliography") 'this-buffer)))
              (proc (citeproc-create (concat citar-citeproc-csl-styles-dir "/" citar-citeproc-csl-style)
                                     (citeproc-itemgetter-from-bibtex citar-bibliography)
@@ -374,25 +409,28 @@ Optional FILE."
 (defun gr/mmd-citation-completion-at-point ()
   "Complete mmd-citations at point."
   (save-excursion
-    (let ((origin (point)))
-      (when (and (re-search-backward
-                  "\\[\\#"
-                  (line-beginning-position)
-                  t)
-                 (save-excursion
-                   (not (search-forward
-                         "]" origin t))))
-        (let ((begin (match-end 0))
-              (end origin))
-          (list begin end
-                (completion-table-dynamic
-                 (lambda (_)
-                   (citar--format-candidates)))
-                :exit-function
-                ;; take completion str and replace with key
-                (lambda (str _status)
-                  (delete-char (- (length str)))
-                  (insert (citar--extract-candidate-citekey str) "]"))))))))
+    (when-let* ((end (point))
+                (begin (when (and (looking-back
+                                   "\\[\\#\\(.*\\)?"
+                                   (line-beginning-position)
+                                   t)
+                                  (save-excursion
+                                    (not (search-forward
+                                          "]" end t))))
+                         (match-beginning 1)))
+                (candidates (citar--format-candidates)))
+      (when (and begin (<= begin end))
+        (list begin end
+              (completion-table-dynamic
+               (lambda (_)
+                 candidates))
+              :exit-function
+              ;; take completion str and replace with key
+              (lambda (str _status)
+                (delete-char (- (length str)))
+                (insert (citar--extract-candidate-citekey str) "]")
+                (when (looking-at "]") ;; account for elec-pair
+                  (delete-char 1))))))))
 
 ;; (add-to-list 'completion-at-point-functions 'gr/mmd-citation-completion-at-point)
 
