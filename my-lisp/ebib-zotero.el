@@ -157,9 +157,9 @@ can be DOI, ISBN, PMID, or arXiv ID."
                     (concat (ebib-zotero-formatted-file-name)
                             (file-name-extension file t)))))
     (if (y-or-n-p "Keep original?")
-        (copy-file file (concat "~/DT3 Academic/"
+        (copy-file file (concat "~/Documents/Inbox/"
                                 filename))
-      (rename-file file (concat "~/DT3 Academic/"
+      (rename-file file (concat "~/Documents/Inbox/"
                                 filename)))
     (message "File added: %s" filename)))
 

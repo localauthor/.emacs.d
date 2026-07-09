@@ -143,7 +143,7 @@
   (defun gr-initial-buffer ()
     (if (fboundp 'zk-daily-note)
         (find-file-noselect (zk-daily-note))
-      (find-file-noselect "~/Dropbox/org/dailynotes.org")))
+      (find-file-noselect "~/Documents/org/dailynotes.org")))
 
   (defun gr/delete-char ()
     (interactive)
@@ -1036,7 +1036,7 @@ If region is active, add its contents to the new buffer."
 (use-package org
   :custom
 
-  (org-directory "~/Dropbox/org")
+  (org-directory "~/Documents/org")
   (org-ellipsis " ▼") ;◣ ▼ ▽ ► ➽
   (org-hide-leading-stars t)
   (org-startup-indented t)
@@ -1785,8 +1785,8 @@ Interactively, prompt for REGISTER with
                          consult-dir--source-recentf))
   :config
 
-  (defvar gr-writing-project-dirs '("~/Dropbox/Academic/Articles/Crusoe's Shelf/"
-                                    "~/Dropbox/Academic/Articles/Bewilderment/"))
+  (defvar gr-writing-project-dirs '("~/Documents/Academic Work/Articles/Crusoe's Shelf/"
+                                    "~/Documents/Academic Work/Articles/Bewilderment/"))
 
   (defvar gr-current-term "Autumn 2026")
 
@@ -1803,7 +1803,7 @@ Interactively, prompt for REGISTER with
                                               (file-name-nondirectory x))
                                       (concat x "/"))))
                             (directory-files
-                             (concat "~/Dropbox/" gr-current-term "/")
+                             (concat "~/ownCloud/" gr-current-term "/")
                              t "[^.DS_eort]")))))
     "Class directory source for `consult-dir--pick'.")
 
@@ -1975,7 +1975,7 @@ Interactively, prompt for REGISTER with
 
 ;;;; citar
 
-(defvar gr/bibliography '("~/Dropbox/gr-bibliography.bib"))
+(defvar gr/bibliography '("~/Documents/Academic Work/gr-bibliography.bib"))
 
 (use-package citar
   :after (oc gr-database)
@@ -1990,12 +1990,16 @@ Interactively, prompt for REGISTER with
         ("k" . citar-copy-reference)
         ("s" . ex/search-pdf-contents))
   :custom
-  (citar-notes-paths '("~/Dropbox/ZK/Zettels"))
+  (citar-notes-paths '("~/Documents/ZK"))
   (citar-additional-fields '("doi" "url"))
 
   (citar-library-file-extensions '("pdf" "epub"))
   (citar-library-paths-recursive t)
-  (citar-library-paths gr/database-dirs)
+  (citar-library-paths '("~/Documents/Books and Readings/"
+                         "~/Documents/Scholarship and Theory/"
+                         "~/Documents/Vilnius University Docs/"
+                         "~/Documents/Academic Work/"
+                         "~/Calibre Library/"))
 
   (citar-file-note-extensions '("org" "md"))
   (citar-file-open-functions '(("html" . citar-file-open-external)
@@ -2079,7 +2083,7 @@ following the key as group 3."
   (setq org-cite-csl-styles-dir "~/.csl"
         org-cite-csl-locales-dir "~/.csl/locales"
         org-odt-preferred-output-format "docx"
-        org-odt-styles-file "~/Dropbox/Academic/template.ott"
+        org-odt-styles-file "~/Documents/Academic Work/template.ott"
         org-cite-global-bibliography gr/bibliography
         org-cite-csl-link-cites nil)
   (setq org-cite-insert-processor 'citar
@@ -2232,7 +2236,7 @@ following the key as group 3."
   :vc (:url "https://github.com/emacs-pe/scihub.el")
   :custom
   (scihub-homepage "https://sci-hub.in/")
-  (scihub-download-directory (expand-file-name "~/DT3 Academic/")))
+  (scihub-download-directory (expand-file-name "~/Documents/Inbox/")))
 
 (use-package biblio
   ;;:after ebib
@@ -2600,38 +2604,38 @@ add the word to `ispell-personal-dictionary'. Abort with `C-g'."
 
 (use-package ox-hugo
   :after org
-  :defer 3)
+  :autoload gr/blog-test-localauthor gr/blog-deploy-localauthor gr/web-deploy gr/web-test
+  :init
+  (defun gr/blog-deploy-localauthor ()
+    "Deploy blog."
+    (interactive)
+    (shell-command "cd ~/Documents/Sites/localauthor && ./deploy.sh"))
 
-(defun gr/blog-deploy-localauthor ()
-  "Deploy blog."
-  (interactive)
-  (shell-command "cd ~/Dropbox/Sites/localauthor && ./deploy.sh"))
+  (defun gr/blog-test-localauthor ()
+    "Open blog on localhost."
+    (interactive)
+    (let ((browse-url-browser-function 'browse-url-default-browser))
+      (if
+          (equal 1 (shell-command "pgrep 'hugo -t hugo-la-rocinante'"))
+          (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Documents/Sites/localauthor && hugo server --noHTTPCache --ignoreCache --disableFastRender")
+        nil)
+      (browse-url "http://localhost:1313/")))
 
-(defun gr/blog-test-localauthor ()
-  "Open blog on localhost."
-  (interactive)
-  (let ((browse-url-browser-function 'browse-url-default-browser))
-    (if
-        (equal 1 (shell-command "pgrep 'hugo -t hugo-la-rocinante'"))
-        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/Sites/localauthor && hugo server --noHTTPCache --ignoreCache --disableFastRender")
-      nil)
-    (browse-url "http://localhost:1313/")))
+  (defun gr/web-deploy ()
+    "Deploy grantrosson.com."
+    (interactive)
+    (shell-command "cd ~/Documents/Sites/gr-web && ./deploy.sh"))
 
-(defun gr/web-deploy ()
-  "Deploy grantrosson.com."
-  (interactive)
-  (shell-command "cd ~/Dropbox/Sites/gr-web && ./deploy.sh"))
-
-(defun gr/web-test ()
-  "Open grantrosson.com on localhost."
-  (interactive)
-  (let ((browse-url-browser-function 'browse-url-default-browser))
-    (if
-        (equal 1 (shell-command "pgrep 'hugo'"))
-        (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Dropbox/Sites/gr-web && hugo server --noHTTPCache --ignoreCache --disableFastRender")
-      nil)
-    (browse-url "http://localhost:1313/")))
-
+  (defun gr/web-test ()
+    "Open grantrosson.com on localhost."
+    (interactive)
+    (let ((browse-url-browser-function 'browse-url-default-browser))
+      (if
+          (equal 1 (shell-command "pgrep 'hugo'"))
+          (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Documents/Sites/gr-web && hugo server --noHTTPCache --ignoreCache --disableFastRender")
+        nil)
+      (browse-url "http://localhost:1313/")))
+  )
 
 (use-package simple-httpd
   :defer 3)
@@ -2868,7 +2872,7 @@ Show at most `docsim-limit' results (or all of them, if
 
   (setq ibuffer-saved-filter-groups
         '(("default"
-           ;; ("Article" (or (and (directory . "/Academic/*")
+           ;; ("Article" (or (and (directory . "/Academic Work/*")
            ;;                     (not (name . "magit")))))
            ("Teaching" (or (and (directory . "/Spring 2026/*")
                                 (not (mode . special-mode))
@@ -2883,7 +2887,7 @@ Show at most `docsim-limit' results (or all of them, if
                                (not (name . "^\\*scratch"))
                                (not (name . "magit")))))
            ("ZK" (or (name . "*ZK")
-                     (and (directory . "/Zettels/")
+                     (and (directory . "/ZK/")
                           (filename . "\\.org$")
                           (not (name . "^\\*scratch"))
                           (not (name . "magit")))))
@@ -3890,7 +3894,7 @@ Also see `gr/popup-frame-delete'." command)
             (frame (make-frame
                     ;; prevent yabai management
                     ;; name defined in
-                    ;; ~/Dropbox/Repos/emacs-build/yabai-emacs-window-handler.sh
+                    ;; ~/Repos/emacs-build/yabai-emacs-window-handler.sh
                     '((title . ,title)
                       (window-system . ns)
                       (gr/popup-frame . t)))))

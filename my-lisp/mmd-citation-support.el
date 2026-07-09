@@ -7,7 +7,6 @@
 ;;
 ;; mmd-citations are in the style [#AuthorYEAR] or [23-25][#AuthorYEAR]
 
-;; (require 'devonthink-dir)
 ;; (require 'gr-ebib-extras)
 
 ;;; Code:
@@ -27,7 +26,7 @@
 
 ;;; variables
 
-(defvar zk-desktop-directory "~/Dropbox/ZK/ZK-Desktops")
+(defvar zk-desktop-directory "~/Documents/ZK/ZK-Desktops")
 
 (defvar gr/mmd-citation-regexp "\\[#.[[:alpha:]-']+[[:digit:]]\\{4\\}.?]")
 (defvar gr/full-mmd-citation-regexp "\\(?1:\\[\\(?3:[^#][^]]*\\)]\\)?\\(?2:\\[#\\(?4:[[:alpha:]-']*?[[:digit:]]\\{4\\}.?\\)]\\)")

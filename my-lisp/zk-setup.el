@@ -35,7 +35,7 @@
   (completion-at-point-functions . zk-completion-at-point)
   (completion-at-point-functions . gr/mmd-citation-completion-at-point)
   :custom
-  (zk-directory "~/Dropbox/ZK/Zettels")
+  (zk-directory "~/Documents/ZK")
   (zk-file-extension "org")
   (zk-tag-regexp "\\s#[a-zA-Z0-9]\\+")
   (zk-new-note-header-function #'gr/zk-new-note-header)
@@ -414,7 +414,7 @@
   (zk-desktop-prefix "- ")
   (zk-desktop-major-mode 'org-mode)
   (zk-desktop-add-pos 'at-point)
-  (zk-desktop-directory "~/Dropbox/ZK/ZK-Desktops")
+  (zk-desktop-directory "~/Documents/ZK/ZK-Desktops")
   :custom-face
   (zk-desktop-button ((t (:background "gray85" :height .9)))))
 

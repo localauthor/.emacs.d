@@ -65,10 +65,6 @@
 
   (setq elfeed-show-entry-switch 'elfeed-olivetti)
 
-  (require 'elfeed-org)
-  (elfeed-org)
-  (setq rmh-elfeed-org-files (list "~/Dropbox/org/elfeed.org"))
-
   (defmacro gr/elfeed-toggle-tag (tag)
     `(defun ,(intern (concat "gr/elfeed-toggle-" (symbol-name tag))) ()
        ,(concat "Toggle elfeed tag `" (symbol-name tag) "’")
@@ -133,6 +129,10 @@ _a_: all unread    _U_: update      _O_: org list"
   (bind-keys :map elfeed-search-mode-map
              ("?" . hydra-elfeed/body))
   )
+
+(require 'elfeed-org)
+(elfeed-org)
+(setq rmh-elfeed-org-files (list "~/Documents/org/elfeed.org"))
 
 ;;functions to support syncing .elfeed between machines
 ;;makes sure elfeed reads index from disk before launching

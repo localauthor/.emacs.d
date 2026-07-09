@@ -234,7 +234,7 @@ With prefix arg, append to previously copied text."
 ;; turn off functions that would change the index
 ;; except sort functions
 
-(defvar zk-index-save-file "~/Dropbox/ZK/zk-index-save-file.eld")
+(defvar zk-index-save-file "~/Documents/ZK/zk-index-save-file.eld")
 
 (defvar zk-index-save--alist nil)
 
