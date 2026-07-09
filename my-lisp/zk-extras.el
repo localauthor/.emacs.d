@@ -409,18 +409,18 @@ Opens search results in an `xref' buffer."
 
 (defun zk-tag-completion-at-point ()
   "Completion at point function for tags."
-  (let* ((case-fold-search t)
-         (end (point))
-         (begin (when (and (zk-file-p)
-                           (save-excursion
-                             (re-search-backward "\\#\\+tags\\:" (line-beginning-position) t)))
-                  (if (looking-back " ")
-                      (point)
-                    (save-excursion
-                      (re-search-backward "\\#.*" nil t))
-                    (match-beginning 0))))
-         (candidates (zk--grep-tag-list)))
-    (when (and begin (<= begin end))
+  (when-let* ((id (zk-file-p))
+              (case-fold-search t)
+              (end (point))
+              (begin (when (save-excursion
+                             (re-search-backward "\\#\\+tags\\:" (line-beginning-position) t))
+                       (if (looking-back " ")
+                           (point)
+                         (save-excursion
+                           (re-search-backward "\\#.*" nil t))
+                         (match-beginning 0))))
+              (candidates (zk--grep-tag-list)))
+    (when  (<= begin end)
       (list begin
             end
             (completion-table-dynamic
