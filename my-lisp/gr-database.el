@@ -27,9 +27,6 @@
                           ;;calibre-dir
                           ))
 
-;; this becomes less useful when it finds the directories, not just filenames
-;; so append “-type f -iname” or just “-iname” or narrow after a semicolon ;
-
 (defun gr/database-find-file (&optional initial)
   "Find file in `gr/database-dirs’ using `consult--find'."
   (interactive)
@@ -37,9 +34,14 @@
          (paths (mapcar (lambda (p)
                           (file-relative-name (expand-file-name p)))
                         gr/database-dirs))
+         (consult-find-args "find . -not ( -path */.[A-Za-z]* -prune )")
          (builder (consult--find-make-builder paths)))
-    (find-file (gr/database-consult--find
-                "Find: " builder initial))))
+    (minibuffer-with-setup-hook
+        #'(lambda ()
+            (insert " -type f -iname") ;; remove “-type f” to include directories
+            (beginning-of-line))
+      (find-file (gr/database-consult--find
+                  "Find: " builder initial)))))
 
 (defun gr/database-consult--find (prompt builder initial)
   "Run find command in current directory.
