@@ -134,6 +134,23 @@ INITIAL is initial input."
 ;;     (consult-ripgrep "~/Databases/Academic.dtBase2/Files.noindex/pdf")))
 
 
+(defun gr/k2pdfopt-convert-pdf (file)
+  "Convert pdf FILE for ereader."
+  (interactive "fConvert file: ")
+  (unless (string= ".pdf" (url-file-extension file))
+    (user-error "Please select a pdf"))
+  (let ((pages (read-string "Pages: ")))
+    (async-shell-command
+     (concat
+      "k2pdfopt -evl 1 -ehl 1 -ac- -col 1 -mode def -fs 9.0 -w 1268p -h 1680p -dpi 300 -om 0.1 -y -a- -ui- -x "
+      (unless (or (string-empty-p pages)
+                  (null pages))
+        (concat "-p " pages " "))
+      "-o ~/ownCloud/ebook/%b_k2opt "
+      (shell-quote-argument
+       (expand-file-name file)))
+     "*k2pdfopt*")))
+
 
 (provide 'gr-database)
 ;;; gr-database.el ends here
