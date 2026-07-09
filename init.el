@@ -31,7 +31,6 @@
 (use-package diminish)
 
 (use-package gcmh
-  :disabled
   :demand t
   :config
   (gcmh-mode 1)
@@ -417,7 +416,7 @@ If region is active, add its contents to the new buffer."
      ["Editing"
       ("b" "visual page breaks" toggle-visual-page-breaks-local)
       ("r" "read only" read-only-mode)
-      ("n" "line numbers" display-line-numbers-mode)
+      ("ln" "line numbers" display-line-numbers-mode)
       ("fc"
        (lambda ()
          (concat "fill column "
@@ -770,6 +769,7 @@ If region is active, add its contents to the new buffer."
 ;;;; timer
 
 (use-package tmr
+  :disabled
   :config
   (add-to-list 'display-buffer-alist
                '("\\\\*tmr-tabulated-view\\\\*"
@@ -979,7 +979,7 @@ If region is active, add its contents to the new buffer."
   :ensure nil
   :custom
   (init-lock-files '("~/.emacs.d/init.el"))
-  :commands (init-lock))
+  :commands init-lock)
 
 ;;;; link-hint
 
@@ -1748,12 +1748,14 @@ Interactively, prompt for REGISTER with
              :state    ,#'consult--buffer-state
              :default  t
              :items
-             ,(lambda () (consult--buffer-query :sort 'visibility
-                                                :as #'consult--buffer-pair
-                                                :predicate
-                                                (lambda (buf)
-                                                  (unless (zk-file-p (buffer-file-name buf))
-                                                    buf)))))))
+             ,(lambda () (consult--buffer-query
+                          :sort 'visibility
+                          :as #'consult--buffer-pair
+                          :predicate
+                          (lambda (buf)
+                            (unless (and (buffer-file-name buf)
+                                         (zk-file-p (buffer-file-name buf)))
+                              buf)))))))
 
   ;; hides some sources
   (dolist (src '(consult-source-hidden-buffer
@@ -2093,7 +2095,8 @@ following the key as group 3."
   :defer 1)
 
 (use-package oc-csl
-  :ensure nil)
+  :ensure nil
+  :after oc)
 
 ;;;; citeproc / parsebib
 
@@ -3185,9 +3188,10 @@ Show at most `docsim-limit' results (or all of them, if
 ;;; eww /shr / web browsing
 
 (use-package shr
+  :defer t
   :custom
   (shr-inhibit-images nil)
-  (shr-max-image-proportion 0.7))
+  (shr-max-image-proportion 0.9))
 
 (use-package eww
   :bind
@@ -3635,26 +3639,27 @@ the buffer works like a pager."
             (prompt (read-string "Ask: " nil 'gptel-ask--history)))
         (when (string= prompt "") (user-error "A prompt is required."))
         (gptel-request
-            prompt
-          :callback
-          (lambda (response info)
-            (if (not response)
-                (message "gptel-ask failed with message: %s" (plist-get info :status))
-              (with-current-buffer (get-buffer-create "*gptel-ask*")
-                (let ((inhibit-read-only t))
-                  (erase-buffer)
-                  (insert response))
-                (special-mode)
-                (visual-line-mode 1)
-                (pop-to-buffer (current-buffer)))))
-          :system
-          (alist-get 'default gptel-directives)))))
+         prompt
+         :callback
+         (lambda (response info)
+           (if (not response)
+               (message "gptel-ask failed with message: %s" (plist-get info :status))
+             (with-current-buffer (get-buffer-create "*gptel-ask*")
+               (let ((inhibit-read-only t))
+                 (erase-buffer)
+                 (insert response))
+               (special-mode)
+               (visual-line-mode 1)
+               (pop-to-buffer (current-buffer)))))
+         :system
+         (alist-get 'default gptel-directives)))))
   )
 
 
 ;;;; org-chef
 
-(use-package org-chef)
+(use-package org-chef
+  :disabled)
 
 ;;;; transpose-frame
 
@@ -3742,6 +3747,36 @@ the buffer works like a pager."
 
   (add-to-list 'consult-recoll-open-fns '("application/pdf" . gr/consult-recoll-open-pdf))
   )
+
+
+;;;; howm
+
+(use-package howm
+  :defer t
+  :config
+  (require 'howm)
+  (setq howm-directory "~/howm"
+        howm-file-name-format "%Y/%M/%Y-%m-%d-%H%M%S.txt"))
+
+  ;; (setq zk-directory "~/howm"
+  ;;       zk-id-time-string-format "%Y-%m-%d-%H%M%S"
+  ;;       zk-id-regexp "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}-[0-9]\\{6\\}\\)"
+  ;;       zk-file-extension "txt"
+  ;;       zk-directory-recursive t)
+
+  ;; (setq zk-index-format-function
+  ;;       (lambda (files)
+  ;;         (let (output)
+  ;;           (dolist (file files output)
+  ;;             (when (string-match (zk-file-name-regexp) file)
+  ;;               (let ((id (if zk-index-invisible-ids
+  ;;                             (propertize (match-string 1 file) 'invisible t)
+  ;;                           (match-string 1 file)))
+  ;;                     (title (with-temp-buffer
+  ;;                              (insert-file-contents file)
+  ;;                              (goto-char (point-min))
+  ;;                              (buffer-substring-no-properties (line-beginning-position) (line-end-position)))))
+  ;;                 (push (zk--format zk-index-format id title) output)))))))
 
 ;;; Dev
 
@@ -3968,7 +4003,7 @@ Also see `gr/popup-frame-delete'." command)
 
 ;;;;; agenda, mu4e, citar popups, et al
 
-(gr/popup-frame-define zk-daily-note "medium-popup")
+(gr/popup-frame-define zk-daily-note "note-popup")
 
 (gr/popup-frame-define gr/org-agenda "medium-popup")
 

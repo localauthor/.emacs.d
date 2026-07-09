@@ -2,7 +2,7 @@
 
 ;;; CODE
 
-(require 'elfeed)
+;; (require 'elfeed)
 
 (use-package elfeed
   :pin melpa
@@ -40,6 +40,7 @@
         ("r" . gr/elfeed-toggle-unread)
         ("s" . gr/elfeed-toggle-star)
         ("n" . gr/elfeed-show-next)
+        ("m" . nil) ;; was compose-mail
         ("p" . gr/elfeed-show-prev)
         ("g" . elfeed-search-update--force)
         ("q" . delete-window)

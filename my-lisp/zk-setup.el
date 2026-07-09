@@ -290,12 +290,12 @@
   (zk-index-mode-hook . (lambda () (setq-local line-spacing 1)))
   :custom
   (zk-index-view-debounce-delay 0)
-  (zk-index-format "%i%t")
+  (zk-index-format "%i %t")
   (zk-index-invisible-ids t)
   (zk-index-button-display-function #'gr/zk-index-display-action)
   (zk-index-cursor 'bar)
   (zk-index-help-echo-function nil)
-  (zk-index-prefix " ")
+  (zk-index-prefix "")
   (zk-index-view-mode-lighter (list
                                " "
                                (propertize "ZK-View"
