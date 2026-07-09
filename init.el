@@ -1639,7 +1639,6 @@ Interactively, prompt for REGISTER with
   ("M-s s" . consult-locate)
   ("M-s g" . consult-ripgrep)
   ("M-s G" . consult-grep)
-  ("M-s t" . consult-macos-finder-tags)
   ("M-s r" . consult-ripgrep)
   ("M-s l" . consult-goto-line)
   ("M-s L" . consult-line-multi)
@@ -1670,8 +1669,6 @@ Interactively, prompt for REGISTER with
 
   :config
   ;; consult-preview settings
-
-  (require 'consult-macos-finder-tags)
 
   (setq xref-show-definitions-function #'consult-xref
         xref-show-xrefs-function #'consult-xref)
@@ -3700,6 +3697,15 @@ the buffer works like a pager."
         ("a" . doc-tags-add-doc))
   :custom
   (doc-tags-db-file "~/.emacs.d/var/doc-tags.db"))
+
+
+;;;; macos-finder-tags
+
+(use-package macos-finder-tags
+  :ensure nil
+  :bind
+  ("M-s t" . macos-finder-tags))
+
 
 ;;;; emacs-reader
 
