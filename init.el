@@ -1955,9 +1955,9 @@ Interactively, prompt for REGISTER with
   :after citar
   :ensure nil
   :bind*
-  ("M-'" . gr/citar-insert-citation)
-  ("C-'" . gr/citar-insert-citation)
-  ("C-M-'" . gr/citar-insert-previous-citation)
+  ("C-M-'" . gr/citar-insert-citation)
+  ("M-'" . gr/citar-insert-previous-citation)
+  ("C-'" . gr/citar-insert-previous-citation)
   ("C-\"" . gr/citar-insert-previous-citation)
   :bind
   (:map embark-mmd-citation-map
