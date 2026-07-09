@@ -3724,6 +3724,25 @@ the buffer works like a pager."
   (setopt empv-invidious-instance "https://inv.thepixora.com/api/v1")
   (add-to-list 'empv-mpv-args "--ytdl-format=bestvideo+bestaudio/best[ext=mp4]/best"))
 
+
+;;;; consult-recoll
+
+(use-package consult-recoll
+  :custom
+  (consult-recoll-inline-snippets t)
+  :config
+  (defun gr-recoll-format (_title url _mime-type)
+    (replace-regexp-in-string "file:///Users/grantrosson/Documents" "" url))
+
+  (setq consult-recoll-format-candidate #'gr-recoll-format)
+  (consult-recoll-embark-setup)
+
+  (defun gr/consult-recoll-open-pdf (file &optional page)
+    (shell-command (format "open '%s'" file)))
+
+  (add-to-list 'consult-recoll-open-fns '("application/pdf" . gr/consult-recoll-open-pdf))
+  )
+
 ;;; Dev
 
 ;;;; esup
