@@ -192,9 +192,12 @@
     "If active region, use region as description, otherwise zk-insert-link."
     (interactive "R")
     (if beg
-        (let* ((file (funcall zk-select-file-function "Insert link: "))
-               (id (zk--parse-file 'id file))
-               (desc (buffer-substring beg end)))
+        (let* ((desc (buffer-substring beg end))
+               (file (minibuffer-with-setup-hook
+                         #'(lambda ()
+                             (insert desc))
+                       (funcall zk-select-file-function "Insert link: ")))
+               (id (zk--parse-file 'id file)))
           (delete-region beg end)
           (insert (format "[[%s][%s]]" id desc))
           (zk-make-org-link-buttons))
