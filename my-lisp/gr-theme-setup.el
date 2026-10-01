@@ -13,9 +13,10 @@
 (use-package doric-themes
   :demand t
   :config
-  (require 'doric-obsidian-theme)
+  ;;(require 'doric-magma-theme)
+  (require 'doric-wind-theme)
   (require 'doric-marble-theme)
-  (doric-themes-select 'doric-marble))
+  (doric-themes-select 'doric-wind))
 
 (defun gr/custom-set-faces (&optional _)
   "My custom set faces for all themes.
@@ -31,14 +32,14 @@ Settinng these in use-package :custom-face doesn’t always transfer across them
 
    `(fixed-pitch ((t (:family "DejaVu Sans Mono"))))
 
-   `(variable-pitch ((t ( :family "SF Pro"
-                          :height 130))))
+   `(variable-pitch ((t ( :family "PT Serif"
+                          :height 140))))
 
 ;;; outline
 
    `(outline-1 ((t ( :weight bold
                      :underline (:style dashes)
-                     :height 190
+                     :height 1.3
                      :extend t))))
    `(outline-2 ((t (:bold t :underline t))))
    `(outline-3 ((t (:underline nil))))
@@ -68,8 +69,8 @@ Settinng these in use-package :custom-face doesn’t always transfer across them
    ;; `(org-document-info ((t (:slant italic))))
    `(org-meta-line ((t (:inherit default :weight light))))
    `(org-ellipsis ((t (:inherit default :underline nil))))
-   `(org-agenda-date ((t (:overline t :bold nil))))
-   `(org-agenda-date-weekend ((t (:foreground "forestgreen" :overline t :bold nil))))
+   `(org-agenda-date ((t (:height 1 :overline t :bold nil))))
+   `(org-agenda-date-weekend ((t (:height 1 :foreground "forestgreen" :overline t :bold nil))))
    `(org-agenda-date-today ((t (:foreground "black" :inverse-video nil :underline nil :italic nil :bold t :height 1 :overline t :box t))))
 
 ;;; minibuffer completion
@@ -88,7 +89,7 @@ Settinng these in use-package :custom-face doesn’t always transfer across them
    `(shr-text
      ((t ( :inherit nil
            :font "Baskerville"
-           :height 170))))
+           :height 1.3))))
 
 ;;; dired
    `(dired-directory
@@ -137,6 +138,8 @@ Settinng these in use-package :custom-face doesn’t always transfer across them
            :weight light))))
    `(header-line ((t (:inherit (mode-line)))))
    `(header-line-inactive ((t (:family "Menlo" :height 110))))
+
+   `(vc-edited-state ((t (:background "Green"))))
 
 ;;; emacs
 
@@ -187,14 +190,15 @@ Settinng these in use-package :custom-face doesn’t always transfer across them
 ;; enable theme or update customizations
 (if custom-enabled-themes
     (gr/custom-set-faces)
-  (load-theme 'doric-obsidian t)
+  (load-theme 'deeper-blue t)
   (load-theme 'gr-light t t))
+
 
 ;;; theme functions
 
-(defvar gr/light-themes '(doric-marble))
+(defvar gr/light-themes '(doric-marble)) ;;doric-wind
 
-(defvar gr/dark-themes '(doric-obsidian))  ;; modus-vivendi-tinted
+(defvar gr/dark-themes '(gr-dark leuven-dark deeper-blue))  ;; deeper-blue modus-vivendi-tinted
 
 (defun gr/themes-rotate-or-random (themes current)
   "Rotate THEMES rightward such that the car is moved to the end."
