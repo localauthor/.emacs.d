@@ -66,30 +66,31 @@
 
   (setq elfeed-show-entry-switch 'elfeed-olivetti)
 
-  (defmacro gr/elfeed-toggle-tag (tag)
-    `(defun ,(intern (concat "gr/elfeed-toggle-" (symbol-name tag))) ()
-       ,(concat "Toggle elfeed tag `" (symbol-name tag) "’")
-       (interactive)
-       (let* ((entry (or elfeed-show-entry
-                         (elfeed-search-selected t)))
-              (tags (if entry (elfeed-entry-tags entry)
-                      (error "No entry"))))
-         (if (eq major-mode 'elfeed-show-mode)
+  (eval-when-compile
+    (defmacro gr/elfeed-toggle-tag (tag)
+      `(defun ,(intern (concat "gr/elfeed-toggle-" (symbol-name tag))) ()
+         ,(concat "Toggle elfeed tag `" (symbol-name tag) "’")
+         (interactive)
+         (let* ((entry (or elfeed-show-entry
+                           (elfeed-search-selected t)))
+                (tags (if entry (elfeed-entry-tags entry)
+                        (error "No entry"))))
+           (if (eq major-mode 'elfeed-show-mode)
+               (if (elfeed-tagged-p ',tag entry)
+                   (progn
+                     (elfeed-show-untag ',tag)
+                     (message (concat "Untagged: " (symbol-name ',tag))))
+                 (elfeed-show-tag ',tag)
+                 (message (concat "Tagged: " (symbol-name ',tag))))
              (if (elfeed-tagged-p ',tag entry)
                  (progn
-                   (elfeed-show-untag ',tag)
+                   (elfeed-search-untag-all ',tag)
                    (message (concat "Untagged: " (symbol-name ',tag))))
-               (elfeed-show-tag ',tag)
-               (message (concat "Tagged: " (symbol-name ',tag))))
-           (if (elfeed-tagged-p ',tag entry)
-               (progn
-                 (elfeed-search-untag-all ',tag)
-                 (message (concat "Untagged: " (symbol-name ',tag))))
-             (elfeed-search-tag-all ',tag)
-             (message (concat "Tagged: " (symbol-name ',tag))))))))
+               (elfeed-search-tag-all ',tag)
+               (message (concat "Tagged: " (symbol-name ',tag))))))))
 
-  (gr/elfeed-toggle-tag unread)
-  (gr/elfeed-toggle-tag star)
+    (gr/elfeed-toggle-tag unread)
+    (gr/elfeed-toggle-tag star))
 
   (defun elfeed-mark-all-as-read ()
     (interactive)
@@ -132,8 +133,8 @@ _a_: all unread    _U_: update      _O_: org list"
   )
 
 (require 'elfeed-org)
+(setopt rmh-elfeed-org-files (list "~/Documents/org/elfeed.org"))
 (elfeed-org)
-(setq rmh-elfeed-org-files (list "~/Documents/org/elfeed.org"))
 
 ;;functions to support syncing .elfeed between machines
 ;;makes sure elfeed reads index from disk before launching
