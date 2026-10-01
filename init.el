@@ -28,7 +28,13 @@
                   (concat user-emacs-directory dir))))
   (recentf-mode 1))
 
-(use-package diminish)
+(use-package diminish
+  :demand t
+  :config
+  (with-eval-after-load 'face-remap
+    (diminish 'buffer-face-mode))
+  (with-eval-after-load 'scroll-lock
+    (diminish 'scroll-lock-mode)))
 
 (use-package gcmh
   :demand t
@@ -36,15 +42,15 @@
   (gcmh-mode 1)
   :diminish)
 
-(defun efs/display-startup-time ()
-  (message "Emacs loaded in %s with %d garbage collections (%.4f)"
-           (format "%.2f seconds"
-                   (float-time
-                    (time-subtract after-init-time before-init-time)))
-           gcs-done
-           gc-elapsed))
+;; (defun efs/display-startup-time ()
+;;   (message "Emacs loaded in %s with %d garbage collections (%.4f)"
+;;            (format "%.2f seconds"
+;;                    (float-time
+;;                     (time-subtract after-init-time before-init-time)))
+;;            gcs-done
+;;            gc-elapsed))
 
-(add-hook 'emacs-startup-hook #'efs/display-startup-time)
+;; (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
 ;;;; safe-local-variable-values
 
@@ -75,8 +81,7 @@
   eldoc-mode
   visual-line-mode
   abbrev-mode
-  auto-fill-mode
-  scroll-lock-mode
+  auto-fill-mode  
   :bind
   ("M-SPC" . (lambda () (interactive) (insert "; "))) ;; to account for quick typing when ; is set to Meta
   ("M-_" . (lambda () (interactive) (insert "—")))
@@ -87,7 +92,7 @@
   ("s-[" . previous-buffer)
   ("s-]" . next-buffer)
   ("C-c e" . eval-buffer)
-  ("M-o" . other-window)
+  ("M-o" . next-window-any-frame)
   ("<f2>" . nil)
   ("M-s-}" . enlarge-window-horizontally)
   ("M-s-{" . shrink-window-horizontally)
@@ -248,6 +253,13 @@
   (set-fringe-mode 5)
   )
 
+(use-package speedbar
+  :ensure nil
+  :commands (speedbar)
+  :config
+  (setq speedbar-prefer-window t)
+  (setq speedbar-use-images nil))
+
 (use-package repeat
   :defer 1
   :custom
@@ -372,6 +384,15 @@ If region is active, add its contents to the new buffer."
   :bind (:map gr-map
               ("C-l" . toggle-modes))
   :config
+
+  (defun gr/toggle-variable-pitch ()
+    "Toggle both buffer-face-mode and variable-pitch-mode cleanly."
+    (interactive)
+    (if buffer-face-mode
+        (buffer-face-mode -1)
+      (buffer-face-mode 1)
+      (variable-pitch-mode 1)))
+
   (transient-bind-q-to-quit)
   (transient-define-prefix toggle-modes ()
     "Turn on and off various frequently used modes."
@@ -379,6 +400,7 @@ If region is active, add its contents to the new buffer."
     [;:pad-keys t
      ["Appearance"
       ("t" "theme" gr/toggle-theme-light-dark)
+      ("V" "var-pitch" gr/toggle-variable-pitch)
       ("ls"
        (lambda () (concat "line spc"
                           (when line-spacing
@@ -414,7 +436,7 @@ If region is active, add its contents to the new buffer."
       ("os" "src" markdown-toggle-fontify-code-blocks-natively)]
 
      ["Editing"
-      ("b" "visual page breaks" toggle-visual-page-breaks-local)
+      ("b" "writing mode" writing-mode)
       ("r" "read only" read-only-mode)
       ("ln" "line numbers" display-line-numbers-mode)
       ("fc"
@@ -516,6 +538,22 @@ If region is active, add its contents to the new buffer."
 
 (add-hook 'text-mode-hook '(lambda () (line-number-mode -1)))
 
+;; only show vc-mode in mode-line for files in the following directories:
+;; (defvar gr/vc-mode-line-dirs '("/Users/grantrosson/.emacs.d/my-lisp/zk/"
+;;                                "/Users/grantrosson/.emacs.d/my-lisp/org-side-tree/"))
+
+;; (defun gr/vc-mode-line ()
+;;   (if (member
+;;        (file-name-directory buffer-file-name)
+;;        gr/vc-mode-line-dirs)
+;;       vc-mode
+;;     nil))
+
+;; (defvar-local gr/custom-vc-mode-line
+;;   '(:eval (gr/vc-mode-line)))
+
+;;(put 'gr/custom-vc-mode-line 'risky-local-variable t)
+
 (setq-default mode-line-format
               '(" "
                 display-time-string ;; left align
@@ -527,8 +565,9 @@ If region is active, add its contents to the new buffer."
                 "  "
                 mode-line-modes
                 " "
-                ;; vc-mode
-                ;; "  "
+                ;;vc-mode
+                ;;gr/custom-vc-mode-line
+                "  "
                 mode-line-format-right-align
                 mode-line-misc-info
                 " "
@@ -669,6 +708,11 @@ If region is active, add its contents to the new buffer."
          (post-command-select-window t)
          (side . left))
 
+        ((major-mode . org-side-tree-mode)
+         (display-buffer-in-side-window)
+         (post-command-select-window t)
+         (side . left))
+
         ((major-mode . dired-mode)
          (display-buffer-at-bottom)
          (post-command-select-window t)
@@ -731,37 +775,58 @@ If region is active, add its contents to the new buffer."
          (window-height . 0.3))
         ))
 
-(with-eval-after-load 'zk
-  (defun zk-index--wide-window-p (buf _act)
-    (and (with-current-buffer buf
-           (eq major-mode 'zk-index-mode))
-         (> (frame-outer-width)
-            (frame-outer-height))))
 
-  (defun zk-buffer-p (buf _act)
-    (with-current-buffer buf
-      (zk-file-p (buffer-file-name))))
+(with-eval-after-load 'zk
+
+  ;; the following defined in zk-index
+
+  ;; (defun zk-index--wide-window-p (buf _act)
+  ;;   (and (with-current-buffer buf
+  ;;          (eq major-mode 'zk-index-mode))
+  ;;        (> (frame-outer-width)
+  ;;           (frame-outer-height))))
+
+  ;; (defun zk-buffer-p (buf _act)
+  ;;   (with-current-buffer buf
+  ;;     (zk-file-p (buffer-file-name))))
+
+  (defun gr/zk-desktop-window-p (window)
+    (with-current-buffer (window-buffer window)
+      (bound-and-true-p zk-desktop-mode)))
+
+  (defun gr/zk-display-note (buffer alist)
+    "Show note BUFFER in a window other than a ZK-Desktop's.
+Reuse a window already showing a note, else the selected window, unless
+either is a desktop.  A desktop is an org file too, so
+`display-buffer-reuse-mode-window' and `display-buffer-same-window'
+would replace it."
+    (let ((ok (lambda (w)
+                (and (not (gr/zk-desktop-window-p w))
+                     (not (window-dedicated-p w))
+                     (not (window-minibuffer-p w))))))
+      (or (display-buffer-reuse-window buffer alist)
+          (when-let* ((w (seq-find (lambda (w)
+                                     (and (funcall ok w)
+                                          (not (window-parameter w 'window-side))
+                                          (not (eq w (selected-window)))
+                                          (zk-buffer-p (window-buffer w))))
+                                   (window-list nil 'nomini))))
+            (window--display-buffer buffer w 'reuse alist))
+          (when (funcall ok (selected-window))
+            (display-buffer-same-window buffer alist)))))
 
   (setq display-buffer-alist
         (append
-         '((zk-index--wide-window-p
+         '(((major-mode . zk-index-mode)
+            ;; beneath the desktop, if there is one on screen, else at the
+            ;; side (wide frame) or the bottom (tall frame)
             (display-buffer-reuse-window
-             display-buffer-in-direction)
+             zk-index-display-action)
             (post-command-select-window t)
-            (dedicated . t)
-            (direction . left)
-            (window-width . 0.4))
-
-           ((major-mode . zk-index-mode)
-            (display-buffer-in-direction)
-            (direction . bottom)
-            (post-command-select-window t)
-            (dedicated . t)
-            (window-height . 0.45))
+            (dedicated . t))
 
            (zk-buffer-p
-            (display-buffer-reuse-mode-window
-             display-buffer-same-window
+            (gr/zk-display-note
              display-buffer-in-direction)
             (direction . right)))
          display-buffer-alist)))
@@ -792,8 +857,6 @@ If region is active, add its contents to the new buffer."
   ("C-x p r" . gr/pr-refile)
   ("C-x p i" . gr/pr-prepare-invoice)
   ("C-x p c" . gr/pr-consult-org-todo)
-  ("C-x p C" . (lambda () (interactive)
-                 (gr/pr-consult-org-todo 'all)))
   (:map org-mode-map
         ("C-c C-w" . gr/org-refile))
 
@@ -900,7 +963,7 @@ If region is active, add its contents to the new buffer."
       (:around (orig-fun bmk-record)
                gr/bookmark-find-from-dir-or-default)
     "Around advice for bookmark-default-handler.
-  Calls through unless bookmark is a directory, in which case, calls find-file."
+    Calls through unless bookmark is a directory, in which case, calls find-file."
     (let ((file (bookmark-get-filename bmk-record)))
       (if (file-directory-p file)
           (let ((default-directory file))
@@ -986,7 +1049,19 @@ If region is active, add its contents to the new buffer."
 (use-package link-hint
   :custom
   (link-hint-message nil)
-  :defer 1)
+  :defer 1
+  :bind
+  (:map gr-map
+        ("O" . link-hint-other-tab))
+  :config
+  (defvar link-hint-avy-style 'post)
+
+  (defun link-hint-other-tab ()
+    "Use avy to open a link in other-tab."
+    (interactive)
+    (avy-with link-hint-other-tab
+      (link-hint--one :other-tab)))
+  )
 
 (use-package link-hint-aw-select
   :ensure nil
@@ -1008,7 +1083,8 @@ If region is active, add its contents to the new buffer."
   ;; open org-links in same window
   ;; allows link-hint--aw-select-org-link to work properly
   (with-eval-after-load 'org
-    (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)))
+    (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file))
+  )
 
 (use-package link-hint-preview
   :ensure nil
@@ -1127,24 +1203,24 @@ If region is active, add its contents to the new buffer."
   ("C-c C" . org-clock-goto)
   (:map org-mode-map
         ("C-c ;" . nil)
-        ("<tab>" . org-cycle)
-        ("C-c ," . org-insert-structure-template)
-        ("C-c C-<tab>" . org-force-cycle-archived)
-        ("<M-S-left>" . nil)
-        ("<M-S-right>" . nil)
-        ("<M-left>" . nil)
-        ("<M-right>" . nil)
-        ("C-<left>" . org-metaleft)
-        ("C-<right>" . org-metaright)
-        ("M-<up>" . backward-paragraph)
-        ("M-<down>" . forward-paragraph)
-        ("C-S-<up>" . org-metaup)
-        ("C-S-<down>" . org-metadown)
-        ("C-S-<left>" . org-shiftmetaleft)
-        ("C-S-<right>" . org-shiftmetaright)
-        ("C-<return>" . org-meta-return)
-        ("M-<return>" . org-insert-heading-respect-content)
-        ("" . org-cycle-agenda-files))
+    ("<tab>" . org-cycle)
+    ("C-c ," . org-insert-structure-template)
+    ("C-c C-<tab>" . org-force-cycle-archived)
+    ("<M-S-left>" . nil)
+    ("<M-S-right>" . nil)
+    ("<M-left>" . nil)
+    ("<M-right>" . nil)
+    ("C-<left>" . org-metaleft)
+    ("C-<right>" . org-metaright)
+    ("M-<up>" . backward-paragraph)
+    ("M-<down>" . forward-paragraph)
+    ("C-S-<up>" . org-metaup)
+    ("C-S-<down>" . org-metadown)
+    ("C-S-<left>" . org-shiftmetaleft)
+    ("C-S-<right>" . org-shiftmetaright)
+    ("C-<return>" . org-meta-return)
+    ("M-<return>" . org-insert-heading-respect-content)
+    ("" . org-cycle-agenda-files))
 
   :mode (("\\.org$" . org-mode))
 
@@ -1432,37 +1508,25 @@ Interactively, prompt for REGISTER with
 
 ;;;; completion-preview-mode
 
-;; ;; Enable Completion Preview mode in code buffers
-;; (add-hook 'prog-mode-hook #'completion-preview-mode)
-
-;; ;; ;; also in text buffers
-;; ;; (add-hook 'text-mode-hook #'completion-preview-mode)
-
-;; ;; and in \\[shell] and friends
-;; (with-eval-after-load 'comint
-;;   (add-hook 'comint-mode-hook #'completion-preview-mode))
-
-;; (with-eval-after-load 'completion-preview
-;;   ;; Show the preview already after two symbol characters
-;;   (setq completion-preview-minimum-symbol-length 2)
-
-;;   ;;   ;; Non-standard commands that should show the preview:
-
-;;   ;;   ;; Org mode has a custom `self-insert-command'
-;;   ;;   (push 'org-self-insert-command completion-preview-commands)
-;;   ;;   ;; Paredit has a custom `delete-backward-char' command
-;;   ;;   (push 'paredit-backward-delete completion-preview-commands)
-
-;;   ;;   ;; Bindings that take effect when the preview is shown:
-
-;;   ;; Cycle the completion candidate that the preview shows
-;;   (keymap-set completion-preview-active-mode-map "M-n"
-;;               #'completion-preview-next-candidate)
-;;   (keymap-set completion-preview-active-mode-map "M-p"
-;;               #'completion-preview-prev-candidate)
-;;   ;; Convenient alternative to C-i after typing one of the above
-;;   (keymap-set completion-preview-active-mode-map "M-i"
-;;               #'completion-preview-insert))
+(use-package completion-preview
+  :ensure nil
+  :diminish
+  :hook
+  (prog-mode-hook . completion-preview-mode)
+  (comint-mode-hook . completion-preview-mode)
+  (text-mode-hook . completion-preview-mode)
+  :custom
+  (completion-preview-minimum-symbol-length 3)
+  (completion-preview-exact-match-only nil)
+  (completion-preview-idle-delay 0.3)
+  :bind
+  (:map completion-preview-active-mode-map
+        ("M-n" . completion-preview-next-candidate)
+        ("M-p" . completion-preview-prev-candidate)
+        ("M-f" . completion-preview-insert-word))
+  :config
+  ;; Org mode has a custom `self-insert-command'
+  (add-to-list 'completion-preview-commands 'org-self-insert-command))
 
 
 ;;;; embark
@@ -1666,6 +1730,9 @@ Interactively, prompt for REGISTER with
   (consult-async-split-style 'semicolon)
   (consult-preview-key "M-\\")
   (consult-locate-args "mdfind -name")
+  (consult-async-input-debounce 0.1)
+  (consult-async-input-throttle 0.1)
+  (consult-async-refresh-delay 0.1)
 
   :config
   ;; consult-preview settings
@@ -1782,7 +1849,7 @@ Interactively, prompt for REGISTER with
   :bind ("C-x C-d" . consult-dir)
   :custom
   (consult-dir-sources '(consult-dir--source-writings
-                         consult-dir--source-classes
+                         ;;consult-dir--source-classes
                          consult-dir--source-bookmark
                          consult-dir--source-recentf))
   :config
@@ -1997,11 +2064,9 @@ Interactively, prompt for REGISTER with
 
   (citar-library-file-extensions '("pdf" "epub"))
   (citar-library-paths-recursive t)
-  (citar-library-paths '("~/Documents/Books and Readings/"
-                         "~/Documents/Scholarship and Theory/"
+  (citar-library-paths '("~/Documents/Books/Files/"
                          "~/Documents/Vilnius University Docs/"
-                         "~/Documents/Academic Work/"
-                         "~/Calibre Library/"))
+                         "~/Documents/Academic Work/"))
 
   (citar-file-note-extensions '("org" "md"))
   (citar-file-open-functions '(("html" . citar-file-open-external)
@@ -2304,17 +2369,13 @@ following the key as group 3."
 
 (use-package zk-setup
   :ensure nil
-  ;; :after hydra
+  :demand t
   :bind
-  ;;("C-z" . hydra-zk/body)
   (:map gr-map
         ("C-k" . (lambda ()
                    (interactive)
                    (zk-find-file-by-id "201801190001")))
-        ("." . zk-index-switch-to-index)
-        ("C-z" . zk-index-switch-to-index)
-        ("N" . zk-daily-note))
-  :demand t)
+        ("C-z" . zk-index-switch-to-index)))
 
 ;;;; org-side-tree
 
@@ -2418,7 +2479,7 @@ following the key as group 3."
   (nov-mode-hook)
   (quick-sdcv-mode-hook)
   :config
-  (setq-default olivetti-body-width .95)
+  (setq-default olivetti-body-width .80)
   (setq olivetti-minimum-body-width 77)
   (setq olivetti-recall-visual-line-mode-entry-state t))
 
@@ -2548,7 +2609,7 @@ add the word to `ispell-personal-dictionary'. Abort with `C-g'."
 (use-package ox-reveal
   :after org
   :custom
-  (org-reveal-root "~/.reveal.js")
+  (org-reveal-root "~/.reveal.js/")
   (org-reveal-single-file t)
   (org-reveal-theme "moon")
   (org-reveal-hlevel 3))
@@ -2619,7 +2680,7 @@ add the word to `ispell-personal-dictionary'. Abort with `C-g'."
     (interactive)
     (let ((browse-url-browser-function 'browse-url-default-browser))
       (if
-          (equal 1 (shell-command "pgrep 'hugo -t hugo-la-rocinante'"))
+          (equal 1 (shell-command "pgrep 'hugo'"))
           (start-process-shell-command "hugo server" "*hugo server*" "cd ~/Documents/Sites/localauthor && hugo server --noHTTPCache --ignoreCache --disableFastRender")
         nil)
       (browse-url "http://localhost:1313/")))
@@ -2650,23 +2711,6 @@ add the word to `ispell-personal-dictionary'. Abort with `C-g'."
   :bind
   (:map gr-map
         ("w" . org-wc-display)))
-
-;;;; visual-page-breaks
-
-(use-package visual-page-breaks
-  :ensure nil
-  :diminish visual-page-breaks-mode
-  :bind
-  (:map gr-map
-        ("W" . toggle-visual-page-breaks-local))
-  :demand t
-  :config
-  ;; (visual-page-breaks-mode -1)
-  (with-eval-after-load 'zk
-    (setq visual-page-breaks-alist
-          '(((zk-file-p)
-             (lines . 30)
-             "|---------------------- CARD %p ---------------[%w]-----|")))))
 
 ;;;; docsim
 
@@ -2713,6 +2757,13 @@ Show at most `docsim-limit' results (or all of them, if
     (interactive)
     (gr/docsim-search (current-buffer)))
   )
+
+;;;; writing suite (private; see my-lisp/priv-lisp/writing/)
+
+(use-package writing-setup
+  :ensure nil
+  :demand t
+  :after olivetti)
 
 
 ;;; Packages
@@ -2832,7 +2883,7 @@ Show at most `docsim-limit' results (or all of them, if
   ("C-x m" . magit-status)
 
   :custom-face
-  (diff-refine-added ((t (:background "yellow" :foreground "red"))))
+  (diff-refine-added ((t (:background "green" :foreground "red"))))
 
   :custom
   (magit-diff-refine-hunk t))
@@ -2889,6 +2940,9 @@ Show at most `docsim-limit' results (or all of them, if
                                (not (mode . special-mode))
                                (not (name . "^\\*scratch"))
                                (not (name . "magit")))))
+           ("MBP Server" (name . "192.168.1.7"))
+           ("backup-scripts" (directory . "/backup-scripts/"))
+           ("Photos-SSD" (directory . "Volumes/Photos-SSD/"))
            ("ZK" (or (name . "*ZK")
                      (and (directory . "/ZK/")
                           (filename . "\\.org$")
@@ -2936,7 +2990,7 @@ Show at most `docsim-limit' results (or all of them, if
 ;;;; dired
 
 ;; to allow --group-directories-first to work on osx
-(setq insert-directory-program "/usr/local/bin/gls")
+(setq insert-directory-program "/opt/homebrew/bin/gls")
 
 (use-package dired
   :ensure nil
@@ -3185,7 +3239,7 @@ Show at most `docsim-limit' results (or all of them, if
               ("e" . wgrep-change-to-wgrep-mode)
               ("C-x C-q" . wgrep-change-to-wgrep-mode)))
 
-;;; eww /shr / web browsing
+;;;; eww /shr / web browsing
 
 (use-package shr
   :defer t
@@ -3289,12 +3343,12 @@ Show at most `docsim-limit' results (or all of them, if
 
 ;;;; wind-move
 
-(use-package windmove
-  :bind*
-  ("C-M-j" . windmove-left)
-  ("C-M-k" . windmove-down)
-  ("C-M-i" . windmove-up)
-  ("C-M-l" . windmove-right))
+;; (use-package windmove
+;;   :bind*
+;;   ("C-M-j" . windmove-left)
+;;   ("C-M-k" . windmove-down)
+;;   ("C-M-i" . windmove-up)
+;;   ("C-M-l" . windmove-right))
 
 ;;;; ace-window
 
@@ -3352,6 +3406,7 @@ Show at most `docsim-limit' results (or all of them, if
           occur-mode
           grep-mode
           zk-index-mode
+          writing-dashboard-mode
           eshell-mode
           quick-sdcv-mode
           org-agenda-mode
@@ -3364,8 +3419,9 @@ Show at most `docsim-limit' results (or all of them, if
   (defun gr/popper-group-function ()
     ;; the condition has to match both the window and the popup?
     (cond
-     ((or (zk-file-p (buffer-file-name))
-          (string-match-p zk-index-buffer-name (buffer-name)))
+     ((and (featurep 'zk)
+           (or (zk-file-p (buffer-file-name))
+               (string-match-p zk-index-buffer-name (buffer-name))))
       'zk)
      (t 'default-group)))
 
@@ -3567,6 +3623,7 @@ the buffer works like a pager."
   :custom
   (gptel-default-mode 'org-mode)
   (gptel-model "gpt-4.1-mini")
+  (gptel-cache t) ;; only works for claude
   :init
   (setq gptel-expert-commands t
         gptel-track-response nil
@@ -3578,18 +3635,21 @@ the buffer works like a pager."
   ;; (transient-suffix-put 'gptel-menu (kbd "-m") :key "M")
   ;; (transient-suffix-put 'gptel-menu (kbd "-T") :key "T")
 
-
-  (gptel-make-gemini "Gemini"
-    :key (gptel-api-key-from-auth-source "api.gemini.ai")
-    :stream t)
-
   (gptel-make-anthropic "Claude"
     :key (gptel-api-key-from-auth-source "api.anthropic.ai")
     :stream t)
 
-  (gptel-make-perplexity "Perplexity"
-    :key (gptel-api-key-from-auth-source "api.perplexity.ai")
+  (gptel-make-openai "ChatGPT"
+    :key (gptel-api-key-from-auth-source "api.openai.com")
     :stream t)
+
+  ;; (gptel-make-perplexity "Perplexity"
+  ;;   :key (gptel-api-key-from-auth-source "api.perplexity.ai")
+  ;;   :stream t)
+
+  ;; (gptel-make-gemini "Gemini"
+  ;;   :key (gptel-api-key-from-auth-source "api.gemini.ai")
+  ;;   :stream t)
   )
 
 (use-package gptel-org
@@ -3713,7 +3773,11 @@ the buffer works like a pager."
 (use-package macos-finder-tags
   :ensure nil
   :bind
-  ("M-s t" . macos-finder-tags))
+  ("M-s t" . macos-finder-tags)
+  (:map embark-file-map
+        ("T" . macos-finder-tags-set-tags)
+        ("R" . macos-finder-tags-remove-tags))
+  )
 
 
 ;;;; emacs-reader
@@ -3758,25 +3822,54 @@ the buffer works like a pager."
   (setq howm-directory "~/howm"
         howm-file-name-format "%Y/%M/%Y-%m-%d-%H%M%S.txt"))
 
-  ;; (setq zk-directory "~/howm"
-  ;;       zk-id-time-string-format "%Y-%m-%d-%H%M%S"
-  ;;       zk-id-regexp "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}-[0-9]\\{6\\}\\)"
-  ;;       zk-file-extension "txt"
-  ;;       zk-directory-recursive t)
+;; (setq zk-directory "~/howm"
+;;       zk-id-time-string-format "%Y-%m-%d-%H%M%S"
+;;       zk-id-regexp "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}-[0-9]\\{6\\}\\)"
+;;       zk-file-extension "txt"
+;;       zk-directory-recursive t)
 
-  ;; (setq zk-index-format-function
-  ;;       (lambda (files)
-  ;;         (let (output)
-  ;;           (dolist (file files output)
-  ;;             (when (string-match (zk-file-name-regexp) file)
-  ;;               (let ((id (if zk-index-invisible-ids
-  ;;                             (propertize (match-string 1 file) 'invisible t)
-  ;;                           (match-string 1 file)))
-  ;;                     (title (with-temp-buffer
-  ;;                              (insert-file-contents file)
-  ;;                              (goto-char (point-min))
-  ;;                              (buffer-substring-no-properties (line-beginning-position) (line-end-position)))))
-  ;;                 (push (zk--format zk-index-format id title) output)))))))
+;; (setq zk-index-format-function
+;;       (lambda (files)
+;;         (let (output)
+;;           (dolist (file files output)
+;;             (when (string-match (zk-file-name-regexp) file)
+;;               (let ((id (if zk-index-invisible-ids
+;;                             (propertize (match-string 1 file) 'invisible t)
+;;                           (match-string 1 file)))
+;;                     (title (with-temp-buffer
+;;                              (insert-file-contents file)
+;;                              (goto-char (point-min))
+;;                              (buffer-substring-no-properties (line-beginning-position) (line-end-position)))))
+;;                 (push (zk--format zk-index-format id title) output)))))))
+
+
+;;;; vterm
+
+(use-package vterm)
+
+;;;; tramp
+
+;; https://coredumped.dev/2025/06/18/making-tramp-go-brrrr./
+
+(use-package tramp
+  :ensure nil
+  :config
+  (setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
+        tramp-verbose 2)
+  (setq remote-file-name-inhibit-locks t
+        tramp-use-scp-direct-remote-copying t
+        remote-file-name-inhibit-auto-save-visited t)
+  (with-eval-after-load 'tramp
+    (with-eval-after-load 'compile
+      (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+
+  (defun add-server-postfix ()
+    "Add the name of the connection type and server to the buffer name"
+    (if (string-match "^/ssh:.*?:" (buffer-file-name (current-buffer)))
+        (rename-buffer (concat (buffer-name (current-buffer)) "<" (match-string 0 (buffer-file-name (current-buffer))) ">")) nil))
+
+  (add-hook 'find-file-hook 'add-server-postfix))
+
 
 ;;; Dev
 
@@ -3798,6 +3891,8 @@ the buffer works like a pager."
   :ensure nil
   :vc (:url "https://github.com/riscy/melpazoid")
   "elpa/melpazoid/melpazoid/melpazoid.el"
+  :load-path "elpa/melpazoid/melpazoid/"
+  :commands melpazoid
   :bind
   (:map gr-map
         ("E" . gr/toggle-elisp-check-buffer))
