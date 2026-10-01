@@ -156,11 +156,11 @@ can be DOI, ISBN, PMID, or arXiv ID."
                     "Name: "
                     (concat (ebib-zotero-formatted-file-name)
                             (file-name-extension file t)))))
-    (if (y-or-n-p "Keep original?")
-        (copy-file file (concat "~/Documents/Inbox/"
+    (if-let* ((new-name (concat "~/Documents/Books/To Import (Books)/"
                                 filename))
-      (rename-file file (concat "~/Documents/Inbox/"
-                                filename)))
+              (_ (y-or-n-p "Keep original?")))
+        (copy-file file new-name)
+      (rename-file file new-name))
     (message "File added: %s" filename)))
 
 (defun ebib-zotero-cleanup-string (string)

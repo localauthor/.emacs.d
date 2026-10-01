@@ -18,14 +18,11 @@
 
 (defvar calibre-dir "~/Calibre Library/")
 
-(setopt gr/database-dirs (list
-                          "~/Documents/Books and Readings/"
-                          "~/Documents/Scholarship and Theory/"
-                          "~/Documents/Vilnius University Docs/"
-                          "~/Documents/Academic Work/"
-                          ;; voice-dream-dir
-                          ;;calibre-dir
-                          ))
+(setq gr/database-dirs (list
+                        "~/Documents/Books/Files/"
+                        "~/Documents/Vilnius University Docs/"
+                        "~/Documents/Academic Work/"
+                        ))
 
 (defun gr/database-find-file (&optional initial)
   "Find file in `gr/database-dirs’ using `consult--find'."
