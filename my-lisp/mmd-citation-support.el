@@ -156,7 +156,7 @@
                        (format "Cite %s: " key)
                        last-pages)))))
     (if (or (zk-file-p)
-            (string= "*scratch*" (buffer-name))
+            (null buffer-file-name)
             (file-in-directory-p (or buffer-file-name
                                      ;;for indirect clones
                                      (buffer-file-name
