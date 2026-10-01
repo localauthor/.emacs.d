@@ -136,6 +136,85 @@ When called interactively, select date."
   (interactive "fFind file:")
   (call-process "open" nil 0 nil (expand-file-name file)))
 
+
+;;; osxphotos
+
+;; (defalias 'gr/osxphotos-list-new-files
+;;   (kmacro "C-SPC C-s n e w C-a C-p C-p C-d C-SPC C-SPC C-n C-n C-n"))
+
+(defalias 'gr/osxphotos-list-uuids
+  (kmacro "C-SPC C-s ( C-f <backspace> C-s . C-b C-f C-k C-a C-n"))
+
+(defun gr/osxphotos-process-output ()
+  (interactive)
+  (gr/osxphotos-list-new-files)
+  (gr/osxphotos-list-uuids))
+
+(defun gr/osxphotos-list-new-files ()
+  (interactive)
+  (goto-char (point-min))
+  (while (save-excursion
+           (re-search-forward "new" nil t))
+    (push-mark)
+    (re-search-forward "new" nil t)
+    (beginning-of-line)
+    (forward-line -2)
+    (delete-active-region)
+    (deactivate-mark 'force)
+    (forward-line 3))
+  (push-mark)
+  (goto-char (point-max))
+  (delete-active-region))
+
+(defun gr/osxphotos-list-uuids ()
+  (interactive)
+  (goto-char (point-min))
+  (keep-lines "Exporting")
+  (while (not (eobp))
+    (push-mark)
+    (re-search-forward "(" (pos-eol))
+    (delete-active-region)
+    (re-search-forward "\\.")
+    (forward-char -1)
+    (kill-line)
+    (forward-line)))
+
+(defun delete-non-duplicate-lines (beg end)
+  "Delete all lines in the region that are NOT duplicated.
+That is, leave only lines that appear more than once in the region.
+Returns the number of lines deleted."
+  (interactive "r")
+  (save-excursion
+    (unless beg (goto-char (point-min)))
+    (let ((line-counts (make-hash-table :test 'equal))
+          (deleted-count 0)
+          (lines '())
+          (positions '())
+          (orig-end (copy-marker end)))
+      ;; First pass: count occurrences and store lines/positions
+      (save-excursion
+        (goto-char beg)
+        (while (< (point) orig-end)
+          (let ((start (point))
+                (line (buffer-substring-no-properties
+                       (line-beginning-position) (line-end-position))))
+            (push line lines)
+            (push start positions)
+            (puthash line (1+ (gethash line line-counts 0)) line-counts)
+            (forward-line 1))))
+      (setq lines (nreverse lines))
+      (setq positions (nreverse positions))
+      ;; Second pass: delete lines occurring only once, in reverse to preserve positions
+      (save-excursion
+        (cl-loop for pos in (reverse positions)
+                 for line in (reverse lines)
+                 do (when (= (gethash line line-counts 0) 1)
+                      (goto-char pos)
+                      (delete-region (line-beginning-position)
+                                     (min (point-max) (1+ (line-end-position))))
+                      (cl-incf deleted-count))))
+      deleted-count)))
+
 ;;; bluetooth
 
 (defun gr/process-output (program &rest args)
@@ -396,4 +475,10 @@ Navigate to files in dired, mark files, and execute command."
   (replace-string "
 ,*** " " "))
 
+
+
 (provide 'gr-functions)
+
+
+
+
