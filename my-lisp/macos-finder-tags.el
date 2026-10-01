@@ -15,17 +15,21 @@
 ;; - confirmation message
 
 ;; issues:
+;; - tag command line tool is abandonware, and doesn’t work on MacOS Tahoe
 ;; - “tag --find” doesn’t look in hidden directories
 ;; - so a tagged elisp file isn’t really registered
-;; - tag command line tool is abandonware, and doesn’t work on MacOS Tahoe
 
 ;;; Code:
-
-(require 'consult)
 
 (defvar macos-finder-tags-history nil)
 
 ;;; utilities
+
+(defun macos-finder-tags--ensure-executable ()
+  "Signal a clear error if the `tag' command-line tool is unavailable."
+  (unless (executable-find "tag")
+    (user-error "The `tag' command-line tool is not installed \
+(see https://github.com/jdberry/tag)")))
 
 (defun macos-finder-tags--group-function (file transform)
   "TRANSFORM completion candidate FILE."
@@ -35,25 +39,17 @@
 
 (defun macos-finder-tags-list ()
   "Return a list of all unique Finder tags on macOS."
-  (let* ((cmd "tag --find '*' --tags --no-name -g")
-         (output (shell-command-to-string cmd))
-         (tags (split-string output "\n" t)))
-    tags))
+  (macos-finder-tags--ensure-executable)
+  (process-lines "tag" "--find" "*" "--tags" "--no-name" "-g"))
 
-(defun macos-finder-tags--shell-format (tags)
-  "Format TAGS list as shell-quoted, comma-separated string."
-  (mapconcat
-   (lambda (tag)
-     (format "\"%s\"" tag))
-   tags ","))
+(defun macos-finder-tags--join (tags)
+  "Format TAGS list as a comma-separated string, as `tag' expects."
+  (mapconcat #'identity tags ","))
 
 (defun macos-finder-tags--prompt-format (tags)
   "Format TAGS list as comma-separated string.
-Suitable for initial value of `macos-finder-tags--prompt’."
-  (mapconcat
-   (lambda (tag)
-     (format "%s" tag))
-   tags ", "))
+Suitable for initial value of `macos-finder-tags--prompt'."
+  (mapconcat #'identity tags ", "))
 
 (defvar crm-separator)
 
@@ -77,15 +73,10 @@ Suitable for initial value of `macos-finder-tags--prompt’."
   "Find files with MacOS finder TAGS."
   (interactive
    (list (macos-finder-tags--prompt)))
-  (let ((files (split-string
-                (shell-command-to-string
-                 (concat "tag --find "
-                         (macos-finder-tags--shell-format tags)
-                         " '*'"))
-                "\n" t)))
+  (macos-finder-tags--ensure-executable)
+  (let ((files (process-lines "tag" "--find" (macos-finder-tags--join tags) "*")))
     (find-file (completing-read
-                (format "Tagged %s: "
-                        (macos-finder-tags--shell-format tags))
+                (format "Tagged %s: " (macos-finder-tags--join tags))
                 (completion-table-with-metadata
                  (completion-table-dynamic
                   (lambda (_)
@@ -98,29 +89,26 @@ Suitable for initial value of `macos-finder-tags--prompt’."
 
 (defun macos-finder-tags--file-tags (file)
   "Return list of tags for FILE."
-  (split-string
-   (shell-command-to-string
-    (concat "tag --no-name "
-            (shell-quote-argument (expand-file-name file))))
-   "," t "\n"))
+  (macos-finder-tags--ensure-executable)
+  (if-let* ((line (car (process-lines "tag" "--no-name" (expand-file-name file)))))
+      (split-string line "," t)
+    nil))
 
 ;;;###autoload
 (defun macos-finder-tags-set-tags (file)
   "Interactively set tags for FILE."
   (interactive
    (list (read-file-name "File: ")))
+  (macos-finder-tags--ensure-executable)
   (let* ((file-tags (macos-finder-tags--file-tags file))
          (set-tags (macos-finder-tags--prompt
                     (concat
                      (macos-finder-tags--prompt-format file-tags)
                      (when file-tags ",")))))
-    (shell-command
-     (concat (if (null set-tags)
-                 "tag --remove \\* "
-               "tag --set ")
-             (macos-finder-tags--shell-format set-tags)
-             " "
-             (shell-quote-argument (expand-file-name file))))))
+    (if (null set-tags)
+        (call-process "tag" nil nil nil "--remove" "*" (expand-file-name file))
+      (call-process "tag" nil nil nil "--set" (macos-finder-tags--join set-tags)
+                    (expand-file-name file)))))
 
 (defun macos-finder-tags-select-tags (file &optional prompt)
   "List tags for FILE, with optional PROMPT."
@@ -129,36 +117,41 @@ Suitable for initial value of `macos-finder-tags--prompt’."
    (macos-finder-tags--file-tags file)))
 
 (defun macos-finder-tags-add-tags (file &optional tags)
-  "Add tag to FILE.
-See `macos-finder-tags-set-tags’ for more interactive UI."
+  "Add TAGS to FILE.
+See `macos-finder-tags-set-tags' for more interactive UI."
   (interactive
    (list (read-file-name "File: ")))
+  (macos-finder-tags--ensure-executable)
   (let ((tags (or tags
                   (macos-finder-tags--prompt))))
-    (shell-command
-     (concat "tag --add "
-             (macos-finder-tags--shell-format tags)
-             " "
-             (shell-quote-argument (expand-file-name file))))))
+    (call-process "tag" nil nil nil "--add" (macos-finder-tags--join tags)
+                  (expand-file-name file))))
 
 (defun macos-finder-tags-remove-tags (file)
   "Remove tag from FILE."
   (interactive
    (list (read-file-name "File: ")))
+  (macos-finder-tags--ensure-executable)
   (let ((tags (macos-finder-tags-select-tags file "Remove: ")))
-    (shell-command
-     (concat "tag --remove "
-             (macos-finder-tags--shell-format tags)
-             " "
-             (shell-quote-argument (expand-file-name file))))))
+    (call-process "tag" nil nil nil "--remove" (macos-finder-tags--join tags)
+                  (expand-file-name file))))
 
+
+;;; file annotation
+
+;; would be slow on large file sets
+;; could gate it, if less than... 50 files?
+
+;; (defun macos-finder-tags-annot (cand)
+;;   (when-let* ((tag (macos-finder-tags--file-tags (expand-file-name cand))))
+;;     tag))
 
 ;;; embark integration
 
-(defvar embark-file-map)
+;; (defvar embark-file-map)
 
-(define-key embark-file-map (kbd "T") #'macos-finder-tags-set-tags)
-(define-key embark-file-map (kbd "R") #'macos-finder-tags-remove-tags)
+;; (define-key embark-file-map (kbd "T") #'macos-finder-tags-set-tags)
+;; (define-key embark-file-map (kbd "R") #'macos-finder-tags-remove-tags)
 
 
 ;;; old
@@ -217,7 +210,6 @@ See `macos-finder-tags-set-tags’ for more interactive UI."
 ;;   (let ((default-directory "~/"))
 ;;     (find-file (consult--mdfind-find "Files: " #'consult-macos-tags--builder (shell-quote-argument input)))))
 
-
 ;; (consult-macos-tags--prompt "")
 
 ;; (split-string-shell-command "banana sandwich blog")
@@ -236,6 +228,8 @@ See `macos-finder-tags-set-tags’ for more interactive UI."
 ;;   (find-file (consult--find "Files: " #'consult-macos-tags--builder (string-join (ensure-list input) " "))))
 
 ;;; with mdfind
+
+;; SAVE THIS for use after ‘tag’ is obsolete
 
 ;; (defun consult-macos-tags-list ()
 ;;   "Return a list of all unique Finder tags on macOS."
